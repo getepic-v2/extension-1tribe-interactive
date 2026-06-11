@@ -1,0 +1,336 @@
+{
+  "text": "As Jake and Aunt Hazel walk back to The house, they see a big, fluffy cloud in The shape of a lamb! The cloud sails across The blue sky above them. Jake takes one last picture. Do you see a big, fluffy cloud shaped like a lamb?",
+  "width": 1216,
+  "height": 837,
+  "words": [
+    {
+      "text": "As",
+      "x": 100,
+      "y": 66,
+      "width": 30,
+      "height": 19
+    },
+    {
+      "text": "Jake",
+      "x": 137,
+      "y": 66,
+      "width": 55,
+      "height": 19
+    },
+    {
+      "text": "and",
+      "x": 199,
+      "y": 66,
+      "width": 42,
+      "height": 19
+    },
+    {
+      "text": "Aunt",
+      "x": 248,
+      "y": 66,
+      "width": 53,
+      "height": 19
+    },
+    {
+      "text": "Hazel",
+      "x": 309,
+      "y": 66,
+      "width": 61,
+      "height": 19
+    },
+    {
+      "text": "walk",
+      "x": 377,
+      "y": 66,
+      "width": 54,
+      "height": 19
+    },
+    {
+      "text": "back",
+      "x": 102,
+      "y": 101,
+      "width": 53,
+      "height": 19
+    },
+    {
+      "text": "to",
+      "x": 162,
+      "y": 101,
+      "width": 23,
+      "height": 19
+    },
+    {
+      "text": "The",
+      "x": 193,
+      "y": 101,
+      "width": 35,
+      "height": 23
+    },
+    {
+      "text": "house,",
+      "x": 236,
+      "y": 101,
+      "width": 73,
+      "height": 23
+    },
+    {
+      "text": "they",
+      "x": 316,
+      "y": 101,
+      "width": 47,
+      "height": 25
+    },
+    {
+      "text": "see",
+      "x": 371,
+      "y": 107,
+      "width": 39,
+      "height": 13
+    },
+    {
+      "text": "a",
+      "x": 418,
+      "y": 107,
+      "width": 14,
+      "height": 13
+    },
+    {
+      "text": "big,",
+      "x": 440,
+      "y": 101,
+      "width": 40,
+      "height": 25
+    },
+    {
+      "text": "fluffy",
+      "x": 100,
+      "y": 136,
+      "width": 61,
+      "height": 25
+    },
+    {
+      "text": "cloud",
+      "x": 169,
+      "y": 137,
+      "width": 59,
+      "height": 19
+    },
+    {
+      "text": "in",
+      "x": 238,
+      "y": 137,
+      "width": 18,
+      "height": 19
+    },
+    {
+      "text": "The",
+      "x": 264,
+      "y": 137,
+      "width": 35,
+      "height": 19
+    },
+    {
+      "text": "shape",
+      "x": 306,
+      "y": 137,
+      "width": 68,
+      "height": 25
+    },
+    {
+      "text": "of",
+      "x": 382,
+      "y": 136,
+      "width": 24,
+      "height": 20
+    },
+    {
+      "text": "a",
+      "x": 413,
+      "y": 142,
+      "width": 13,
+      "height": 14
+    },
+    {
+      "text": "lamb!",
+      "x": 435,
+      "y": 137,
+      "width": 59,
+      "height": 19
+    },
+    {
+      "text": "The",
+      "x": 100,
+      "y": 173,
+      "width": 42,
+      "height": 19
+    },
+    {
+      "text": "cloud",
+      "x": 150,
+      "y": 173,
+      "width": 59,
+      "height": 19
+    },
+    {
+      "text": "sails",
+      "x": 218,
+      "y": 173,
+      "width": 51,
+      "height": 19
+    },
+    {
+      "text": "across",
+      "x": 277,
+      "y": 178,
+      "width": 78,
+      "height": 14
+    },
+    {
+      "text": "The",
+      "x": 363,
+      "y": 173,
+      "width": 34,
+      "height": 19
+    },
+    {
+      "text": "blue",
+      "x": 406,
+      "y": 173,
+      "width": 46,
+      "height": 19
+    },
+    {
+      "text": "sky",
+      "x": 460,
+      "y": 173,
+      "width": 39,
+      "height": 24
+    },
+    {
+      "text": "above",
+      "x": 101,
+      "y": 208,
+      "width": 68,
+      "height": 20
+    },
+    {
+      "text": "them.",
+      "x": 177,
+      "y": 208,
+      "width": 60,
+      "height": 20
+    },
+    {
+      "text": "Jake",
+      "x": 100,
+      "y": 244,
+      "width": 55,
+      "height": 19
+    },
+    {
+      "text": "takes",
+      "x": 162,
+      "y": 244,
+      "width": 62,
+      "height": 19
+    },
+    {
+      "text": "one",
+      "x": 232,
+      "y": 250,
+      "width": 41,
+      "height": 13
+    },
+    {
+      "text": "last",
+      "x": 282,
+      "y": 244,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "picture.",
+      "x": 331,
+      "y": 244,
+      "width": 84,
+      "height": 25
+    },
+    {
+      "text": "Do",
+      "x": 690,
+      "y": 587,
+      "width": 37,
+      "height": 24
+    },
+    {
+      "text": "you",
+      "x": 735,
+      "y": 594,
+      "width": 48,
+      "height": 21
+    },
+    {
+      "text": "see",
+      "x": 791,
+      "y": 594,
+      "width": 45,
+      "height": 17
+    },
+    {
+      "text": "a",
+      "x": 844,
+      "y": 594,
+      "width": 17,
+      "height": 16
+    },
+    {
+      "text": "big,",
+      "x": 869,
+      "y": 587,
+      "width": 50,
+      "height": 30
+    },
+    {
+      "text": "fluffy",
+      "x": 689,
+      "y": 626,
+      "width": 70,
+      "height": 29
+    },
+    {
+      "text": "cloud",
+      "x": 766,
+      "y": 626,
+      "width": 72,
+      "height": 24
+    },
+    {
+      "text": "shaped",
+      "x": 845,
+      "y": 626,
+      "width": 99,
+      "height": 29
+    },
+    {
+      "text": "like",
+      "x": 690,
+      "y": 665,
+      "width": 44,
+      "height": 25
+    },
+    {
+      "text": "a",
+      "x": 744,
+      "y": 672,
+      "width": 17,
+      "height": 17
+    },
+    {
+      "text": "lamb?",
+      "x": 769,
+      "y": 665,
+      "width": 80,
+      "height": 23
+    }
+  ]
+}

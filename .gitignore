@@ -3,3 +3,5 @@ dist
 dist-extension
 .env
 *.local
+*.log
+production-version

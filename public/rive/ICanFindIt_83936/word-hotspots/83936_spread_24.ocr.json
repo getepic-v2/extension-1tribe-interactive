@@ -1,0 +1,119 @@
+{
+  "text": "Jake cannot wait to take walks with Aunt Hazel and baby Hannah when she gets bigger.",
+  "width": 1216,
+  "height": 837,
+  "words": [
+    {
+      "text": "Jake",
+      "x": 131,
+      "y": 65,
+      "width": 53,
+      "height": 18
+    },
+    {
+      "text": "cannot",
+      "x": 192,
+      "y": 65,
+      "width": 77,
+      "height": 18
+    },
+    {
+      "text": "wait",
+      "x": 276,
+      "y": 65,
+      "width": 48,
+      "height": 18
+    },
+    {
+      "text": "to",
+      "x": 331,
+      "y": 65,
+      "width": 21,
+      "height": 18
+    },
+    {
+      "text": "take",
+      "x": 360,
+      "y": 65,
+      "width": 48,
+      "height": 18
+    },
+    {
+      "text": "walks",
+      "x": 414,
+      "y": 65,
+      "width": 66,
+      "height": 18
+    },
+    {
+      "text": "with",
+      "x": 487,
+      "y": 65,
+      "width": 47,
+      "height": 18
+    },
+    {
+      "text": "Aunt",
+      "x": 131,
+      "y": 100,
+      "width": 52,
+      "height": 18
+    },
+    {
+      "text": "Hazel",
+      "x": 190,
+      "y": 100,
+      "width": 60,
+      "height": 18
+    },
+    {
+      "text": "and",
+      "x": 259,
+      "y": 100,
+      "width": 40,
+      "height": 18
+    },
+    {
+      "text": "baby",
+      "x": 308,
+      "y": 100,
+      "width": 53,
+      "height": 23
+    },
+    {
+      "text": "Hannah",
+      "x": 369,
+      "y": 100,
+      "width": 83,
+      "height": 18
+    },
+    {
+      "text": "when",
+      "x": 459,
+      "y": 100,
+      "width": 59,
+      "height": 18
+    },
+    {
+      "text": "she",
+      "x": 132,
+      "y": 135,
+      "width": 37,
+      "height": 18
+    },
+    {
+      "text": "gets",
+      "x": 177,
+      "y": 135,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "bigger.",
+      "x": 234,
+      "y": 135,
+      "width": 72,
+      "height": 24
+    }
+  ]
+}
