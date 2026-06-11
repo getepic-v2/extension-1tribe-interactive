@@ -988,6 +988,9 @@ function findReadAlongButtonForTiming(timingSet: ReadAlongTimingSet, timingIndex
     ? exactMatchingButtons
     : buttons.filter((button) => getReadAlongButtonWordAliases(button).includes(timing.word))
   const pageMatchingButtons = matchingButtons.filter((button) => getReadAlongButtonPage(button) === timingSet.page)
+  const hasPagedButtons = matchingButtons.some((button) => getReadAlongButtonPage(button) !== null)
+  if (hasPagedButtons && !pageMatchingButtons.length) return null
+
   const preferredButtons = pageMatchingButtons.length ? pageMatchingButtons : matchingButtons
 
   return preferredButtons[occurrenceIndex] || preferredButtons[0] || null
@@ -1005,11 +1008,8 @@ function applyReadAlongButtonHighlight(timingSet: ReadAlongTimingSet | null, tim
     return null
   }
 
-  if (oneTribeReadAlongActiveHighlightButton && oneTribeReadAlongActiveHighlightButton !== button) {
-    oneTribeReadAlongActiveHighlightButton.classList.remove('is-read-along-active')
-  }
-
   const alreadyActive = oneTribeReadAlongActiveHighlightButton === button && button.classList.contains('is-read-along-active')
+  clearReadAlongButtonHighlight()
   oneTribeReadAlongActiveHighlightButton = button
   button.classList.add('is-read-along-active')
   if (!alreadyActive) refreshReadAlongButtonMagnifier(button)
@@ -1020,6 +1020,19 @@ function getReadAlongTimingEndTime(timingSet: ReadAlongTimingSet | null): number
   if (!timingSet?.timings.length) return 0
 
   return timingSet.timings.reduce((endTime, timing) => Math.max(endTime, timing.endTime), 0)
+}
+
+function doesReadAlongMediaCoverTimingSet(media: HTMLMediaElement | null, timingSet: ReadAlongTimingSet | null): boolean {
+  if (!media || !timingSet) return true
+
+  const expectedEndTime = getReadAlongTimingEndTime(timingSet)
+  if (expectedEndTime <= 0) return true
+
+  const duration = Number(media.duration)
+  if (!Number.isFinite(duration) || duration <= 0) return true
+
+  const toleranceSeconds = Math.max(0, getNumberParam('oneTribeReadAlongAudioDurationToleranceMs', 350) / 1000)
+  return duration + toleranceSeconds >= expectedEndTime
 }
 
 function getReadAlongProbePage(context: ExtensionContext, page?: number): number {
@@ -1354,11 +1367,20 @@ function getEpicObservedMediaScore(context: ExtensionContext, media: HTMLMediaEl
   const sources = getReadAlongAudioSourceCandidates(media).map(normalizeReadAlongAudioUrl).filter(Boolean)
   const expectedUrls = getExpectedReadAlongAudioUrls(context)
   const matchesExpectedUrl = sources.some((source) => expectedUrls.includes(source))
-  if (!media.paused && !media.ended && matchesExpectedUrl) return 0
-  if (!media.paused && !media.ended) return 1
-  if (matchesExpectedUrl && !media.ended) return 2
-  if (!media.ended) return 3
-  return 4
+  const audioPage = getReadAlongAudioPageForMedia(context, media)
+  const timingSet =
+    (audioPage !== null ? oneTribeReadAlongTimingSetsByPage.get(audioPage) || null : null) ||
+    oneTribeReadAlongLastTimingSet
+  const coversTiming = doesReadAlongMediaCoverTimingSet(media, timingSet)
+  if (!media.paused && !media.ended && matchesExpectedUrl && coversTiming) return 0
+  if (!media.paused && !media.ended && coversTiming) return 1
+  if (!media.paused && !media.ended && matchesExpectedUrl) return 2
+  if (!media.paused && !media.ended) return 3
+  if (matchesExpectedUrl && !media.ended && coversTiming) return 4
+  if (matchesExpectedUrl && !media.ended) return 5
+  if (!media.ended && coversTiming) return 6
+  if (!media.ended) return 7
+  return 8
 }
 
 function getBestEpicObservedMediaElement(context: ExtensionContext): HTMLMediaElement | null {
@@ -1413,9 +1435,11 @@ function updateEpicPlaybackStatus(
   reason: string,
 ): Record<string, unknown> {
   const audioPage = getReadAlongAudioPageForMedia(context, media)
-  const timingSet =
+  const candidateTimingSet =
     (audioPage !== null ? oneTribeReadAlongTimingSetsByPage.get(audioPage) || null : null) ||
     oneTribeReadAlongLastTimingSet
+  const mediaCoversTiming = doesReadAlongMediaCoverTimingSet(media, candidateTimingSet)
+  const timingSet = mediaCoversTiming ? candidateTimingSet : null
   const hasCurrentTime = Boolean(media && Number.isFinite(media.currentTime))
   const currentTime = hasCurrentTime && media ? media.currentTime : null
   const numericTime = hasCurrentTime ? Number(currentTime) : Number.NaN
@@ -1443,9 +1467,12 @@ function updateEpicPlaybackStatus(
     hasButtonMatch: Boolean(activeButton),
     lingerSeconds,
     media: mediaSnapshot,
+    mediaCoversTiming,
     message: media
       ? activeTiming
         ? `Epic playback matched "${activeTiming.text}" at ${Number(numericTime).toFixed(2)}s.`
+        : !mediaCoversTiming
+          ? 'Epic playback media is shorter than the selected timing rows; waiting for the matching audio.'
         : media.paused
           ? 'Epic playback media is paused.'
           : 'Epic playback media is active; no timing word matched yet.'
@@ -8949,6 +8976,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   }
 
   function clearButtons() {
+    clearReadAlongButtonHighlight()
     frame.querySelectorAll('.tribe-standalone-word-hotspot-button').forEach((item) => item.remove())
   }
 
