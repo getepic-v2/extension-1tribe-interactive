@@ -20,7 +20,7 @@
         "width": 1216,
         "height": 837
       },
-      "text": "epic! I Can Find It Spring Surprise I Can Find It Spring Surprise WRITTEN BY Kim Anderson ILLUSTRATED BY Jessica Gibson",
+      "text": "epic! I Can Find It Spring Surprise WRITTEN BY Kim Anderson ILLUSTRATED BY Jessica Gibson",
       "words": [
         {
           "text": "epic!",
@@ -167,138 +167,6 @@
             "y": 0.281959,
             "width": 0.240132,
             "height": 0.102748
-          },
-          "rive": {
-            "eventName": "lookup_word",
-            "property": {
-              "word": "Surprise"
-            },
-            "encodedEventName": "lookup_word_surprise"
-          }
-        },
-        {
-          "text": "I",
-          "bbox": {
-            "x": 808,
-            "y": 678,
-            "width": 5,
-            "height": 20
-          },
-          "normalized": {
-            "x": 0.664474,
-            "y": 0.810036,
-            "width": 0.004112,
-            "height": 0.023895
-          },
-          "rive": {
-            "eventName": "lookup_word",
-            "property": {
-              "word": "I"
-            },
-            "encodedEventName": "lookup_word_i"
-          }
-        },
-        {
-          "text": "Can",
-          "bbox": {
-            "x": 821,
-            "y": 678,
-            "width": 50,
-            "height": 20
-          },
-          "normalized": {
-            "x": 0.675164,
-            "y": 0.810036,
-            "width": 0.041118,
-            "height": 0.023895
-          },
-          "rive": {
-            "eventName": "lookup_word",
-            "property": {
-              "word": "Can"
-            },
-            "encodedEventName": "lookup_word_can"
-          }
-        },
-        {
-          "text": "Find",
-          "bbox": {
-            "x": 879,
-            "y": 677,
-            "width": 54,
-            "height": 21
-          },
-          "normalized": {
-            "x": 0.722862,
-            "y": 0.808841,
-            "width": 0.044408,
-            "height": 0.02509
-          },
-          "rive": {
-            "eventName": "lookup_word",
-            "property": {
-              "word": "Find"
-            },
-            "encodedEventName": "lookup_word_find"
-          }
-        },
-        {
-          "text": "It",
-          "bbox": {
-            "x": 941,
-            "y": 678,
-            "width": 16,
-            "height": 20
-          },
-          "normalized": {
-            "x": 0.773849,
-            "y": 0.810036,
-            "width": 0.013158,
-            "height": 0.023895
-          },
-          "rive": {
-            "eventName": "lookup_word",
-            "property": {
-              "word": "It"
-            },
-            "encodedEventName": "lookup_word_it"
-          }
-        },
-        {
-          "text": "Spring",
-          "bbox": {
-            "x": 809,
-            "y": 707,
-            "width": 61,
-            "height": 19
-          },
-          "normalized": {
-            "x": 0.665296,
-            "y": 0.844683,
-            "width": 0.050164,
-            "height": 0.0227
-          },
-          "rive": {
-            "eventName": "lookup_word",
-            "property": {
-              "word": "Spring"
-            },
-            "encodedEventName": "lookup_word_spring"
-          }
-        },
-        {
-          "text": "Surprise",
-          "bbox": {
-            "x": 876,
-            "y": 707,
-            "width": 80,
-            "height": 19
-          },
-          "normalized": {
-            "x": 0.720395,
-            "y": 0.844683,
-            "width": 0.065789,
-            "height": 0.0227
           },
           "rive": {
             "eventName": "lookup_word",
