@@ -8,12 +8,12 @@ Active configured book:
 
 - `83936` using `public/rive/ICanFindIt_83936`
 
-Planned future book configs:
+Future integration candidates:
 
-- `83230` using the Hummingbird Rive asset set
-- `74774` using the Creepy Cafetorium Rive asset set
+- `83230` after its Rive assets, page mapping, and reader behavior have been reviewed and tested
+- `74774` after its Rive assets, page mapping, and reader behavior have been reviewed and tested
 
-Future books should be added by extending the book config map in `src/extension/bookConfig.ts`, adding that book's assets under `public/rive`, and verifying the spread/page/state-machine mapping.
+Future books should be added by extending the book config map in `src/extension/bookConfig.ts`, adding that book's assets under `public/rive`, and verifying the spread/page/state-machine mapping before enabling the book ID.
 
 ## Current Integration
 

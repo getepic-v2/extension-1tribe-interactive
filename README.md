@@ -10,10 +10,10 @@ Production-oriented Epic Reader extension for 1Tribe Ventures interactive book c
 
 The extension is structured as a reusable reader integration engine plus book-specific configuration. This milestone ships the first configured book, `83936`.
 
-Planned future book integrations:
+Future integration candidates:
 
-- `83230`: Rive assets already exist outside this milestone package and should be added as a new book config.
-- `74774`: planned as the final book integration candidate and should be added as a new book config when its assets and page mapping are ready.
+- `83230`: Rive assets are not included or enabled in this milestone. Add only after the assets, page mapping, and reader behavior have been reviewed and tested.
+- `74774`: not included or enabled in this milestone. Add only after the assets, page mapping, and reader behavior are ready for review.
 
 ## Install
 
