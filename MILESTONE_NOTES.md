@@ -38,7 +38,7 @@ localStorage.setItem(
 location.reload()
 ```
 
-The visible prototype controls are hidden by default. To show diagnostics during development, add this parameter to the extension URL:
+Diagnostic controls are hidden by default. To show them during development, add this parameter to the extension URL:
 
 ```text
 &tribeCommandHarnessShowControls=1
