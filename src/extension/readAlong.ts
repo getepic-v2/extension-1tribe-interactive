@@ -82,6 +82,10 @@ let tribeReadAlongActiveHighlightButton: HTMLButtonElement | null = null
 let tribeReadAlongTimingSetsByPage = new Map<number, ReadAlongTimingSet>()
 let tribeEpicPlaybackPollTimer: number | null = null
 let tribeEpicPlaybackPollMedia: HTMLMediaElement | null = null
+let tribeEpicLookupPauseToken = 0
+let tribeEpicLookupPausedMedia: HTMLMediaElement | null = null
+let tribeEpicLookupShouldResume = false
+let tribeEpicLookupLastStatus: Record<string, unknown> | null = null
 
 export function updateTribeReadAlongSnapshot(update: Partial<TribeReadAlongSnapshot>) {
   tribeReadAlongSnapshot = {
@@ -955,6 +959,119 @@ export function probeEpicPlaybackState(context: ExtensionContext): Record<string
   }
 }
 
+export function pauseEpicPlaybackForWordLookup(context: ExtensionContext, reason: string): Record<string, unknown> {
+  installEpicPlaybackMediaProbe(context)
+  scanEpicPlaybackMediaElements(context, reason)
+
+  const media = getBestEpicObservedMediaElement(context) || tribeEpicObservedMediaElement
+  const token = tribeEpicLookupPauseToken + 1
+  tribeEpicLookupPauseToken = token
+  tribeEpicLookupPausedMedia = null
+  tribeEpicLookupShouldResume = false
+
+  const shouldPause = Boolean(media && !media.paused && !media.ended)
+  let pauseError: string | null = null
+
+  if (media && shouldPause) {
+    tribeEpicLookupPausedMedia = media
+    tribeEpicLookupShouldResume = true
+    try {
+      media.pause()
+      clearReadAlongButtonHighlight()
+      updateEpicPlaybackStatus(context, media, reason)
+    } catch (error) {
+      pauseError = String(error)
+      tribeEpicLookupPausedMedia = null
+      tribeEpicLookupShouldResume = false
+    }
+  }
+
+  const status: Record<string, unknown> = {
+    audioElementFound: Boolean(media),
+    currentPage: context.data.getCurrentPage(),
+    currentTime: media && Number.isFinite(media.currentTime) ? media.currentTime : null,
+    error: pauseError,
+    message: pauseError
+      ? `Unable to pause Epic playback for word lookup: ${pauseError}`
+      : shouldPause
+        ? 'Paused Epic playback while the word lookup is open.'
+        : 'No active Epic playback needed to pause for word lookup.',
+    mode: 'epic-playback-lookup-pause',
+    paused: shouldPause && !pauseError,
+    reason,
+    shouldResume: shouldPause && !pauseError,
+    token,
+  }
+
+  tribeEpicLookupLastStatus = status
+  return status
+}
+
+export function resumeEpicPlaybackAfterWordLookup(
+  context: ExtensionContext,
+  token: number,
+  reason: string,
+): Record<string, unknown> {
+  const tokenMatches = token === tribeEpicLookupPauseToken
+  const media = tokenMatches ? tribeEpicLookupPausedMedia : null
+  const shouldResume = tokenMatches && tribeEpicLookupShouldResume
+
+  if (tokenMatches) {
+    tribeEpicLookupPausedMedia = null
+    tribeEpicLookupShouldResume = false
+  }
+
+  const status: Record<string, unknown> = {
+    audioElementFound: Boolean(media),
+    currentPage: context.data.getCurrentPage(),
+    currentTime: media && Number.isFinite(media.currentTime) ? media.currentTime : null,
+    message: !tokenMatches
+      ? 'Skipped word lookup playback resume because a newer lookup is active.'
+      : !shouldResume
+        ? 'No paused Epic playback needs to resume after word lookup.'
+        : !media
+          ? 'No paused Epic playback media was available to resume after word lookup.'
+          : media.ended
+            ? 'Skipped word lookup playback resume because Epic playback already ended.'
+            : !media.paused
+              ? 'Skipped word lookup playback resume because Epic playback is already active.'
+              : 'Resuming Epic playback after word lookup closed.',
+    mode: 'epic-playback-lookup-resume',
+    reason,
+    resumed: false,
+    shouldResume,
+    token,
+    tokenMatches,
+  }
+
+  if (shouldResume && media && !media.ended && media.paused) {
+    try {
+      const playResult = media.play()
+      status.resumed = true
+      if (playResult && typeof playResult.catch === 'function') {
+        playResult.catch((error: unknown) => {
+          tribeEpicLookupLastStatus = {
+            ...status,
+            error: String(error),
+            message: `Unable to resume Epic playback after word lookup: ${String(error)}`,
+            resumed: false,
+          }
+          updateEpicPlaybackStatus(context, media, `${reason}: resume failed`)
+        })
+      }
+      updateEpicPlaybackStatus(context, media, reason)
+    } catch (error) {
+      status.error = String(error)
+      status.message = `Unable to resume Epic playback after word lookup: ${String(error)}`
+      status.resumed = false
+      updateEpicPlaybackStatus(context, media, `${reason}: resume failed`)
+    }
+  }
+
+  tribeEpicLookupLastStatus = status
+  return status
+}
+
 export async function startFollowingEpicPlayback(context: ExtensionContext, page?: number): Promise<Record<string, unknown>> {
   const requestedPage = getReadAlongProbePage(context, page)
   await probeReadAlongTimingData(context, requestedPage)
@@ -1655,6 +1772,7 @@ export function getReadAlongDebugStatus(
     lastAudioProbe: tribeReadAlongLastAudioProbe,
     lastAudioAlignmentProbe: tribeReadAlongLastAudioAlignmentProbe,
     lastAudioUrlProbe: tribeReadAlongLastAudioUrlProbe,
+    lastLookupPlaybackStatus: tribeEpicLookupLastStatus,
     lastPlaybackStatus: tribeReadAlongLastPlaybackStatus,
     lastProbe: tribeReadAlongLastProbe,
     lastTimePreview: tribeReadAlongLastTimePreview,

@@ -51,6 +51,7 @@ import {
   getReadAlongDebugStatus,
   getReadAlongButtonWordAliases,
   getTribeReadAlongSnapshot,
+  pauseEpicPlaybackForWordLookup,
   pauseReadAlongPlayback,
   previewReadAlongAtTime,
   probeEpicPlaybackState,
@@ -59,6 +60,7 @@ import {
   probeReadAlongAudioUrl,
   probeReadAlongTimingData,
   resetReadAlongDebugState,
+  resumeEpicPlaybackAfterWordLookup,
   startFollowingEpicPlayback,
   startReadAlongPlayback,
   stopFollowingEpicPlayback,
@@ -583,6 +585,12 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
   let lastSource = ''
   let lastDismissReason = ''
   let lastDismissAt = 0
+  let lookupClosedAt = 0
+  let modalContentObserver: MutationObserver | null = null
+  let readAlongLookupPauseToken = 0
+  let shouldResumeReadAlongAfterLookup = false
+  let lastReadAlongLookupPauseStatus: Record<string, unknown> | null = null
+  let lastReadAlongLookupResumeStatus: Record<string, unknown> | null = null
 
   const getOpeningEventSuppressMs = () => Math.max(100, getNumberParam('riveModalOpeningEventSuppressMs', 650))
   const getTtlMs = () => Math.max(500, getNumberParam('riveWordLookupDismissTtlMs', 12000))
@@ -594,20 +602,32 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
     passthroughTimer = null
   }
 
+  const resumeReadAlongAfterLookup = (reason: string) => {
+    if (!shouldResumeReadAlongAfterLookup) return
+
+    shouldResumeReadAlongAfterLookup = false
+    lastReadAlongLookupResumeStatus = resumeEpicPlaybackAfterWordLookup(context, readAlongLookupPauseToken, reason)
+  }
+
+  const setGuardPassthroughMode = (isActive: boolean, reason: string) => {
+    setWordLookupPassthroughMode(isActive)
+    if (!isActive) resumeReadAlongAfterLookup(reason)
+  }
+
   const setPassthroughUntil = (timestamp: number) => {
     passthroughUntil = timestamp
-    setWordLookupPassthroughMode(Date.now() <= timestamp)
+    setGuardPassthroughMode(Date.now() <= timestamp, 'lookup passthrough ended')
     clearPassthroughTimer()
     const delay = timestamp - Date.now()
     if (delay <= 0) {
-      setWordLookupPassthroughMode(false)
+      setGuardPassthroughMode(false, 'lookup passthrough expired')
       return
     }
 
     passthroughTimer = window.setTimeout(() => {
       passthroughTimer = null
       if (!isModalOpenNow() && Date.now() >= passthroughUntil) {
-        setWordLookupPassthroughMode(false)
+        setGuardPassthroughMode(false, 'lookup passthrough timer')
       }
     }, delay)
   }
@@ -629,9 +649,28 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
     })
   }
 
+  const isActualModalOpen = () => {
+    const actualOpen = modalOpen || hasVisibleModalContent()
+    if (actualOpen && !modalOpenedAt) modalOpenedAt = Date.now()
+    return actualOpen
+  }
+
   const isLookupModalExpected = () => Boolean(lastWord && modalExpectedUntil && Date.now() <= modalExpectedUntil)
 
-  const isModalOpenNow = () => modalOpen || hasVisibleModalContent() || isLookupModalExpected()
+  const isModalOpenNow = () => isActualModalOpen() || isLookupModalExpected()
+
+  const completeLookupIfModalClosed = (reason: string) => {
+    if (!lastWord || lookupClosedAt) return
+    if (!modalOpenedAt) return
+    if (Date.now() <= openingEventUntil) return
+    if (isActualModalOpen()) return
+
+    lookupClosedAt = Date.now()
+    modalOpen = false
+    modalExpectedUntil = 0
+    setPassthroughUntil(lookupClosedAt + getSuppressMs())
+    resumeReadAlongAfterLookup(reason)
+  }
 
   const updateModalOpen = (payload?: unknown) => {
     const state = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}
@@ -645,6 +684,7 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
     if (value) {
       modalOpenedAt = Date.now()
     }
+    window.setTimeout(() => completeLookupIfModalClosed(`modal-state-${value ? 'open' : 'closed'}`), 0)
   }
 
   const isEventInsideModal = (event: Event): boolean => {
@@ -686,6 +726,7 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
       source: lastSource,
       reason,
     })
+    window.setTimeout(() => completeLookupIfModalClosed(reason), getSuppressMs())
   }
 
   const isOpeningEvent = (event: Event): boolean => {
@@ -707,6 +748,14 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
   }
 
   const modalStateCleanup = context.events.on('modalStateChange', updateModalOpen)
+  if (modalRoot) {
+    modalContentObserver = new MutationObserver(() => completeLookupIfModalClosed('modal-content-changed'))
+    modalContentObserver.observe(modalRoot, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    })
+  }
   document.addEventListener('pointerdown', onDismissEvent, true)
   document.addEventListener('pointerup', onDismissEvent, true)
   document.addEventListener('click', onDismissEvent, true)
@@ -716,9 +765,15 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
       lastWord = word
       lastSource = source
       lookupArmedAt = Date.now()
+      lookupClosedAt = 0
+      modalOpenedAt = 0
       modalExpectedUntil = lookupArmedAt + getTtlMs()
       openingEventTarget = event?.target || null
       openingEventUntil = lookupArmedAt + getOpeningEventSuppressMs()
+      lastReadAlongLookupPauseStatus = pauseEpicPlaybackForWordLookup(context, `word lookup opened: ${source}`)
+      lastReadAlongLookupResumeStatus = null
+      readAlongLookupPauseToken = Number(lastReadAlongLookupPauseStatus.token) || 0
+      shouldResumeReadAlongAfterLookup = Boolean(lastReadAlongLookupPauseStatus.shouldResume)
       setPassthroughUntil(modalExpectedUntil)
       console.info('[1Tribe word lookup] Extension hit layers are in passthrough until Epic closes the lookup modal.', {
         word,
@@ -729,8 +784,10 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
     },
     cleanup() {
       modalStateCleanup()
+      modalContentObserver?.disconnect()
+      modalContentObserver = null
       clearPassthroughTimer()
-      setWordLookupPassthroughMode(false)
+      setGuardPassthroughMode(false, 'lookup guard cleanup')
       document.removeEventListener('pointerdown', onDismissEvent, true)
       document.removeEventListener('pointerup', onDismissEvent, true)
       document.removeEventListener('click', onDismissEvent, true)
@@ -755,6 +812,11 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
         lastSource,
         lastDismissAt,
         lastDismissReason,
+        lookupClosedAt,
+        readAlongLookupPausePending: shouldResumeReadAlongAfterLookup,
+        readAlongLookupPauseToken,
+        lastReadAlongLookupPauseStatus,
+        lastReadAlongLookupResumeStatus,
       }
     },
   }
