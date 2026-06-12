@@ -3,5 +3,5 @@
     "name": "1Tribe Interactive Extension",
     "version": "1.0.0",
     "globalName": "TribeInteractiveExtension",
-    "entry": "1TribeInteractiveExtension-main.js"
+    "entry": "TribeInteractiveExtension-main.js"
   }

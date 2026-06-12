@@ -13,7 +13,7 @@ Planned future book configs:
 - `83230` using the Hummingbird Rive asset set
 - `74774` using the Creepy Cafetorium Rive asset set
 
-Future books should be added by extending the book config map in `src/extension/index.ts`, adding that book's assets under `public/rive`, and verifying the spread/page/state-machine mapping.
+Future books should be added by extending the book config map in `src/extension/bookConfig.ts`, adding that book's assets under `public/rive`, and verifying the spread/page/state-machine mapping.
 
 ## Current Integration
 
@@ -33,7 +33,7 @@ Use Epic's local debug extension flow:
 localStorage.setItem('epic_debug_skip_page_render', '1')
 localStorage.setItem(
   'epic_debug_plugin',
-  'http://localhost:8080/1TribeInteractiveExtension-main.js?cache=local-review'
+  'http://localhost:8080/TribeInteractiveExtension-main.js?cache=local-review'
 )
 location.reload()
 ```
