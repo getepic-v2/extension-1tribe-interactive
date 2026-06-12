@@ -8,23 +8,96 @@ import {
   type Event as RiveRuntimeEvent,
   type ViewModelInstance,
 } from '@rive-app/canvas'
-import type { Extension, ExtensionContext, FlipBookRect, WordTimingData, WordTimingEntry } from './types'
+import type { Extension, ExtensionContext, FlipBookRect } from './types'
+import { commandHarnessStyles, drawerStyles, simpleOverlayStyles, standaloneWordHotspotStyles, styles } from './styles'
+import {
+  EPIC_WORD_HOTSPOT_TEST_DEFAULTS,
+  SAMPLE_SPREADS,
+  TRIBE_SPREADS,
+  getEpicReaderBookIdFromUrl,
+  getEpicTribeBookConfig,
+  getSupportedTribeRiveFolders,
+  isEpicReaderHost,
+  type CommandHarnessPreviewFile,
+  type EpicTribeBookConfig,
+  type SpreadConfig,
+} from './bookConfig'
+import {
+  cleanWordHotspotText,
+  getWordHotspotLogicalPage,
+  getWordHotspotTextSegments,
+  isSuspectWordHotspotText,
+  normalizeWordHotspotFileName,
+  type WordHotspotBounds,
+  type WordHotspotTextSegment,
+} from './wordHotspotText'
+import {
+  cleanLookupWord,
+  getCommand,
+  getEpicPageNavigationCommand,
+  getLookupWordPayload,
+  getModalSize,
+  getPageNavigationDirection,
+  isPageNavigationCommand,
+  type EpicPageNavigationCommand,
+  type ReaderCommand,
+  type RiveAction,
+} from './readerCommands'
+import {
+  cleanupReadAlongDebugState,
+  clearReadAlongButtonHighlight,
+  configureReadAlong,
+  ensureEpicPlaybackFollowForCurrentPage,
+  getReadAlongDebugStatus,
+  getReadAlongButtonWordAliases,
+  getTribeReadAlongSnapshot,
+  pauseReadAlongPlayback,
+  previewReadAlongAtTime,
+  probeEpicPlaybackState,
+  probeReadAlongAudio,
+  probeReadAlongAudioAlignment,
+  probeReadAlongAudioUrl,
+  probeReadAlongTimingData,
+  resetReadAlongDebugState,
+  startFollowingEpicPlayback,
+  startReadAlongPlayback,
+  stopFollowingEpicPlayback,
+  stopReadAlongPlayback,
+  updateTribeReadAlongSnapshot,
+} from './readAlong'
+import {
+  configureSimpleRiveFiles,
+  expandPageRange,
+  filterSimpleRiveFilesForBook,
+  getFirstSimpleRivePage,
+  getNavigationDirectionFromClick,
+  getNavigationDirectionFromPayload,
+  getReaderPageFromPayload,
+  getRiveAnimationInputNameCandidates,
+  getSimpleRiveAnimationEntry,
+  getSimpleRiveAnimationNames,
+  getSimpleRiveBookIdFromContext,
+  getSimpleRiveFileForPage,
+  getSimpleRiveFileSource,
+  getSimpleRiveLastPage,
+  getSimpleRiveStateMachineEntry,
+  inferSimpleRivePage,
+  isExactRiveAnimationNameMatch,
+  listSimpleRiveAnimations,
+  listSimpleRiveStateMachines,
+  loadSimpleRiveFiles,
+  normalizeRiveNameForMatch,
+  parseSimpleRivePages,
+  type SimpleRiveAnimationEntry,
+  type SimpleRiveContents,
+  type SimpleRiveFile,
+  type SimpleRiveStateMachineEntry,
+} from './simpleRiveFiles'
 
 declare const __EXTENSION_GLOBAL_NAME__: string
+declare const __EXTENSION_ENTRY_FILE__: string
+const EPIC_EXTENSION_REGISTRATION_NAME = __EXTENSION_ENTRY_FILE__.replace(/-main\.js$/i, '')
 
-type ReaderCommand =
-  | 'openDrawer'
-  | 'closeDrawer'
-  | 'openModal'
-  | 'closeModal'
-  | 'pageForward'
-  | 'pageBack'
-  | 'goToPage'
-  | 'nextPage'
-  | 'previousPage'
-  | 'lookup_word'
-
-type EpicPageNavigationCommand = 'nextPage' | 'previousPage'
 type CommandHarnessTransitionDirection = 1 | -1 | null
 type CommandHarnessEdgeDirection = 'back' | 'next'
 
@@ -33,23 +106,6 @@ interface CommandHarnessStateMachineInput {
   type?: number
   value?: boolean
   fire?: () => void
-}
-
-interface CommandHarnessPreviewFile {
-  file: string
-  label: string
-  readerEnd: number
-  readerStart: number
-  stateMachine: string
-}
-
-interface EpicOneTribeBookConfig {
-  bookId: number
-  defaultParams: Record<string, string>
-  previewFiles: CommandHarnessPreviewFile[]
-  riveFolder: string
-  title: string
-  wordHotspotFolder: string
 }
 
 interface CommandHarnessPreviewLayer {
@@ -77,51 +133,6 @@ interface CommandHarnessAnimationResolution {
 
 interface CommandHarnessStateMachineResolution {
   artboard?: string
-  stateMachine: string
-}
-
-interface RiveAction {
-  name: string
-  properties?: Record<string, unknown>
-  source: 'rive-event' | 'rive-state' | 'nav-gutter'
-}
-
-interface SpreadConfig {
-  pages: [number, number]
-  file: string
-  label: string
-  stateMachine?: string
-}
-
-interface SimpleRiveFile {
-  bookId: number | null
-  folder: string | null
-  name: string
-  pages: [number, number] | null
-  readerPages: number[] | null
-  animation?: string | null
-  stateMachine?: string | null
-  artboard?: string | null
-  url: string
-}
-
-interface SimpleRiveContents {
-  artboards?: Array<{
-    name: string
-    animations?: string[]
-    stateMachines?: Array<{
-      name: string
-    }>
-  }>
-}
-
-interface SimpleRiveAnimationEntry {
-  artboard: string
-  animation: string
-}
-
-interface SimpleRiveStateMachineEntry {
-  artboard: string
   stateMachine: string
 }
 
@@ -181,102 +192,42 @@ interface RiveRuntimeConfig {
   spreads: SpreadConfig[]
 }
 
-interface OneTribeDebugApi {
+interface TribeDebugApi {
   lookupWord(word: string): boolean
 }
 
-interface OneTribeReadAlongSnapshot {
-  activeButtonWord: string | null
-  audioElementFound: boolean
-  audioPaused: boolean | null
-  currentTime: number | null
-  hasMatch: boolean
-  message: string
-  page: number | null
-  timingCount: number
-  timingIndex: number
-  updatedAt: number
-  word: string | null
-}
-
-let oneTribeReadAlongSnapshot: OneTribeReadAlongSnapshot = {
-  activeButtonWord: null,
-  audioElementFound: false,
-  audioPaused: null,
-  currentTime: null,
-  hasMatch: false,
-  message: 'Read-along status not initialized.',
-  page: null,
-  timingCount: 0,
-  timingIndex: -1,
-  updatedAt: Date.now(),
-  word: null,
-}
-let oneTribeReadAlongLastTimingSet: ReadAlongTimingSet | null = null
-let oneTribeReadAlongLastProbe: Record<string, unknown> | null = null
-let oneTribeReadAlongLastAudioProbe: Record<string, unknown> | null = null
-let oneTribeReadAlongLastAudioUrlProbe: Record<string, unknown> | null = null
-let oneTribeReadAlongLastAudioAlignmentProbe: Record<string, unknown> | null = null
-let oneTribeReadAlongLastTimePreview: Record<string, unknown> | null = null
-let oneTribeReadAlongPlaybackAudio: HTMLAudioElement | null = null
-let oneTribeReadAlongPlaybackCleanup: (() => void) | null = null
-let oneTribeReadAlongLastPlaybackStatus: Record<string, unknown> | null = null
-let oneTribeEpicPlaybackFollowing = false
-let oneTribeEpicMediaProbeCleanup: (() => void) | null = null
-let oneTribeEpicMediaProbeInstalled = false
-let oneTribeEpicObservedMediaElements = new Set<HTMLMediaElement>()
-let oneTribeEpicObservedMediaCleanups = new Map<HTMLMediaElement, () => void>()
-let oneTribeEpicObservedMediaElement: HTMLMediaElement | null = null
-let oneTribeEpicLastPlaybackStatus: Record<string, unknown> | null = null
-let oneTribeReadAlongActiveHighlightButton: HTMLButtonElement | null = null
-let oneTribeReadAlongTimingSetsByPage = new Map<number, ReadAlongTimingSet>()
-let oneTribeEpicPlaybackPollTimer: number | null = null
-let oneTribeEpicPlaybackPollMedia: HTMLMediaElement | null = null
-
-function updateOneTribeReadAlongSnapshot(update: Partial<OneTribeReadAlongSnapshot>) {
-  oneTribeReadAlongSnapshot = {
-    ...oneTribeReadAlongSnapshot,
-    ...update,
-    updatedAt: Date.now(),
-  }
-}
-
-function getOneTribeReadAlongSnapshot() {
-  return oneTribeReadAlongSnapshot
-}
-
-type OneTribeDebugWindow = Window &
+type TribeDebugWindow = Window &
   typeof globalThis & {
-    OneTribeDebug?: OneTribeDebugApi
-    oneTribeCommandHarnessNextPage?: () => boolean
-    oneTribeCommandHarnessPreviousPage?: () => boolean
-    oneTribeCommandHarnessCompletionDebug?: () => Record<string, unknown>
-    oneTribeCommandHarnessReleaseForCompletion?: (reason?: string) => Record<string, unknown>
-    oneTribeCommandHarnessRestoreOverlay?: (reason?: string) => Record<string, unknown>
-    oneTribeDebugStatus?: () => Record<string, unknown>
-    oneTribeLookupWord?: (word: string) => boolean
-    oneTribeClickWordHotspot?: (word?: string) => boolean
-    oneTribeCloseModal?: () => boolean
-    oneTribeArmWordLookupDismiss?: (word?: string) => boolean
-    oneTribeNextPage?: () => boolean
-    oneTribePreviousPage?: () => boolean
-    oneTribeProbeReadAlongAudio?: (page?: number) => Record<string, unknown>
-    oneTribeProbeReadAlongAudioAlignment?: (page?: number) => Promise<Record<string, unknown>>
-    oneTribeProbeReadAlongAudioUrl?: (page?: number) => Promise<Record<string, unknown>>
-    oneTribeProbeReadAlongTimings?: (page?: number) => Promise<Record<string, unknown>>
-    oneTribePreviewReadAlongAtTime?: (time?: number, page?: number) => Promise<Record<string, unknown>>
-    oneTribeStartReadAlongAudio?: (page?: number) => Promise<Record<string, unknown>>
-    oneTribePauseReadAlongAudio?: () => Record<string, unknown>
-    oneTribeStopReadAlongAudio?: () => Record<string, unknown>
-    oneTribeProbeEpicPlayback?: () => Record<string, unknown>
-    oneTribeStartEpicPlaybackFollow?: (page?: number) => Promise<Record<string, unknown>>
-    oneTribeStopEpicPlaybackFollow?: () => Record<string, unknown>
-    oneTribeReadAlongStatus?: () => Record<string, unknown>
-    oneTribeForceWordHotspotPage?: (page?: number) => boolean
-    oneTribeEpicNativePassthroughDebug?: () => Record<string, unknown>
-    oneTribeReaderNavGutterDebug?: () => Record<string, unknown>
-    oneTribeWordHotspotDebug?: () => Record<string, unknown>
-    oneTribeWordHotspots?: ActiveWordHotspot[]
+    TribeDebug?: TribeDebugApi
+    tribeCommandHarnessNextPage?: () => boolean
+    tribeCommandHarnessPreviousPage?: () => boolean
+    tribeCommandHarnessCompletionDebug?: () => Record<string, unknown>
+    tribeCommandHarnessReleaseForCompletion?: (reason?: string) => Record<string, unknown>
+    tribeCommandHarnessRestoreOverlay?: (reason?: string) => Record<string, unknown>
+    tribeDebugStatus?: () => Record<string, unknown>
+    tribeLookupWord?: (word: string) => boolean
+    tribeClickWordHotspot?: (word?: string) => boolean
+    tribeCloseModal?: () => boolean
+    tribeArmWordLookupDismiss?: (word?: string) => boolean
+    tribeNextPage?: () => boolean
+    tribePreviousPage?: () => boolean
+    tribeProbeReadAlongAudio?: (page?: number) => Record<string, unknown>
+    tribeProbeReadAlongAudioAlignment?: (page?: number) => Promise<Record<string, unknown>>
+    tribeProbeReadAlongAudioUrl?: (page?: number) => Promise<Record<string, unknown>>
+    tribeProbeReadAlongTimings?: (page?: number) => Promise<Record<string, unknown>>
+    tribePreviewReadAlongAtTime?: (time?: number, page?: number) => Promise<Record<string, unknown>>
+    tribeStartReadAlongAudio?: (page?: number) => Promise<Record<string, unknown>>
+    tribePauseReadAlongAudio?: () => Record<string, unknown>
+    tribeStopReadAlongAudio?: () => Record<string, unknown>
+    tribeProbeEpicPlayback?: () => Record<string, unknown>
+    tribeStartEpicPlaybackFollow?: (page?: number) => Promise<Record<string, unknown>>
+    tribeStopEpicPlaybackFollow?: () => Record<string, unknown>
+    tribeReadAlongStatus?: () => Record<string, unknown>
+    tribeForceWordHotspotPage?: (page?: number) => boolean
+    tribeEpicNativePassthroughDebug?: () => Record<string, unknown>
+    tribeReaderNavGutterDebug?: () => Record<string, unknown>
+    tribeWordHotspotDebug?: () => Record<string, unknown>
+    tribeWordHotspots?: ActiveWordHotspot[]
   }
 
 type TransitionDirection = 'forward' | 'backward'
@@ -319,13 +270,6 @@ interface WordHotspotRenderSize {
   height: number
 }
 
-interface WordHotspotBounds {
-  x?: number
-  y?: number
-  width?: number
-  height?: number
-}
-
 interface WordHotspotWord {
   text?: string
   normalized?: WordHotspotBounds
@@ -346,21 +290,6 @@ interface WordHotspotOcrWord {
   y?: number
 }
 
-interface ReadAlongWordTiming {
-  duration: number
-  endTime: number
-  raw: WordTimingEntry
-  text: string
-  time: number
-  word: string
-}
-
-interface ReadAlongTimingSet {
-  page: number
-  timings: ReadAlongWordTiming[]
-  wordData: WordTimingData | null
-}
-
 interface ActiveWordHotspot {
   fileName: string
   height: number
@@ -371,15 +300,6 @@ interface ActiveWordHotspot {
   word: string
   x: number
   y: number
-}
-
-interface WordHotspotTextSegment {
-  bounds: Required<WordHotspotBounds>
-  lookupWord: string
-  segmentCount: number
-  segmentIndex: number
-  sourcePhrase: string | null
-  sourceWord: string
 }
 
 interface WordLookupDismissGuard {
@@ -420,8 +340,8 @@ function hasAnyFlag(params: URLSearchParams, names: string[]): boolean {
 function handleEmergencyDisable(): boolean {
   const pageParams = new URLSearchParams(window.location.search)
   const scriptParams = getSearchParamsFromUrl(getCurrentScriptUrl())
-  const disableKeys = ['oneTribeOff', 'disableOneTribe']
-  const killKeys = ['oneTribeKill', 'oneTribePanic']
+  const disableKeys = ['tribeOff', 'disableTribe']
+  const killKeys = ['tribeKill', 'tribePanic']
   const shouldKill = hasAnyFlag(pageParams, killKeys) || hasAnyFlag(scriptParams, killKeys)
   const shouldDisable = shouldKill || hasAnyFlag(pageParams, disableKeys) || hasAnyFlag(scriptParams, disableKeys)
 
@@ -447,14 +367,14 @@ function shouldShowBootBadge(): boolean {
   const pageParams = new URLSearchParams(window.location.search)
   const scriptParams = getSearchParamsFromUrl(getCurrentScriptUrl())
 
-  return hasAnyFlag(pageParams, ['oneTribeBootBadge']) || hasAnyFlag(scriptParams, ['oneTribeBootBadge'])
+  return hasAnyFlag(pageParams, ['tribeBootBadge']) || hasAnyFlag(scriptParams, ['tribeBootBadge'])
 }
 
 function updateBootBadge(message: string): void {
-  let badge = document.getElementById('one-tribe-boot-badge')
+  let badge = document.getElementById('1tribe-boot-badge')
   if (!badge) {
     badge = document.createElement('div')
-    badge.id = 'one-tribe-boot-badge'
+    badge.id = '1tribe-boot-badge'
     badge.style.cssText = [
       'position:fixed',
       'right:12px',
@@ -497,9 +417,8 @@ function getExtensionScriptUrl(): string {
   const currentScriptUrl = getCurrentScriptUrl()
   if (currentScriptUrl) return currentScriptUrl
 
-  const entryFile = `${__EXTENSION_GLOBAL_NAME__}-main.js`
   const script = Array.from(document.querySelectorAll<HTMLScriptElement>('script[src]')).find((item) =>
-    item.src.includes(entryFile),
+    item.src.includes(__EXTENSION_ENTRY_FILE__),
   )
   if (script?.src) return script.src
 
@@ -509,119 +428,18 @@ function getExtensionScriptUrl(): string {
 const extensionScriptUrl = getExtensionScriptUrl()
 const RIVE_WASM_SOURCE = new URL('rive/rive.wasm', extensionScriptUrl).href
 const RIVE_WASM_FALLBACK_SOURCE = new URL('rive/rive_fallback.wasm', extensionScriptUrl).href
-const SAMPLE_SPREADS: SpreadConfig[] = [
-  {
-    pages: [1, Number.MAX_SAFE_INTEGER],
-    file: 'rive/ICanFindIt_83936/83936_spread_02.riv',
-    label: 'Spread 02',
-  },
-]
-const ONE_TRIBE_SPREADS: SpreadConfig[] = [
-  {
-    pages: [1, Number.MAX_SAFE_INTEGER],
-    file: 'rive/ICanFindIt_83936/83936_spread_02.riv',
-    label: 'Spread 02',
-  },
-]
 const urlParams = new URL(extensionScriptUrl).searchParams
 const pageUrlParams = new URLSearchParams(window.location.search)
-const STATIC_PREVIEW_ANIMATION = '__one_tribe_static_preview__'
-const EPIC_WORD_HOTSPOT_TEST_DEFAULTS: Record<string, string> = {
-  riveStackTransitionPages: '0',
-  riveForwardIncomingOnTop: '1',
-  riveWordHotspots: '1',
-  oneTribeStandaloneWordHotspots: '1',
-  riveWordHotspotPaddingPct: '0.004',
-  riveWordHotspotPaddingXPct: '0.0012',
-  riveWordHotspotPaddingYPct: '0.004',
-  riveWordHotspotStrokePx: '3',
-  riveWordHotspotMagnifyScale: '1.16',
-  riveWordHotspotOutlineScaleX: '1.16',
-  riveWordHotspotOutlineScaleY: '1.2',
-  riveWordHotspotUseOcrJson: '1',
-  rivePageTurnForwardOutAnimation: 'Page_next',
-  rivePageTurnBackOutAnimation: 'Page_prev',
-  rivePageTurnInAnimation: 'Page_in',
-  rivePageTurnIdleAnimation: 'idle',
-  riveNavGutterPct: '2',
-}
-const EPIC_1TRIBE_READER_DEFAULTS: Record<string, string> = {
-  oneTribeCommandHarness: '1',
-  oneTribeCommandHarnessTakeover: '1',
-  oneTribeCommandHarnessRive: '1',
-  oneTribeCommandHarnessWordFinder: '1',
-  oneTribeCommandHarnessForwardPreload: '1',
-  oneTribeCommandHarnessIdleAfterPageIn: '1',
-  oneTribeCommandHarnessResumeStateMachineAfterIdle: '1',
-  oneTribeCommandHarnessUseEpicBookFrame: '1',
-  oneTribeCommandHarnessUseEpicNativeShell: '1',
-  oneTribeCommandHarnessEpicBookFrameInsetPx: '0',
-  oneTribeCommandHarnessEdgeNavPct: '5',
-  oneTribeCommandHarnessShowControls: '0',
-  oneTribeReadAlong: '1',
-}
-const CURRENT_EPIC_1TRIBE_BOOK_ID = 83936
-
-function createIcanFindItPreviewFiles(): CommandHarnessPreviewFile[] {
-  return ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24'].map((spread) => {
-    const spreadNumber = Number(spread)
-    const readerStart = spread === '01' ? 0 : spreadNumber
-    return {
-      file: `rive/ICanFindIt_83936/83936_spread_${spread}.riv`,
-      label: `spread ${spread}`,
-      readerEnd: readerStart + 1,
-      readerStart,
-      stateMachine:
-        spread === '01'
-          ? '83936_spread_01'
-          : `83936_spread_${spread}&${String(spreadNumber + 1).padStart(2, '0')}`,
-    }
-  })
-}
-
-const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicOneTribeBookConfig> = {
-  [CURRENT_EPIC_1TRIBE_BOOK_ID]: {
-    bookId: CURRENT_EPIC_1TRIBE_BOOK_ID,
-    defaultParams: EPIC_1TRIBE_READER_DEFAULTS,
-    previewFiles: createIcanFindItPreviewFiles(),
-    riveFolder: 'ICanFindIt_83936',
-    title: 'I Can Find It',
-    wordHotspotFolder: 'ICanFindIt_83936',
-  },
-}
-
-function isEpicReaderHost(): boolean {
-  return window.location.hostname.endsWith('getepic.dev') || window.location.hostname.endsWith('getepic.com')
-}
-
-function getEpicOneTribeBookConfig(bookId: unknown = getEpicReaderBookIdFromUrl()): EpicOneTribeBookConfig | null {
-  const numericBookId = Number(bookId)
-  if (!Number.isFinite(numericBookId)) return null
-
-  return EPIC_1TRIBE_BOOK_CONFIGS[Math.trunc(numericBookId)] || null
-}
-
-function getSupportedOneTribeRiveFolders(): string[] {
-  return Object.values(EPIC_1TRIBE_BOOK_CONFIGS).map((config) => config.riveFolder)
-}
-
-function getEpicReaderBookIdFromUrl(): number | null {
-  const match = window.location.pathname.match(/\/app\/read\/(\d+)/)
-  if (!match) return null
-
-  const bookId = Number(match[1])
-  return Number.isFinite(bookId) && bookId > 0 ? bookId : null
-}
-
+const STATIC_PREVIEW_ANIMATION = '__1tribe_static_preview__'
 function getStableEpicDefaultParam(name: string): string | null {
   const isDisabled =
-    urlParams.get('oneTribeStablePreset') === '0' ||
-    urlParams.get('oneTribeStablePreset') === 'false' ||
-    pageUrlParams.get('oneTribeStablePreset') === '0' ||
-    pageUrlParams.get('oneTribeStablePreset') === 'false'
+    urlParams.get('tribeStablePreset') === '0' ||
+    urlParams.get('tribeStablePreset') === 'false' ||
+    pageUrlParams.get('tribeStablePreset') === '0' ||
+    pageUrlParams.get('tribeStablePreset') === 'false'
   const bookId = getEpicReaderBookIdFromUrl()
   if (isDisabled || !bookId || !isEpicReaderHost()) return null
-  const bookConfig = getEpicOneTribeBookConfig(bookId)
+  const bookConfig = getEpicTribeBookConfig(bookId)
   if (!bookConfig) return null
 
   if (name === 'riveFolder') {
@@ -642,12 +460,12 @@ function getStableEpicDefaultParam(name: string): string | null {
 
   const shouldUseWordHotspotTest =
     ['1', 'true'].includes(
-      (pageUrlParams.get('oneTribeWordHotspotTest') ?? urlParams.get('oneTribeWordHotspotTest') ?? '').toLowerCase(),
+      (pageUrlParams.get('tribeWordHotspotTest') ?? urlParams.get('tribeWordHotspotTest') ?? '').toLowerCase(),
     )
   const shouldUseCommandHarnessWordFinderDefaults =
     ['1', 'true'].includes(
-      (pageUrlParams.get('oneTribeCommandHarnessWordFinder') ??
-        urlParams.get('oneTribeCommandHarnessWordFinder') ??
+      (pageUrlParams.get('tribeCommandHarnessWordFinder') ??
+        urlParams.get('tribeCommandHarnessWordFinder') ??
         '').toLowerCase(),
     )
   if (
@@ -665,8 +483,8 @@ function getStoredDebugParam(name: string): string | null {
 
   try {
     rawValue =
-      window.localStorage.getItem('oneTribeDebugParams') ||
-      window.localStorage.getItem('oneTribeExtensionParams')
+      window.localStorage.getItem('tribeDebugParams') ||
+      window.localStorage.getItem('tribeExtensionParams')
   } catch {
     return null
   }
@@ -694,22 +512,22 @@ function getBooleanParam(name: string, fallback: boolean): boolean {
 }
 
 function shouldUseCommandHarness(): boolean {
-  return getBooleanParam('oneTribeCommandHarness', false)
+  return getBooleanParam('tribeCommandHarness', false)
 }
 
 function shouldUseReadAlong(): boolean {
-  return getBooleanParam('oneTribeReadAlong', false) || getBooleanParam('riveReadAlong', false)
+  return getBooleanParam('tribeReadAlong', false) || getBooleanParam('riveReadAlong', false)
 }
 
 function shouldUseCommandHarnessWordFinder(): boolean {
-  const explicitValue = getStringParam('oneTribeCommandHarnessWordFinder')
+  const explicitValue = getStringParam('tribeCommandHarnessWordFinder')
   if (explicitValue !== null) {
     return explicitValue === '1' || explicitValue === 'true'
   }
 
   return (
     shouldUseStandaloneWordHotspots() ||
-    getBooleanParam('oneTribeWordHotspotTest', false) ||
+    getBooleanParam('tribeWordHotspotTest', false) ||
     getBooleanParam('wordHotspots', false) ||
     getBooleanParam('riveWordHotspots', false)
   )
@@ -720,1598 +538,17 @@ function getNumberParam(name: string, fallback: number): number {
   return Number.isFinite(value) && value > 0 ? value : fallback
 }
 
-function parseReadAlongSeconds(value: unknown): number {
-  const numericValue = Number(value)
-  if (Number.isFinite(numericValue)) return numericValue
-
-  const text = String(value ?? '').trim()
-  if (!text) return Number.NaN
-
-  const secondsValue = Number(text.replace(/s$/i, ''))
-  if (Number.isFinite(secondsValue)) return secondsValue
-
-  const parts = text.split(':').map((part) => Number(part))
-  if (parts.length < 2 || parts.some((part) => !Number.isFinite(part))) return Number.NaN
-
-  return parts.reduce((total, part) => total * 60 + part, 0)
-}
-
-function normalizeReadAlongWordTiming(wordData: WordTimingData | null | undefined): ReadAlongWordTiming[] {
-  const entries = Array.isArray(wordData?.word_data) ? wordData.word_data : []
-  return entries
-    .map((entry): ReadAlongWordTiming | null => {
-      const text = String(entry.text || '').trim()
-      const word = normalizeReadAlongWordAlias(text)
-      const time = parseReadAlongSeconds(entry.time)
-      const duration = parseReadAlongSeconds(entry.duration)
-      if (!text || !word || !Number.isFinite(time) || time < 0) return null
-
-      const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0.18
-      return {
-        duration: safeDuration,
-        endTime: time + safeDuration,
-        raw: entry,
-        text,
-        time,
-        word,
-      }
-    })
-    .filter((entry): entry is ReadAlongWordTiming => Boolean(entry))
-    .sort((first, second) => first.time - second.time)
-}
-
-function getOrderedReadAlongTimingPageCandidates(
-  page: number,
-  maxPage: number | null,
-  preferredPages: number[] = [],
-): number[] {
-  const basePage = Number(page)
-  if (!Number.isFinite(basePage)) return []
-
-  const normalizedPage = Math.trunc(basePage)
-  const boundedMaxPage = Number.isFinite(maxPage) && Number(maxPage) >= 0 ? Math.trunc(Number(maxPage)) : null
-  const candidates = new Set<number>()
-  const addPage = (candidate: number) => {
-    if (!Number.isFinite(candidate)) return
-
-    const normalized = Math.trunc(candidate)
-    if (normalized < 0) return
-    if (boundedMaxPage !== null && normalized > boundedMaxPage) return
-
-    candidates.add(normalized)
-  }
-
-  addPage(normalizedPage)
-  preferredPages.forEach(addPage)
-
-  const isLeftPage = normalizedPage % 2 === 0
-  const nearbyPages = isLeftPage
-    ? [normalizedPage + 1, normalizedPage - 1, normalizedPage + 2, normalizedPage - 2, normalizedPage + 3, normalizedPage - 3]
-    : [normalizedPage - 1, normalizedPage + 1, normalizedPage - 2, normalizedPage + 2, normalizedPage - 3, normalizedPage + 3]
-  nearbyPages.forEach(addPage)
-
-  return Array.from(candidates)
-}
-
-function findReadAlongTimingIndexAtTime(
-  timings: ReadAlongWordTiming[],
-  currentTime: number,
-  lingerSeconds: number,
-): number {
-  if (!Number.isFinite(currentTime) || currentTime < 0) return -1
-
-  for (let index = 0; index < timings.length; index += 1) {
-    const timing = timings[index]
-    if (currentTime >= timing.time && currentTime <= timing.endTime + lingerSeconds) return index
-  }
-
-  return -1
-}
-
-function getReadAlongTimingOccurrenceIndex(timings: ReadAlongWordTiming[], timingIndex: number): number {
-  const target = timings[timingIndex]
-  if (!target) return 0
-
-  let occurrence = 0
-  for (let index = 0; index < timingIndex; index += 1) {
-    if (timings[index]?.word === target.word) occurrence += 1
-  }
-
-  return occurrence
-}
-
-function clearReadAlongButtonHighlight(): void {
-  if (oneTribeReadAlongActiveHighlightButton) {
-    oneTribeReadAlongActiveHighlightButton.classList.remove('is-read-along-active')
-    oneTribeReadAlongActiveHighlightButton = null
-  }
-
-  document
-    .querySelectorAll<HTMLButtonElement>(
-      '.tribe-word-hotspot-button.is-read-along-active, .tribe-standalone-word-hotspot-button.is-read-along-active',
-    )
-    .forEach((button) => button.classList.remove('is-read-along-active'))
-}
-
-function normalizeReadAlongWordAlias(value: string): string {
-  return cleanWordHotspotText(value.replace(/[\u2010-\u2015]/g, '-')).toLowerCase()
-}
-
-function getReadAlongButtonWord(button: HTMLButtonElement): string {
-  return normalizeReadAlongWordAlias(button.dataset.lookupWord || button.dataset.sourceWord || button.textContent || '')
-}
-
-function getReadAlongButtonWordAliases(button: HTMLButtonElement): string[] {
-  const aliases = new Set<string>()
-  const addAlias = (value: string) => {
-    const alias = normalizeReadAlongWordAlias(value)
-    if (alias) aliases.add(alias)
-  }
-  const sourceText = button.dataset.sourceWord || button.dataset.lookupWord || button.textContent || ''
-
-  addAlias(button.dataset.lookupWord || '')
-  addAlias(sourceText)
-
-  if (/[-\u2010-\u2015]/.test(sourceText)) {
-    sourceText.split(/[-\u2010-\u2015]+/).forEach(addAlias)
-    addAlias(sourceText.replace(/[-\u2010-\u2015]+/g, ''))
-  }
-
-  return Array.from(aliases)
-}
-
-function getReadAlongButtonPage(button: HTMLButtonElement): number | null {
-  const page = Number(button.dataset.hotspotPage)
-  return Number.isFinite(page) ? Math.trunc(page) : null
-}
-
-function getWordHotspotLogicalPage(fallbackPage: number, pages: number[] | null | undefined, bounds: WordHotspotBounds): number {
-  const orderedPages = Array.from(
-    new Set(
-      (pages || [])
-        .map((page) => Number(page))
-        .filter((page): page is number => Number.isFinite(page))
-        .map((page) => Math.trunc(page)),
-    ),
-  ).sort((first, second) => first - second)
-  if (orderedPages.length <= 1) return orderedPages[0] ?? fallbackPage
-
-  const x = Number(bounds.x)
-  const width = Number(bounds.width)
-  if (!Number.isFinite(x) || !Number.isFinite(width)) return fallbackPage
-
-  const centerX = Math.max(0, Math.min(0.999999, x + width / 2))
-  const pageIndex = Math.max(0, Math.min(orderedPages.length - 1, Math.floor(centerX * orderedPages.length)))
-  return orderedPages[pageIndex] ?? fallbackPage
-}
-
-function getWordHotspotTextSegments(
-  sourceWord: string,
-  bounds: Required<WordHotspotBounds>,
-): WordHotspotTextSegment[] {
-  const sourcePhrase = String(sourceWord || '')
-  if (!/[-\u2010-\u2015]/.test(sourcePhrase)) {
-    return [
-      {
-        bounds,
-        lookupWord: cleanWordHotspotText(sourcePhrase),
-        segmentCount: 1,
-        segmentIndex: 0,
-        sourcePhrase: null,
-        sourceWord: sourcePhrase,
-      },
-    ]
-  }
-
-  const tokens = sourcePhrase.match(/[^-\u2010-\u2015]+|[-\u2010-\u2015]+/g) || []
-  const totalUnits = tokens.reduce((total, token) => total + Math.max(1, token.length), 0)
-  if (tokens.length < 3 || totalUnits <= 0) {
-    return [
-      {
-        bounds,
-        lookupWord: cleanWordHotspotText(sourcePhrase),
-        segmentCount: 1,
-        segmentIndex: 0,
-        sourcePhrase: null,
-        sourceWord: sourcePhrase,
-      },
-    ]
-  }
-
-  const segments: WordHotspotTextSegment[] = []
-  let offsetUnits = 0
-  for (const token of tokens) {
-    const tokenUnits = Math.max(1, token.length)
-    if (!/^[-\u2010-\u2015]+$/.test(token)) {
-      const lookupWord = cleanWordHotspotText(token)
-      if (lookupWord) {
-        segments.push({
-          bounds: {
-            ...bounds,
-            x: bounds.x + bounds.width * (offsetUnits / totalUnits),
-            width: bounds.width * (tokenUnits / totalUnits),
-          },
-          lookupWord,
-          segmentCount: 0,
-          segmentIndex: segments.length,
-          sourcePhrase,
-          sourceWord: token,
-        })
-      }
-    }
-    offsetUnits += tokenUnits
-  }
-
-  if (segments.length < 2) {
-    return [
-      {
-        bounds,
-        lookupWord: cleanWordHotspotText(sourcePhrase),
-        segmentCount: 1,
-        segmentIndex: 0,
-        sourcePhrase: null,
-        sourceWord: sourcePhrase,
-      },
-    ]
-  }
-
-  return segments.map((segment) => ({
-    ...segment,
-    segmentCount: segments.length,
-  }))
-}
-
-type WordHotspotMagnifierButton = HTMLButtonElement & {
-  oneTribeRefreshMagnifier?: () => void
-}
-
-function refreshReadAlongButtonMagnifier(button: HTMLButtonElement | null): void {
-  const refresh = (button as WordHotspotMagnifierButton | null)?.oneTribeRefreshMagnifier
-  if (typeof refresh !== 'function') return
-
-  refresh()
-  window.requestAnimationFrame(refresh)
-}
-
-function findReadAlongButtonForTiming(timingSet: ReadAlongTimingSet, timingIndex: number): HTMLButtonElement | null {
-  const timing = timingSet.timings[timingIndex]
-  if (!timing) return null
-
-  const buttons = Array.from(
-    document.querySelectorAll<HTMLButtonElement>('.tribe-word-hotspot-button, .tribe-standalone-word-hotspot-button'),
-  )
-  if (!buttons.length) return null
-
-  const occurrenceIndex = getReadAlongTimingOccurrenceIndex(timingSet.timings, timingIndex)
-  const exactMatchingButtons = buttons.filter((button) => getReadAlongButtonWord(button) === timing.word)
-  const matchingButtons = exactMatchingButtons.length
-    ? exactMatchingButtons
-    : buttons.filter((button) => getReadAlongButtonWordAliases(button).includes(timing.word))
-  const pageMatchingButtons = matchingButtons.filter((button) => getReadAlongButtonPage(button) === timingSet.page)
-  const hasPagedButtons = matchingButtons.some((button) => getReadAlongButtonPage(button) !== null)
-  if (hasPagedButtons && !pageMatchingButtons.length) return null
-
-  const preferredButtons = pageMatchingButtons.length ? pageMatchingButtons : matchingButtons
-
-  return preferredButtons[occurrenceIndex] || preferredButtons[0] || null
-}
-
-function applyReadAlongButtonHighlight(timingSet: ReadAlongTimingSet | null, timingIndex: number): HTMLButtonElement | null {
-  if (!timingSet || timingIndex < 0) {
-    clearReadAlongButtonHighlight()
-    return null
-  }
-
-  const button = findReadAlongButtonForTiming(timingSet, timingIndex)
-  if (!button) {
-    clearReadAlongButtonHighlight()
-    return null
-  }
-
-  const alreadyActive = oneTribeReadAlongActiveHighlightButton === button && button.classList.contains('is-read-along-active')
-  clearReadAlongButtonHighlight()
-  oneTribeReadAlongActiveHighlightButton = button
-  button.classList.add('is-read-along-active')
-  if (!alreadyActive) refreshReadAlongButtonMagnifier(button)
-  return button
-}
-
-function getReadAlongTimingEndTime(timingSet: ReadAlongTimingSet | null): number {
-  if (!timingSet?.timings.length) return 0
-
-  return timingSet.timings.reduce((endTime, timing) => Math.max(endTime, timing.endTime), 0)
-}
-
-function doesReadAlongMediaCoverTimingSet(media: HTMLMediaElement | null, timingSet: ReadAlongTimingSet | null): boolean {
-  if (!media || !timingSet) return true
-
-  const expectedEndTime = getReadAlongTimingEndTime(timingSet)
-  if (expectedEndTime <= 0) return true
-
-  const duration = Number(media.duration)
-  if (!Number.isFinite(duration) || duration <= 0) return true
-
-  const toleranceSeconds = Math.max(0, getNumberParam('oneTribeReadAlongAudioDurationToleranceMs', 350) / 1000)
-  return duration + toleranceSeconds >= expectedEndTime
-}
-
-function getReadAlongProbePage(context: ExtensionContext, page?: number): number {
-  const explicitPage = Number(page)
-  if (Number.isFinite(explicitPage)) return Math.max(0, Math.trunc(explicitPage))
-
-  const currentPage = Number(context.data.getCurrentPage())
-  if (Number.isFinite(currentPage)) return Math.max(0, Math.trunc(currentPage))
-
-  const paramPage = getStringParam('oneTribeReadAlongPage')
-  if (paramPage !== null) {
-    const value = Number(paramPage)
-    if (Number.isFinite(value)) return Math.max(0, Math.trunc(value))
-  }
-
-  return 0
-}
-
-async function probeReadAlongTimingData(context: ExtensionContext, page?: number): Promise<Record<string, unknown>> {
-  const currentPage = context.data.getCurrentPage()
-  const requestedPage = getReadAlongProbePage(context, page)
-  const resultBase = {
-    currentPage,
-    enabled: shouldUseReadAlong(),
-    mode: 'timing-probe',
-    pageUrl: window.location.href,
-    requestedPage,
-    scriptUrl: extensionScriptUrl,
-  }
-
-  if (!shouldUseReadAlong()) {
-    const result: Record<string, unknown> = {
-      ...resultBase,
-      attempts: [],
-      candidates: [],
-      found: false,
-      message: 'Read-along timing probe is installed but disabled. Add oneTribeReadAlong=1 to enable it.',
-      timingCount: 0,
-    }
-    oneTribeReadAlongLastTimingSet = null
-    oneTribeReadAlongTimingSetsByPage.clear()
-    oneTribeReadAlongLastProbe = result
-    updateOneTribeReadAlongSnapshot({
-      hasMatch: false,
-      message: String(result.message),
-      page: requestedPage,
-      timingCount: 0,
-      timingIndex: -1,
-      word: null,
-    })
-    return result
-  }
-
-  if (!context.data.getWordTimingData) {
-    const result: Record<string, unknown> = {
-      ...resultBase,
-      attempts: [],
-      candidates: [],
-      found: false,
-      message: 'Epic did not expose getWordTimingData() on this page.',
-      timingCount: 0,
-    }
-    oneTribeReadAlongLastTimingSet = null
-    oneTribeReadAlongTimingSetsByPage.clear()
-    oneTribeReadAlongLastProbe = result
-    updateOneTribeReadAlongSnapshot({
-      hasMatch: false,
-      message: String(result.message),
-      page: requestedPage,
-      timingCount: 0,
-      timingIndex: -1,
-      word: null,
-    })
-    return result
-  }
-
-  const bookData = context.data.getBookData()
-  const maxPageValue = Number(bookData?.numPages)
-  const maxPage = Number.isFinite(maxPageValue) ? maxPageValue : null
-  const candidates = getOrderedReadAlongTimingPageCandidates(requestedPage, maxPage)
-  const attempts: Array<Record<string, unknown>> = []
-  let selected: ReadAlongTimingSet | null = null
-  const timingSets: ReadAlongTimingSet[] = []
-  candidates.forEach((candidate) => oneTribeReadAlongTimingSetsByPage.delete(candidate))
-
-  for (const candidate of candidates) {
-    try {
-      const wordData = await context.data.getWordTimingData(candidate)
-      const rawCount = Array.isArray(wordData?.word_data) ? wordData.word_data.length : 0
-      const timings = normalizeReadAlongWordTiming(wordData)
-      attempts.push({
-        page: candidate,
-        rawCount,
-        usableCount: timings.length,
-      })
-
-      if (timings.length) {
-        const timingSet = {
-          page: candidate,
-          timings,
-          wordData,
-        }
-        timingSets.push(timingSet)
-        oneTribeReadAlongTimingSetsByPage.set(candidate, timingSet)
-        if (!selected) selected = timingSet
-      }
-    } catch (error) {
-      attempts.push({
-        error: String(error),
-        page: candidate,
-        rawCount: 0,
-        usableCount: 0,
-      })
-    }
-  }
-
-  const firstWords =
-    selected?.timings.slice(0, 8).map((timing) => ({
-      duration: timing.duration,
-      text: timing.text,
-      time: timing.time,
-      word: timing.word,
-    })) || []
-  const message = selected
-    ? `Read-along timing probe found ${selected.timings.length} usable timing rows on page ${selected.page}.`
-    : 'Read-along timing probe did not find usable timing rows for the checked pages.'
-  const result: Record<string, unknown> = {
-    ...resultBase,
-    attempts,
-    candidates,
-    firstWords,
-    found: Boolean(selected),
-    message,
-    page: selected?.page ?? requestedPage,
-    timingCount: selected?.timings.length ?? 0,
-    timingPages: timingSets.map((timingSet) => timingSet.page),
-  }
-
-  oneTribeReadAlongLastTimingSet = selected
-  oneTribeReadAlongLastProbe = result
-  updateOneTribeReadAlongSnapshot({
-    hasMatch: Boolean(selected),
-    message,
-    page: selected?.page ?? requestedPage,
-    timingCount: selected?.timings.length ?? 0,
-    timingIndex: -1,
-    word: null,
-  })
-
-  return result
-}
-
-async function previewReadAlongAtTime(
-  context: ExtensionContext,
-  time?: number,
-  page?: number,
-): Promise<Record<string, unknown>> {
-  const requestedPage = getReadAlongProbePage(context, page)
-  const currentTime = Number(time)
-  const safeTime = Number.isFinite(currentTime) && currentTime >= 0 ? currentTime : 0
-
-  const cachedRequestedPage = Number(oneTribeReadAlongLastProbe?.requestedPage)
-  if (
-    !oneTribeReadAlongLastTimingSet ||
-    oneTribeReadAlongLastTimingSet.timings.length === 0 ||
-    !Number.isFinite(cachedRequestedPage) ||
-    cachedRequestedPage !== requestedPage
-  ) {
-    await probeReadAlongTimingData(context, requestedPage)
-  }
-
-  const timingSet = oneTribeReadAlongLastTimingSet
-  if (!timingSet || !timingSet.timings.length) {
-    const result: Record<string, unknown> = {
-      currentPage: context.data.getCurrentPage(),
-      currentTime: safeTime,
-      found: false,
-      message: 'Read-along time preview has no timing rows. Run oneTribeProbeReadAlongTimings() first.',
-      mode: 'time-preview',
-      pageUrl: window.location.href,
-      requestedPage,
-      scriptUrl: extensionScriptUrl,
-      timingCount: 0,
-      timingIndex: -1,
-      timingPage: null,
-      word: null,
-    }
-    oneTribeReadAlongLastTimePreview = result
-    updateOneTribeReadAlongSnapshot({
-      currentTime: safeTime,
-      hasMatch: false,
-      message: String(result.message),
-      timingCount: 0,
-      timingIndex: -1,
-      word: null,
-    })
-    return result
-  }
-
-  const lingerSeconds = Math.max(0, getNumberParam('oneTribeReadAlongPreviewLingerMs', 120) / 1000)
-  const timingIndex = findReadAlongTimingIndexAtTime(timingSet.timings, safeTime, lingerSeconds)
-  const timing = timingSet.timings[timingIndex] || null
-  const message = timing
-    ? `Read-along time preview matched "${timing.text}" at ${safeTime.toFixed(2)}s.`
-    : `Read-along time preview found no word at ${safeTime.toFixed(2)}s.`
-  const result: Record<string, unknown> = {
-    currentPage: context.data.getCurrentPage(),
-    currentTime: safeTime,
-    found: Boolean(timing),
-    lingerSeconds,
-    message,
-    mode: 'time-preview',
-    nextWord:
-      timingIndex >= 0 && timingSet.timings[timingIndex + 1]
-        ? {
-            text: timingSet.timings[timingIndex + 1].text,
-            time: timingSet.timings[timingIndex + 1].time,
-            word: timingSet.timings[timingIndex + 1].word,
-          }
-        : null,
-    occurrenceIndex: timing ? getReadAlongTimingOccurrenceIndex(timingSet.timings, timingIndex) : -1,
-    pageUrl: window.location.href,
-    previousWord:
-      timingIndex > 0 && timingSet.timings[timingIndex - 1]
-        ? {
-            text: timingSet.timings[timingIndex - 1].text,
-            time: timingSet.timings[timingIndex - 1].time,
-            word: timingSet.timings[timingIndex - 1].word,
-          }
-        : null,
-    requestedPage,
-    scriptUrl: extensionScriptUrl,
-    timing: timing
-      ? {
-          duration: timing.duration,
-          endTime: timing.endTime,
-          text: timing.text,
-          time: timing.time,
-          word: timing.word,
-        }
-      : null,
-    timingCount: timingSet.timings.length,
-    timingIndex,
-    timingPage: timingSet.page,
-    word: timing?.word ?? null,
-  }
-
-  oneTribeReadAlongLastTimePreview = result
-  updateOneTribeReadAlongSnapshot({
-    currentTime: safeTime,
-    hasMatch: Boolean(timing),
-    message,
-    page: timingSet.page,
-    timingCount: timingSet.timings.length,
-    timingIndex,
-    word: timing?.word ?? null,
-  })
-
-  return result
-}
-
-function getReadAlongAudioSourceCandidates(media: HTMLMediaElement): string[] {
-  return [
-    media.currentSrc,
-    media.src,
-    ...Array.from(media.querySelectorAll('source')).map((source) => source.src),
-  ].filter(Boolean)
-}
-
-function normalizeReadAlongAudioUrl(value: string): string {
-  const text = String(value || '').trim()
-  if (!text) return ''
-
-  try {
-    const url = new URL(text, window.location.href)
-    return `${url.origin}${url.pathname}`
-  } catch {
-    return text.split('?')[0]
-  }
-}
-
-function collectReadAlongMediaElementsFromRoot(root: Document | ShadowRoot): HTMLMediaElement[] {
-  const roots: Array<Document | ShadowRoot> = [root]
-  const seenRoots = new Set<Document | ShadowRoot>(roots)
-  const mediaElements: HTMLMediaElement[] = []
-  const seenMediaElements = new Set<HTMLMediaElement>()
-
-  for (let index = 0; index < roots.length; index += 1) {
-    const currentRoot = roots[index]
-
-    for (const media of Array.from(currentRoot.querySelectorAll<HTMLMediaElement>('audio, video'))) {
-      if (seenMediaElements.has(media)) continue
-
-      seenMediaElements.add(media)
-      mediaElements.push(media)
-    }
-
-    for (const element of Array.from(currentRoot.querySelectorAll<HTMLElement>('*'))) {
-      if (!element.shadowRoot || seenRoots.has(element.shadowRoot)) continue
-
-      seenRoots.add(element.shadowRoot)
-      roots.push(element.shadowRoot)
-    }
-  }
-
-  return mediaElements
-}
-
-function getExpectedReadAlongAudioUrls(context: ExtensionContext): string[] {
-  return getReadAlongPageAudioUrlCandidates(context)
-    .map((entry) => (entry.url ? normalizeReadAlongAudioUrl(entry.url) : ''))
-    .filter(Boolean)
-}
-
-function getReadAlongAudioPageForMedia(context: ExtensionContext, media: HTMLMediaElement | null): number | null {
-  if (!media) return null
-
-  const sources = getReadAlongAudioSourceCandidates(media).map(normalizeReadAlongAudioUrl).filter(Boolean)
-  if (!sources.length) return null
-
-  const match = getReadAlongPageAudioUrlCandidates(context).find((entry) => {
-    if (!entry.url) return false
-
-    const audioUrl = normalizeReadAlongAudioUrl(entry.url)
-    return Boolean(audioUrl && sources.includes(audioUrl))
-  })
-
-  return typeof match?.page === 'number' && Number.isFinite(match.page) ? match.page : null
-}
-
-function getEpicObservedMediaScore(context: ExtensionContext, media: HTMLMediaElement): number {
-  const sources = getReadAlongAudioSourceCandidates(media).map(normalizeReadAlongAudioUrl).filter(Boolean)
-  const expectedUrls = getExpectedReadAlongAudioUrls(context)
-  const matchesExpectedUrl = sources.some((source) => expectedUrls.includes(source))
-  const audioPage = getReadAlongAudioPageForMedia(context, media)
-  const timingSet =
-    (audioPage !== null ? oneTribeReadAlongTimingSetsByPage.get(audioPage) || null : null) ||
-    oneTribeReadAlongLastTimingSet
-  const coversTiming = doesReadAlongMediaCoverTimingSet(media, timingSet)
-  if (!media.paused && !media.ended && matchesExpectedUrl && coversTiming) return 0
-  if (!media.paused && !media.ended && coversTiming) return 1
-  if (!media.paused && !media.ended && matchesExpectedUrl) return 2
-  if (!media.paused && !media.ended) return 3
-  if (matchesExpectedUrl && !media.ended && coversTiming) return 4
-  if (matchesExpectedUrl && !media.ended) return 5
-  if (!media.ended && coversTiming) return 6
-  if (!media.ended) return 7
-  return 8
-}
-
-function getBestEpicObservedMediaElement(context: ExtensionContext): HTMLMediaElement | null {
-  const mediaElements = Array.from(oneTribeEpicObservedMediaElements).filter((media) => {
-    if (media.ended) return false
-    return Boolean(media.currentSrc || media.src || media.readyState > 0 || !media.paused)
-  })
-
-  return (
-    mediaElements
-      .slice()
-      .sort((first, second) => getEpicObservedMediaScore(context, first) - getEpicObservedMediaScore(context, second))[0] ||
-    null
-  )
-}
-
-function clearEpicPlaybackPoll(): void {
-  if (oneTribeEpicPlaybackPollTimer !== null) {
-    window.clearTimeout(oneTribeEpicPlaybackPollTimer)
-    oneTribeEpicPlaybackPollTimer = null
-  }
-  oneTribeEpicPlaybackPollMedia = null
-}
-
-function scheduleEpicPlaybackPoll(context: ExtensionContext, media: HTMLMediaElement): void {
-  if (!oneTribeEpicPlaybackFollowing || media.paused || media.ended) {
-    if (oneTribeEpicPlaybackPollMedia === media) clearEpicPlaybackPoll()
-    return
-  }
-
-  if (oneTribeEpicPlaybackPollTimer !== null && oneTribeEpicPlaybackPollMedia === media) return
-
-  clearEpicPlaybackPoll()
-  oneTribeEpicPlaybackPollMedia = media
-
-  const pollMs = Math.max(16, Math.min(120, getNumberParam('oneTribeReadAlongPollMs', 33)))
-  oneTribeEpicPlaybackPollTimer = window.setTimeout(() => {
-    oneTribeEpicPlaybackPollTimer = null
-    if (!oneTribeEpicPlaybackFollowing) {
-      oneTribeEpicPlaybackPollMedia = null
-      return
-    }
-
-    const activeMedia = getBestEpicObservedMediaElement(context) || media
-    updateEpicPlaybackStatus(context, activeMedia, 'playback-poll')
-  }, pollMs)
-}
-
-function updateEpicPlaybackStatus(
-  context: ExtensionContext,
-  media: HTMLMediaElement | null,
-  reason: string,
-): Record<string, unknown> {
-  const audioPage = getReadAlongAudioPageForMedia(context, media)
-  const candidateTimingSet =
-    (audioPage !== null ? oneTribeReadAlongTimingSetsByPage.get(audioPage) || null : null) ||
-    oneTribeReadAlongLastTimingSet
-  const mediaCoversTiming = doesReadAlongMediaCoverTimingSet(media, candidateTimingSet)
-  const timingSet = mediaCoversTiming ? candidateTimingSet : null
-  const hasCurrentTime = Boolean(media && Number.isFinite(media.currentTime))
-  const currentTime = hasCurrentTime && media ? media.currentTime : null
-  const numericTime = hasCurrentTime ? Number(currentTime) : Number.NaN
-  const lingerSeconds = Math.max(0, getNumberParam('oneTribeReadAlongPreviewLingerMs', 120) / 1000)
-  const timingIndex =
-    timingSet && Number.isFinite(numericTime)
-      ? findReadAlongTimingIndexAtTime(timingSet.timings, numericTime, lingerSeconds)
-      : -1
-  const timing = timingSet?.timings[timingIndex] || null
-  const shouldShowActiveWord = Boolean(media && !media.paused && !media.ended && timing)
-  const activeButton = oneTribeEpicPlaybackFollowing
-    ? shouldShowActiveWord
-      ? applyReadAlongButtonHighlight(timingSet, timingIndex)
-      : (clearReadAlongButtonHighlight(), null)
-    : oneTribeReadAlongActiveHighlightButton
-  const activeTiming = shouldShowActiveWord ? timing : null
-  const mediaSnapshot = media ? summarizeReadAlongMediaElement(media, 0) : null
-  const status: Record<string, unknown> = {
-    activeButtonWord: activeButton?.dataset.lookupWord || activeButton?.dataset.sourceWord || null,
-    audioElementFound: Boolean(media),
-    audioPage,
-    currentPage: context.data.getCurrentPage(),
-    currentTime,
-    found: Boolean(activeTiming),
-    hasButtonMatch: Boolean(activeButton),
-    lingerSeconds,
-    media: mediaSnapshot,
-    mediaCoversTiming,
-    message: media
-      ? activeTiming
-        ? `Epic playback matched "${activeTiming.text}" at ${Number(numericTime).toFixed(2)}s.`
-        : !mediaCoversTiming
-          ? 'Epic playback media is shorter than the selected timing rows; waiting for the matching audio.'
-        : media.paused
-          ? 'Epic playback media is paused.'
-          : 'Epic playback media is active; no timing word matched yet.'
-      : 'No Epic playback media has been observed yet.',
-    mode: 'epic-playback-follow',
-    observedCount: oneTribeEpicObservedMediaElements.size,
-    paused: media ? media.paused : null,
-    pollActive: Boolean(oneTribeEpicPlaybackPollTimer || (media && !media.paused && !media.ended)),
-    reason,
-    timingCount: timingSet?.timings.length || 0,
-    timingIndex: activeTiming ? timingIndex : -1,
-    timingPage: timingSet?.page ?? null,
-    timingPages: Array.from(oneTribeReadAlongTimingSetsByPage.keys()),
-    word: activeTiming?.word ?? null,
-  }
-
-  oneTribeEpicLastPlaybackStatus = status
-
-  if (oneTribeEpicPlaybackFollowing) {
-    updateOneTribeReadAlongSnapshot({
-      activeButtonWord: activeButton?.dataset.lookupWord || activeButton?.dataset.sourceWord || null,
-      audioElementFound: Boolean(media),
-      audioPaused: media ? media.paused : null,
-      currentTime,
-      hasMatch: Boolean(activeTiming),
-      message: String(status.message),
-      page: timingSet?.page ?? context.data.getCurrentPage(),
-      timingCount: timingSet?.timings.length || 0,
-      timingIndex: activeTiming ? timingIndex : -1,
-      word: activeTiming?.word ?? null,
-    })
-  }
-
-  if (media && !media.paused && !media.ended && oneTribeEpicPlaybackFollowing) {
-    scheduleEpicPlaybackPoll(context, media)
-  } else if (!media || media === oneTribeEpicPlaybackPollMedia) {
-    clearEpicPlaybackPoll()
-  }
-
-  return status
-}
-
-function observeEpicPlaybackMediaElement(context: ExtensionContext, media: HTMLMediaElement, reason: string): void {
-  oneTribeEpicObservedMediaElement = media
-
-  if (oneTribeEpicObservedMediaElements.has(media)) {
-    updateEpicPlaybackStatus(context, media, reason)
-    return
-  }
-
-  oneTribeEpicObservedMediaElements.add(media)
-  const events: Array<keyof HTMLMediaElementEventMap> = [
-    'abort',
-    'durationchange',
-    'ended',
-    'error',
-    'loadedmetadata',
-    'pause',
-    'play',
-    'playing',
-    'seeked',
-    'timeupdate',
-  ]
-  const onMediaEvent = (event: Event) => {
-    updateEpicPlaybackStatus(context, media, event.type)
-  }
-
-  events.forEach((eventName) => media.addEventListener(eventName, onMediaEvent))
-  oneTribeEpicObservedMediaCleanups.set(media, () => {
-    events.forEach((eventName) => media.removeEventListener(eventName, onMediaEvent))
-  })
-  updateEpicPlaybackStatus(context, media, reason)
-}
-
-function scanEpicPlaybackMediaElements(context: ExtensionContext, reason: string): HTMLMediaElement[] {
-  let readingRoot: ShadowRoot | null = null
-  try {
-    readingRoot = context.slots.get('reading-area')
-  } catch {
-    readingRoot = null
-  }
-
-  const mediaElements = collectReadAlongMediaElements(readingRoot)
-  mediaElements.forEach((media) => observeEpicPlaybackMediaElement(context, media, reason))
-  return mediaElements
-}
-
-function installEpicPlaybackMediaProbe(context: ExtensionContext): () => void {
-  if (oneTribeEpicMediaProbeInstalled && oneTribeEpicMediaProbeCleanup) return oneTribeEpicMediaProbeCleanup
-
-  const prototype = HTMLMediaElement.prototype
-  const originalPlay = prototype.play
-  const originalPause = prototype.pause
-  const capturedEvents: Array<keyof HTMLMediaElementEventMap> = ['play', 'playing', 'pause', 'timeupdate', 'ended']
-
-  const onCapturedMediaEvent = (event: Event) => {
-    if (event.target instanceof HTMLMediaElement) {
-      observeEpicPlaybackMediaElement(context, event.target, `captured ${event.type}`)
-    }
-  }
-  const wrappedPlay: HTMLMediaElement['play'] = function (this: HTMLMediaElement) {
-    observeEpicPlaybackMediaElement(context, this, 'HTMLMediaElement.play()')
-    return originalPlay.apply(this)
-  }
-  const wrappedPause: HTMLMediaElement['pause'] = function (this: HTMLMediaElement) {
-    observeEpicPlaybackMediaElement(context, this, 'HTMLMediaElement.pause()')
-    return originalPause.apply(this)
-  }
-
-  prototype.play = wrappedPlay
-  prototype.pause = wrappedPause
-  capturedEvents.forEach((eventName) => window.addEventListener(eventName, onCapturedMediaEvent, true))
-  scanEpicPlaybackMediaElements(context, 'initial scan')
-
-  const cleanup = () => {
-    if (prototype.play === wrappedPlay) prototype.play = originalPlay
-    if (prototype.pause === wrappedPause) prototype.pause = originalPause
-    capturedEvents.forEach((eventName) => window.removeEventListener(eventName, onCapturedMediaEvent, true))
-    for (const cleanupMedia of oneTribeEpicObservedMediaCleanups.values()) {
-      cleanupMedia()
-    }
-    oneTribeEpicObservedMediaCleanups.clear()
-    oneTribeEpicObservedMediaElements.clear()
-    oneTribeEpicObservedMediaElement = null
-    oneTribeEpicMediaProbeInstalled = false
-    oneTribeEpicMediaProbeCleanup = null
-    oneTribeEpicPlaybackFollowing = false
-    clearEpicPlaybackPoll()
-    clearReadAlongButtonHighlight()
-  }
-
-  oneTribeEpicMediaProbeInstalled = true
-  oneTribeEpicMediaProbeCleanup = cleanup
-  return cleanup
-}
-
-async function ensureEpicPlaybackFollowForCurrentPage(
-  context: ExtensionContext,
-  reason: string,
-): Promise<Record<string, unknown>> {
-  if (!shouldUseReadAlong()) {
-    const status: Record<string, unknown> = {
-      following: false,
-      message: 'Epic playback follow is disabled because read-along is disabled.',
-      mode: 'epic-playback-follow',
-      reason,
-    }
-    oneTribeEpicLastPlaybackStatus = status
-    return status
-  }
-
-  const requestedPage = getReadAlongProbePage(context)
-  const cachedRequestedPage = Number(oneTribeReadAlongLastProbe?.requestedPage)
-  if (
-    !oneTribeReadAlongLastTimingSet ||
-    oneTribeReadAlongLastTimingSet.timings.length === 0 ||
-    !Number.isFinite(cachedRequestedPage) ||
-    cachedRequestedPage !== requestedPage
-  ) {
-    await probeReadAlongTimingData(context, requestedPage)
-  }
-
-  installEpicPlaybackMediaProbe(context)
-  oneTribeEpicPlaybackFollowing = true
-  scanEpicPlaybackMediaElements(context, reason)
-  const media = getBestEpicObservedMediaElement(context) || oneTribeEpicObservedMediaElement
-  const status = updateEpicPlaybackStatus(context, media, reason)
-  return {
-    ...status,
-    following: true,
-    requestedPage,
-  }
-}
-
-function probeEpicPlaybackState(context: ExtensionContext): Record<string, unknown> {
-  installEpicPlaybackMediaProbe(context)
-  scanEpicPlaybackMediaElements(context, 'manual probe scan')
-  const media = getBestEpicObservedMediaElement(context) || oneTribeEpicObservedMediaElement
-  const status = updateEpicPlaybackStatus(context, media, 'manual probe')
-  return {
-    ...status,
-    observedMedia: Array.from(oneTribeEpicObservedMediaElements).map((item, index) =>
-      summarizeReadAlongMediaElement(item, index),
-    ),
-    probeInstalled: oneTribeEpicMediaProbeInstalled,
-  }
-}
-
-async function startFollowingEpicPlayback(context: ExtensionContext, page?: number): Promise<Record<string, unknown>> {
-  const requestedPage = getReadAlongProbePage(context, page)
-  await probeReadAlongTimingData(context, requestedPage)
-  installEpicPlaybackMediaProbe(context)
-  oneTribeEpicPlaybackFollowing = true
-  scanEpicPlaybackMediaElements(context, 'follow start scan')
-  const media = getBestEpicObservedMediaElement(context) || oneTribeEpicObservedMediaElement
-  const status = updateEpicPlaybackStatus(context, media, 'follow start')
-  return {
-    ...status,
-    following: true,
-    observedMedia: Array.from(oneTribeEpicObservedMediaElements).map((item, index) =>
-      summarizeReadAlongMediaElement(item, index),
-    ),
-    requestedPage,
-  }
-}
-
-function stopFollowingEpicPlayback(): Record<string, unknown> {
-  oneTribeEpicPlaybackFollowing = false
-  clearEpicPlaybackPoll()
-  clearReadAlongButtonHighlight()
-  const status: Record<string, unknown> = {
-    following: false,
-    message: 'Stopped following Epic playback state.',
-    mode: 'epic-playback-follow',
-    observedCount: oneTribeEpicObservedMediaElements.size,
-  }
-  oneTribeEpicLastPlaybackStatus = status
-  updateOneTribeReadAlongSnapshot({
-    audioElementFound: Boolean(oneTribeEpicObservedMediaElement),
-    activeButtonWord: null,
-    audioPaused: oneTribeEpicObservedMediaElement ? oneTribeEpicObservedMediaElement.paused : null,
-    message: String(status.message),
-  })
-  return status
-}
-
-function collectReadAlongMediaElements(readingRoot: ShadowRoot | null): HTMLMediaElement[] {
-  const roots: Array<Document | ShadowRoot> = readingRoot ? [readingRoot, document] : [document]
-  const seen = new Set<HTMLMediaElement>()
-  const mediaElements: HTMLMediaElement[] = []
-
-  for (const root of roots) {
-    for (const media of collectReadAlongMediaElementsFromRoot(root)) {
-      if (seen.has(media)) continue
-
-      seen.add(media)
-      mediaElements.push(media)
-    }
-  }
-
-  return mediaElements
-}
-
-function summarizeReadAlongMediaElement(media: HTMLMediaElement, index: number): Record<string, unknown> {
-  const sources = getReadAlongAudioSourceCandidates(media)
-  return {
-    currentSrc: media.currentSrc || null,
-    currentTime: Number.isFinite(media.currentTime) ? media.currentTime : null,
-    duration: Number.isFinite(media.duration) ? media.duration : null,
-    ended: media.ended,
-    index,
-    muted: media.muted,
-    networkState: media.networkState,
-    paused: media.paused,
-    readyState: media.readyState,
-    sourceCount: sources.length,
-    sources,
-    src: media.src || null,
-    tagName: media.tagName.toLowerCase(),
-  }
-}
-
-function getReadAlongAudioPageCandidates(context: ExtensionContext, page?: number): number[] {
-  const requestedPage = getReadAlongProbePage(context, page)
-  const timingPage = Number(oneTribeReadAlongLastProbe?.page)
-  const currentPage = context.data.getCurrentPage()
-  const maxPageValue = Number(context.data.getBookData()?.numPages)
-  const maxPage = Number.isFinite(maxPageValue) ? maxPageValue : null
-  const preferredPages = [
-    currentPage,
-    requestedPage,
-    Number.isFinite(timingPage) ? timingPage : null,
-    ...oneTribeReadAlongTimingSetsByPage.keys(),
-  ].filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
-
-  return getOrderedReadAlongTimingPageCandidates(
-    Number.isFinite(requestedPage) ? requestedPage : currentPage,
-    maxPage,
-    preferredPages,
-  )
-}
-
-function getReadAlongPageAudioUrlCandidates(context: ExtensionContext, page?: number): Array<{
-  page: number
-  url: string | null
-  urlPresent: boolean
-}> {
-  return getReadAlongAudioPageCandidates(context, page).map((audioPage) => {
-    const audioUrl = typeof context.data.getPageAudioUrl === 'function' ? context.data.getPageAudioUrl(audioPage) || '' : ''
-    return {
-      page: audioPage,
-      url: audioUrl || null,
-      urlPresent: Boolean(audioUrl),
-    }
-  })
-}
-
-function probeReadAlongAudio(context: ExtensionContext, page?: number): Record<string, unknown> {
-  const requestedPage = getReadAlongProbePage(context, page)
-  const timingPage = Number(oneTribeReadAlongLastProbe?.page)
-  const pageAudioUrls = getReadAlongPageAudioUrlCandidates(context, page)
-
-  let readingRoot: ShadowRoot | null = null
-  try {
-    readingRoot = context.slots.get('reading-area')
-  } catch {
-    readingRoot = null
-  }
-
-  const mediaElements = collectReadAlongMediaElements(readingRoot)
-  const media = mediaElements.map(summarizeReadAlongMediaElement)
-  const selected =
-    mediaElements.find((element) => !element.paused && !element.ended) ||
-    mediaElements.find((element) => Boolean(element.currentSrc || element.src)) ||
-    mediaElements[0] ||
-    null
-  const selectedMedia = selected ? summarizeReadAlongMediaElement(selected, mediaElements.indexOf(selected)) : null
-  const selectedTime = selected && Number.isFinite(selected.currentTime) ? selected.currentTime : null
-  const message = selected
-    ? `Read-along audio probe found ${mediaElements.length} media element${mediaElements.length === 1 ? '' : 's'}.`
-    : pageAudioUrls.some((entry) => entry.urlPresent)
-      ? 'Read-along audio probe found page audio URL data, but no live media element.'
-      : 'Read-along audio probe did not find page audio URL data or live media elements.'
-  const result: Record<string, unknown> = {
-    audioElementFound: Boolean(selected),
-    currentPage: context.data.getCurrentPage(),
-    enabled: shouldUseReadAlong(),
-    media,
-    mediaCount: mediaElements.length,
-    message,
-    mode: 'audio-probe',
-    pageAudioUrls,
-    pageUrl: window.location.href,
-    requestedPage,
-    scriptUrl: extensionScriptUrl,
-    selectedMedia,
-    timingPage: Number.isFinite(timingPage) ? timingPage : null,
-  }
-
-  oneTribeReadAlongLastAudioProbe = result
-  updateOneTribeReadAlongSnapshot({
-    audioElementFound: Boolean(selected),
-    audioPaused: selected ? selected.paused : null,
-    currentTime: selectedTime,
-    message,
-    page: Number.isFinite(timingPage) ? timingPage : requestedPage,
-  })
-
-  return result
-}
-
-function summarizeReadAlongMediaError(error: MediaError | null): Record<string, unknown> | null {
-  if (!error) return null
-
-  return {
-    code: error.code,
-    message: error.message || null,
-  }
-}
-
-function probeReadAlongAudioUrlMetadata(
-  entry: { page: number; url: string | null; urlPresent: boolean },
-  timeoutMs: number,
-): Promise<Record<string, unknown>> {
-  if (!entry.url) {
-    return Promise.resolve({
-      error: null,
-      metadataLoaded: false,
-      message: 'No audio URL was available for this page.',
-      page: entry.page,
-      timedOut: false,
-      url: null,
-      urlPresent: false,
-    })
-  }
-
-  return new Promise((resolve) => {
-    const audio = new Audio()
-    let timeoutId: number | null = null
-    let settled = false
-
-    const finish = (status: Record<string, unknown>) => {
-      if (settled) return
-      settled = true
-
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId)
-      }
-
-      audio.removeEventListener('loadedmetadata', onLoadedMetadata)
-      audio.removeEventListener('error', onError)
-      audio.removeEventListener('abort', onAbort)
-
-      const result: Record<string, unknown> = {
-        currentSrc: audio.currentSrc || null,
-        currentTime: Number.isFinite(audio.currentTime) ? audio.currentTime : null,
-        duration: Number.isFinite(audio.duration) ? audio.duration : null,
-        error: summarizeReadAlongMediaError(audio.error),
-        networkState: audio.networkState,
-        page: entry.page,
-        paused: audio.paused,
-        readyState: audio.readyState,
-        url: entry.url,
-        urlPresent: true,
-        ...status,
-      }
-
-      audio.removeAttribute('src')
-      try {
-        audio.load()
-      } catch {
-        // The probe is already settled; this only attempts to stop the metadata request.
-      }
-
-      resolve(result)
-    }
-
-    const onLoadedMetadata = () => {
-      finish({
-        metadataLoaded: true,
-        message: 'Audio URL metadata loaded without starting playback.',
-        timedOut: false,
-      })
-    }
-    const onError = () => {
-      finish({
-        metadataLoaded: false,
-        message: 'Audio URL metadata failed to load.',
-        timedOut: false,
-      })
-    }
-    const onAbort = () => {
-      finish({
-        metadataLoaded: false,
-        message: 'Audio URL metadata load was aborted.',
-        timedOut: false,
-      })
-    }
-
-    audio.preload = 'metadata'
-    audio.addEventListener('loadedmetadata', onLoadedMetadata)
-    audio.addEventListener('error', onError)
-    audio.addEventListener('abort', onAbort)
-    timeoutId = window.setTimeout(() => {
-      finish({
-        metadataLoaded: false,
-        message: 'Audio URL metadata load timed out.',
-        timedOut: true,
-      })
-    }, timeoutMs)
-
-    try {
-      audio.src = entry.url
-      audio.load()
-    } catch (error) {
-      finish({
-        metadataLoaded: false,
-        message: `Audio URL metadata probe threw: ${String(error)}`,
-        timedOut: false,
-      })
-    }
-  })
-}
-
-async function probeReadAlongAudioUrl(context: ExtensionContext, page?: number): Promise<Record<string, unknown>> {
-  const requestedPage = getReadAlongProbePage(context, page)
-  const timingPage = Number(oneTribeReadAlongLastProbe?.page)
-  const pageAudioUrls = getReadAlongPageAudioUrlCandidates(context, page)
-  const attempts: Array<Record<string, unknown>> = []
-
-  for (const entry of pageAudioUrls) {
-    attempts.push(await probeReadAlongAudioUrlMetadata(entry, 4500))
-  }
-
-  const selected = attempts.find((attempt) => attempt.metadataLoaded === true) || null
-  const message = selected
-    ? `Read-along audio URL metadata loaded for page ${selected.page}.`
-    : attempts.some((attempt) => attempt.urlPresent)
-      ? 'Read-along audio URL metadata did not load for any checked page URL.'
-      : 'Read-along audio URL metadata probe did not find any page audio URL data.'
-  const result: Record<string, unknown> = {
-    attempts,
-    currentPage: context.data.getCurrentPage(),
-    enabled: shouldUseReadAlong(),
-    message,
-    metadataLoaded: Boolean(selected),
-    mode: 'audio-url-probe',
-    page: selected?.page ?? (Number.isFinite(timingPage) ? timingPage : requestedPage),
-    pageAudioUrls,
-    pageUrl: window.location.href,
-    requestedPage,
-    scriptUrl: extensionScriptUrl,
-    selected,
-    timingPage: Number.isFinite(timingPage) ? timingPage : null,
-  }
-
-  oneTribeReadAlongLastAudioUrlProbe = result
-  updateOneTribeReadAlongSnapshot({
-    audioElementFound: false,
-    audioPaused: selected ? true : null,
-    currentTime: selected ? 0 : null,
-    message,
-    page: selected?.page ?? (Number.isFinite(timingPage) ? timingPage : requestedPage),
-  })
-
-  return result
-}
-
-async function resolveReadAlongAudioForTiming(
-  context: ExtensionContext,
-  page: number,
-  timingSet: ReadAlongTimingSet | null,
-): Promise<Record<string, unknown>> {
-  const pageAudioUrls = getReadAlongPageAudioUrlCandidates(context, page)
-  const attempts: Array<Record<string, unknown>> = []
-
-  for (const entry of pageAudioUrls) {
-    attempts.push(await probeReadAlongAudioUrlMetadata(entry, 4500))
-  }
-
-  const expectedTimingEnd = getReadAlongTimingEndTime(timingSet)
-  const toleranceSeconds = Math.max(0, getNumberParam('oneTribeReadAlongAudioDurationToleranceMs', 350) / 1000)
-  const loadedAttempts = attempts.filter(
-    (attempt) => attempt.metadataLoaded === true && typeof attempt.url === 'string' && attempt.url,
-  )
-  const coveringAttempts = loadedAttempts.filter((attempt) => {
-    const duration = Number(attempt.duration)
-    return Number.isFinite(duration) && (expectedTimingEnd <= 0 || duration + toleranceSeconds >= expectedTimingEnd)
-  })
-  const timingPage = timingSet?.page ?? null
-  const samePageCoveringAttempt =
-    timingPage === null
-      ? null
-      : coveringAttempts.find((attempt) => Number(attempt.page) === timingPage) || null
-  const longestLoadedAttempt =
-    loadedAttempts
-      .slice()
-      .sort((first, second) => Number(second.duration || 0) - Number(first.duration || 0))[0] || null
-  const selected = samePageCoveringAttempt || coveringAttempts[0] || longestLoadedAttempt || null
-  const selectedDuration = Number(selected?.duration)
-  const selectedCoversTiming =
-    Boolean(selected) &&
-    Number.isFinite(selectedDuration) &&
-    (expectedTimingEnd <= 0 || selectedDuration + toleranceSeconds >= expectedTimingEnd)
-  const message = selected
-    ? selectedCoversTiming
-      ? `Read-along audio alignment selected page ${selected.page}; duration covers timing rows.`
-      : `Read-along audio alignment selected page ${selected.page}; no candidate fully covered timing rows.`
-    : 'Read-along audio alignment found no loadable audio URL.'
-  const result: Record<string, unknown> = {
-    attempts,
-    currentPage: context.data.getCurrentPage(),
-    expectedTimingEnd,
-    message,
-    mode: 'audio-alignment-probe',
-    pageAudioUrls,
-    pageUrl: window.location.href,
-    requestedPage: page,
-    scriptUrl: extensionScriptUrl,
-    selected,
-    selectedCoversTiming,
-    timingCount: timingSet?.timings.length || 0,
-    timingPage,
-    toleranceSeconds,
-  }
-
-  oneTribeReadAlongLastAudioAlignmentProbe = result
-  return result
-}
-
-async function probeReadAlongAudioAlignment(context: ExtensionContext, page?: number): Promise<Record<string, unknown>> {
-  const requestedPage = getReadAlongProbePage(context, page)
-  const cachedRequestedPage = Number(oneTribeReadAlongLastProbe?.requestedPage)
-  if (
-    !oneTribeReadAlongLastTimingSet ||
-    oneTribeReadAlongLastTimingSet.timings.length === 0 ||
-    !Number.isFinite(cachedRequestedPage) ||
-    cachedRequestedPage !== requestedPage
-  ) {
-    await probeReadAlongTimingData(context, requestedPage)
-  }
-
-  const result = await resolveReadAlongAudioForTiming(context, requestedPage, oneTribeReadAlongLastTimingSet)
-  const selected = result.selected && typeof result.selected === 'object' ? (result.selected as Record<string, unknown>) : null
-  const selectedPage = Number(selected?.page)
-  updateOneTribeReadAlongSnapshot({
-    audioElementFound: false,
-    audioPaused: true,
-    currentTime: selected ? 0 : null,
-    message: String(result.message),
-    page: Number.isFinite(selectedPage) ? selectedPage : oneTribeReadAlongLastTimingSet?.page ?? requestedPage,
-    timingCount: oneTribeReadAlongLastTimingSet?.timings.length || 0,
-  })
-
-  return result
-}
-
-function updateReadAlongPlaybackStatus(
-  context: ExtensionContext,
-  audio: HTMLAudioElement,
-  audioPage: number,
-  timingSet: ReadAlongTimingSet | null,
-  reason: string,
-): Record<string, unknown> {
-  const currentTime = Number.isFinite(audio.currentTime) ? audio.currentTime : 0
-  const lingerSeconds = Math.max(0, getNumberParam('oneTribeReadAlongPreviewLingerMs', 120) / 1000)
-  const timingIndex = timingSet ? findReadAlongTimingIndexAtTime(timingSet.timings, currentTime, lingerSeconds) : -1
-  const timing = timingSet?.timings[timingIndex] || null
-  const message = timing
-    ? `Read-along playback matched "${timing.text}" at ${currentTime.toFixed(2)}s.`
-    : `Read-along playback ${audio.paused ? 'paused' : 'active'} at ${currentTime.toFixed(2)}s.`
-  const status: Record<string, unknown> = {
-    audioPage,
-    audioUrl: audio.currentSrc || audio.src || null,
-    currentPage: context.data.getCurrentPage(),
-    currentTime,
-    duration: Number.isFinite(audio.duration) ? audio.duration : null,
-    ended: audio.ended,
-    found: Boolean(timing),
-    lingerSeconds,
-    message,
-    mode: 'playback-status',
-    muted: audio.muted,
-    networkState: audio.networkState,
-    paused: audio.paused,
-    readyState: audio.readyState,
-    reason,
-    timing: timing
-      ? {
-          duration: timing.duration,
-          endTime: timing.endTime,
-          text: timing.text,
-          time: timing.time,
-          word: timing.word,
-        }
-      : null,
-    timingCount: timingSet?.timings.length || 0,
-    timingIndex,
-    timingPage: timingSet?.page ?? null,
-    word: timing?.word ?? null,
-  }
-
-  oneTribeReadAlongLastPlaybackStatus = status
-  updateOneTribeReadAlongSnapshot({
-    activeButtonWord: null,
-    audioElementFound: true,
-    audioPaused: audio.paused,
-    currentTime,
-    hasMatch: Boolean(timing),
-    message,
-    page: timingSet?.page ?? audioPage,
-    timingCount: timingSet?.timings.length || 0,
-    timingIndex,
-    word: timing?.word ?? null,
-  })
-
-  return status
-}
-
-function pauseReadAlongPlayback(): Record<string, unknown> {
-  const audio = oneTribeReadAlongPlaybackAudio
-  if (!audio) {
-    return {
-      message: 'No read-along playback audio is active.',
-      mode: 'playback-status',
-      paused: true,
-    }
-  }
-
-  audio.pause()
-  return {
-    ...oneTribeReadAlongLastPlaybackStatus,
-    currentTime: Number.isFinite(audio.currentTime) ? audio.currentTime : null,
-    message: 'Read-along playback paused.',
-    mode: 'playback-status',
-    paused: true,
-  }
-}
-
-function stopReadAlongPlayback(): Record<string, unknown> {
-  const audio = oneTribeReadAlongPlaybackAudio
-  const currentTime = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : null
-
-  if (oneTribeReadAlongPlaybackCleanup) {
-    oneTribeReadAlongPlaybackCleanup()
-  }
-
-  oneTribeReadAlongPlaybackAudio = null
-  oneTribeReadAlongPlaybackCleanup = null
-  const status: Record<string, unknown> = {
-    currentTime,
-    message: 'Read-along playback stopped.',
-    mode: 'playback-status',
-    paused: true,
-    stopped: true,
-  }
-  oneTribeReadAlongLastPlaybackStatus = status
-  updateOneTribeReadAlongSnapshot({
-    audioElementFound: false,
-    audioPaused: true,
-    currentTime,
-    hasMatch: false,
-    message: String(status.message),
-    timingIndex: -1,
-    word: null,
-  })
-  return status
-}
-
-async function startReadAlongPlayback(context: ExtensionContext, page?: number): Promise<Record<string, unknown>> {
-  if (!shouldUseReadAlong()) {
-    return {
-      message: 'Read-along playback is disabled. Add oneTribeReadAlong=1 to enable it.',
-      mode: 'playback-status',
-      playStarted: false,
-    }
-  }
-
-  stopReadAlongPlayback()
-
-  const requestedPage = getReadAlongProbePage(context, page)
-  await probeReadAlongTimingData(context, requestedPage)
-  const timingSet = oneTribeReadAlongLastTimingSet
-  const cachedAlignment = oneTribeReadAlongLastAudioAlignmentProbe
-  const cachedAlignmentMatches =
-    Number(cachedAlignment?.requestedPage) === requestedPage &&
-    Number(cachedAlignment?.timingPage) === (timingSet?.page ?? Number.NaN)
-  const alignment = cachedAlignmentMatches
-    ? cachedAlignment
-    : await resolveReadAlongAudioForTiming(context, requestedPage, timingSet)
-  const pageAudioUrls = Array.isArray(alignment.pageAudioUrls) ? alignment.pageAudioUrls : []
-  const selectedAudio =
-    alignment.selected && typeof alignment.selected === 'object'
-      ? (alignment.selected as Record<string, unknown>)
-      : null
-  const selectedAudioUrl = typeof selectedAudio?.url === 'string' ? selectedAudio.url : ''
-  const selectedAudioPage = Number(selectedAudio?.page)
-  if (!selectedAudioUrl || !Number.isFinite(selectedAudioPage)) {
-    const result: Record<string, unknown> = {
-      audioAlignment: alignment,
-      currentPage: context.data.getCurrentPage(),
-      message: 'Read-along playback could not start because no page audio URL was available.',
-      mode: 'playback-status',
-      pageAudioUrls,
-      playStarted: false,
-      requestedPage,
-    }
-    oneTribeReadAlongLastPlaybackStatus = result
-    updateOneTribeReadAlongSnapshot({
-      audioElementFound: false,
-      audioPaused: null,
-      currentTime: null,
-      hasMatch: false,
-      message: String(result.message),
-      page: timingSet?.page ?? requestedPage,
-      timingCount: timingSet?.timings.length || 0,
-      timingIndex: -1,
-      word: null,
-    })
-    return result
-  }
-
-  const audio = new Audio()
-  audio.preload = 'auto'
-  audio.src = selectedAudioUrl
-  oneTribeReadAlongPlaybackAudio = audio
-
-  const update = (reason: string) => updateReadAlongPlaybackStatus(context, audio, selectedAudioPage, timingSet, reason)
-  const onLoadedMetadata = () => update('loadedmetadata')
-  const onTimeUpdate = () => update('timeupdate')
-  const onPlay = () => update('play')
-  const onPause = () => update('pause')
-  const onEnded = () => update('ended')
-  const onError = () => {
-    const status = update('error')
-    oneTribeReadAlongLastPlaybackStatus = {
-      ...status,
-      error: summarizeReadAlongMediaError(audio.error),
-      message: 'Read-along playback audio reported an error.',
-      playStarted: false,
-    }
-    updateOneTribeReadAlongSnapshot({
-      audioPaused: audio.paused,
-      message: 'Read-along playback audio reported an error.',
-    })
-  }
-
-  audio.addEventListener('loadedmetadata', onLoadedMetadata)
-  audio.addEventListener('timeupdate', onTimeUpdate)
-  audio.addEventListener('play', onPlay)
-  audio.addEventListener('pause', onPause)
-  audio.addEventListener('ended', onEnded)
-  audio.addEventListener('error', onError)
-  oneTribeReadAlongPlaybackCleanup = () => {
-    audio.removeEventListener('loadedmetadata', onLoadedMetadata)
-    audio.removeEventListener('timeupdate', onTimeUpdate)
-    audio.removeEventListener('play', onPlay)
-    audio.removeEventListener('pause', onPause)
-    audio.removeEventListener('ended', onEnded)
-    audio.removeEventListener('error', onError)
-    audio.pause()
-    audio.removeAttribute('src')
-    try {
-      audio.load()
-    } catch {
-      // Best-effort cleanup for the detached probe audio element.
-    }
-  }
-
-  update('start')
-
-  try {
-    await audio.play()
-    return {
-      ...update('play-started'),
-      audioAlignment: alignment,
-      pageAudioUrls,
-      playStarted: true,
-      requestedPage,
-    }
-  } catch (error) {
-    const status = update('play-blocked')
-    const result: Record<string, unknown> = {
-      ...status,
-      audioAlignment: alignment,
-      error: String(error),
-      message: 'Read-along playback did not start. The browser may require a direct user gesture.',
-      pageAudioUrls,
-      playStarted: false,
-      requestedPage,
-    }
-    oneTribeReadAlongLastPlaybackStatus = result
-    updateOneTribeReadAlongSnapshot({
-      audioPaused: true,
-      message: String(result.message),
-    })
-    return result
-  }
-}
+configureReadAlong({
+  getNumberParam,
+  getStringParam,
+  shouldUseReadAlong,
+  getExtensionScriptUrl: () => extensionScriptUrl,
+})
+configureSimpleRiveFiles({
+  getBooleanParam,
+  getStringParam,
+  getExtensionScriptUrl: () => extensionScriptUrl,
+})
 
 function stopWordLookupDismissEvent(event: Event): void {
   event.preventDefault()
@@ -2437,7 +674,7 @@ function createWordLookupDismissGuard(context: ExtensionContext): WordLookupDism
     lastDismissAt = now
     setPassthroughUntil(now + getSuppressMs())
 
-    context.analytics.log('one_tribe_word_lookup_outside_click_passthrough', {
+    context.analytics.log('1tribe_word_lookup_outside_click_passthrough', {
       bookId: context.data.getBookId(),
       page: context.data.getCurrentPage(),
       word: lastWord,
@@ -2559,10 +796,10 @@ function isLocalDebugExtensionScript(): boolean {
 }
 
 function installDebugCommands(context: ExtensionContext): () => void {
-  if (!getBooleanParam('oneTribeDebugCommands', false) && !isLocalDebugExtensionScript()) return () => {}
+  if (!getBooleanParam('tribeDebugCommands', false) && !isLocalDebugExtensionScript()) return () => {}
 
-  const debugWindow = window as OneTribeDebugWindow
-  const debugApi: OneTribeDebugApi = {
+  const debugWindow = window as TribeDebugWindow
+  const debugApi: TribeDebugApi = {
     lookupWord(value: string) {
       const word = cleanLookupWord(value)
       if (!word) {
@@ -2572,7 +809,7 @@ function installDebugCommands(context: ExtensionContext): () => void {
 
       armWordLookupDismissGuard(word, 'debug-console-helper')
       context.commands.execute('lookup_word', word)
-      context.analytics.log('one_tribe_debug_lookup_word', {
+      context.analytics.log('1tribe_debug_lookup_word', {
         bookId: context.data.getBookId(),
         page: context.data.getCurrentPage(),
         word,
@@ -2582,9 +819,9 @@ function installDebugCommands(context: ExtensionContext): () => void {
     },
   }
 
-  debugWindow.OneTribeDebug = debugApi
-  debugWindow.oneTribeLookupWord = debugApi.lookupWord
-  debugWindow.oneTribeCloseModal = () => {
+  debugWindow.TribeDebug = debugApi
+  debugWindow.tribeLookupWord = debugApi.lookupWord
+  debugWindow.tribeCloseModal = () => {
     try {
       context.commands.execute('closeModal')
       console.info('[1Tribe debug] closeModal')
@@ -2594,50 +831,22 @@ function installDebugCommands(context: ExtensionContext): () => void {
       return false
     }
   }
-  debugWindow.oneTribeArmWordLookupDismiss = (word = 'debug') => {
+  debugWindow.tribeArmWordLookupDismiss = (word = 'debug') => {
     armWordLookupDismissGuard(word, 'debug-manual-arm')
     return true
   }
-  debugWindow.oneTribeNextPage = () => {
+  debugWindow.tribeNextPage = () => {
     context.commands.execute('nextPage')
     console.info('[1Tribe debug] nextPage')
     return true
   }
-  debugWindow.oneTribePreviousPage = () => {
+  debugWindow.tribePreviousPage = () => {
     context.commands.execute('previousPage')
     console.info('[1Tribe debug] previousPage')
     return true
   }
-  debugWindow.oneTribeWordHotspots = debugWindow.oneTribeWordHotspots || []
-  oneTribeReadAlongLastTimingSet = null
-  oneTribeReadAlongLastProbe = null
-  oneTribeReadAlongLastAudioProbe = null
-  oneTribeReadAlongLastAudioUrlProbe = null
-  oneTribeReadAlongLastAudioAlignmentProbe = null
-  oneTribeReadAlongLastTimePreview = null
-  oneTribeReadAlongLastPlaybackStatus = null
-  oneTribeEpicLastPlaybackStatus = null
-  oneTribeEpicPlaybackFollowing = false
-  oneTribeReadAlongTimingSetsByPage.clear()
-  clearEpicPlaybackPoll()
-  stopReadAlongPlayback()
-  if (oneTribeEpicMediaProbeCleanup) {
-    oneTribeEpicMediaProbeCleanup()
-  }
-  installEpicPlaybackMediaProbe(context)
-  updateOneTribeReadAlongSnapshot({
-    audioElementFound: false,
-    audioPaused: null,
-    currentTime: null,
-    hasMatch: false,
-    message: shouldUseReadAlong()
-      ? 'Read-along status is enabled; timing/audio integration is not active yet.'
-      : 'Read-along status is installed but disabled. Add oneTribeReadAlong=1 to enable the next integration step.',
-    page: context.data.getCurrentPage(),
-    timingCount: 0,
-    timingIndex: -1,
-    word: null,
-  })
+  debugWindow.tribeWordHotspots = debugWindow.tribeWordHotspots || []
+  resetReadAlongDebugState(context)
 
   const readAlongTimingProbe = (page?: number) => probeReadAlongTimingData(context, page)
   const readAlongAudioProbe = (page?: number) => probeReadAlongAudio(context, page)
@@ -2650,37 +859,7 @@ function installDebugCommands(context: ExtensionContext): () => void {
   const epicPlaybackProbe = () => probeEpicPlaybackState(context)
   const epicPlaybackFollowStart = (page?: number) => startFollowingEpicPlayback(context, page)
   const epicPlaybackFollowStop = () => stopFollowingEpicPlayback()
-  const readAlongStatusTracker = () => ({
-    ...getOneTribeReadAlongSnapshot(),
-    currentPage: context.data.getCurrentPage(),
-    enabled: shouldUseReadAlong(),
-    epicMediaProbeInstalled: oneTribeEpicMediaProbeInstalled,
-    epicObservedMediaCount: oneTribeEpicObservedMediaElements.size,
-    epicPlaybackPollActive: Boolean(oneTribeEpicPlaybackPollTimer),
-    epicPlaybackFollowing: oneTribeEpicPlaybackFollowing,
-    lastEpicPlaybackStatus: oneTribeEpicLastPlaybackStatus,
-    lastAudioProbe: oneTribeReadAlongLastAudioProbe,
-    lastAudioAlignmentProbe: oneTribeReadAlongLastAudioAlignmentProbe,
-    lastAudioUrlProbe: oneTribeReadAlongLastAudioUrlProbe,
-    lastPlaybackStatus: oneTribeReadAlongLastPlaybackStatus,
-    lastProbe: oneTribeReadAlongLastProbe,
-    lastTimePreview: oneTribeReadAlongLastTimePreview,
-    mode: oneTribeEpicLastPlaybackStatus
-      ? 'epic-playback-follow'
-      : oneTribeReadAlongLastPlaybackStatus
-        ? 'playback-status'
-        : oneTribeReadAlongLastTimePreview
-          ? 'time-preview'
-          : oneTribeReadAlongLastAudioUrlProbe
-            ? 'audio-url-probe'
-            : oneTribeReadAlongLastAudioProbe
-              ? 'audio-probe'
-              : oneTribeReadAlongLastProbe
-                ? 'timing-probe'
-                : 'status-only',
-    pageUrl: window.location.href,
-    scriptUrl: extensionScriptUrl,
-  })
+  const readAlongStatusTracker = () => getReadAlongDebugStatus(context, extensionScriptUrl)
 
   const fallbackClickWordHotspot = (word = '') => {
     console.warn('[1Tribe debug] No active word hotspots are registered yet.', {
@@ -2702,54 +881,54 @@ function installDebugCommands(context: ExtensionContext): () => void {
     enabled: false,
     mode: 'debug-fallback',
     message:
-      'No word hotspot layer is active on this page. Add oneTribeWordHotspotTest=1&oneTribeStandaloneWordHotspots=1 to enable the standalone hotspot test layer.',
-    activeCount: debugWindow.oneTribeWordHotspots?.length || 0,
+      'No word hotspot layer is active on this page. Add tribeWordHotspotTest=1&tribeStandaloneWordHotspots=1 to enable the standalone hotspot test layer.',
+    activeCount: debugWindow.tribeWordHotspots?.length || 0,
     currentPage: context.data.getCurrentPage(),
     pageUrl: window.location.href,
     scriptUrl: extensionScriptUrl,
     simpleRiveOverlay: getBooleanParam('simpleRiveOverlay', false),
     standaloneWordHotspots: shouldUseStandaloneWordHotspots(),
-    wordHotspotTest: getBooleanParam('oneTribeWordHotspotTest', false),
+    wordHotspotTest: getBooleanParam('tribeWordHotspotTest', false),
     riveFolder: getStringParam('riveFolder'),
     riveWordHotspots: getBooleanParam('riveWordHotspots', false) || getBooleanParam('wordHotspots', false),
   })
 
-  debugWindow.oneTribeClickWordHotspot = debugWindow.oneTribeClickWordHotspot || fallbackClickWordHotspot
-  debugWindow.oneTribeForceWordHotspotPage =
-    debugWindow.oneTribeForceWordHotspotPage || fallbackForceWordHotspotPage
-  debugWindow.oneTribeWordHotspotDebug = debugWindow.oneTribeWordHotspotDebug || fallbackWordHotspotDebug
-  debugWindow.oneTribeProbeReadAlongAudio = debugWindow.oneTribeProbeReadAlongAudio || readAlongAudioProbe
-  debugWindow.oneTribeProbeReadAlongAudioAlignment =
-    debugWindow.oneTribeProbeReadAlongAudioAlignment || readAlongAudioAlignmentProbe
-  debugWindow.oneTribeProbeReadAlongAudioUrl =
-    debugWindow.oneTribeProbeReadAlongAudioUrl || readAlongAudioUrlProbe
-  debugWindow.oneTribeProbeReadAlongTimings = debugWindow.oneTribeProbeReadAlongTimings || readAlongTimingProbe
-  debugWindow.oneTribePreviewReadAlongAtTime =
-    debugWindow.oneTribePreviewReadAlongAtTime || readAlongTimePreview
-  debugWindow.oneTribeStartReadAlongAudio = debugWindow.oneTribeStartReadAlongAudio || readAlongPlaybackStart
-  debugWindow.oneTribePauseReadAlongAudio = debugWindow.oneTribePauseReadAlongAudio || readAlongPlaybackPause
-  debugWindow.oneTribeStopReadAlongAudio = debugWindow.oneTribeStopReadAlongAudio || readAlongPlaybackStop
-  debugWindow.oneTribeProbeEpicPlayback = debugWindow.oneTribeProbeEpicPlayback || epicPlaybackProbe
-  debugWindow.oneTribeStartEpicPlaybackFollow =
-    debugWindow.oneTribeStartEpicPlaybackFollow || epicPlaybackFollowStart
-  debugWindow.oneTribeStopEpicPlaybackFollow =
-    debugWindow.oneTribeStopEpicPlaybackFollow || epicPlaybackFollowStop
-  debugWindow.oneTribeReadAlongStatus = debugWindow.oneTribeReadAlongStatus || readAlongStatusTracker
-  debugWindow.oneTribeDebugStatus = () => ({
+  debugWindow.tribeClickWordHotspot = debugWindow.tribeClickWordHotspot || fallbackClickWordHotspot
+  debugWindow.tribeForceWordHotspotPage =
+    debugWindow.tribeForceWordHotspotPage || fallbackForceWordHotspotPage
+  debugWindow.tribeWordHotspotDebug = debugWindow.tribeWordHotspotDebug || fallbackWordHotspotDebug
+  debugWindow.tribeProbeReadAlongAudio = debugWindow.tribeProbeReadAlongAudio || readAlongAudioProbe
+  debugWindow.tribeProbeReadAlongAudioAlignment =
+    debugWindow.tribeProbeReadAlongAudioAlignment || readAlongAudioAlignmentProbe
+  debugWindow.tribeProbeReadAlongAudioUrl =
+    debugWindow.tribeProbeReadAlongAudioUrl || readAlongAudioUrlProbe
+  debugWindow.tribeProbeReadAlongTimings = debugWindow.tribeProbeReadAlongTimings || readAlongTimingProbe
+  debugWindow.tribePreviewReadAlongAtTime =
+    debugWindow.tribePreviewReadAlongAtTime || readAlongTimePreview
+  debugWindow.tribeStartReadAlongAudio = debugWindow.tribeStartReadAlongAudio || readAlongPlaybackStart
+  debugWindow.tribePauseReadAlongAudio = debugWindow.tribePauseReadAlongAudio || readAlongPlaybackPause
+  debugWindow.tribeStopReadAlongAudio = debugWindow.tribeStopReadAlongAudio || readAlongPlaybackStop
+  debugWindow.tribeProbeEpicPlayback = debugWindow.tribeProbeEpicPlayback || epicPlaybackProbe
+  debugWindow.tribeStartEpicPlaybackFollow =
+    debugWindow.tribeStartEpicPlaybackFollow || epicPlaybackFollowStart
+  debugWindow.tribeStopEpicPlaybackFollow =
+    debugWindow.tribeStopEpicPlaybackFollow || epicPlaybackFollowStop
+  debugWindow.tribeReadAlongStatus = debugWindow.tribeReadAlongStatus || readAlongStatusTracker
+  debugWindow.tribeDebugStatus = () => ({
     bookId: context.data.getBookId(),
     currentPage: context.data.getCurrentPage(),
     pageUrl: window.location.href,
     scriptUrl: extensionScriptUrl,
     simpleRiveOverlay: getBooleanParam('simpleRiveOverlay', false),
-    wordHotspotTest: getBooleanParam('oneTribeWordHotspotTest', false),
+    wordHotspotTest: getBooleanParam('tribeWordHotspotTest', false),
     riveFolder: getStringParam('riveFolder'),
     riveWordHotspots: getBooleanParam('riveWordHotspots', false) || getBooleanParam('wordHotspots', false),
-    activeWordHotspots: debugWindow.oneTribeWordHotspots?.length || 0,
-    readAlong: debugWindow.oneTribeReadAlongStatus?.(),
+    activeWordHotspots: debugWindow.tribeWordHotspots?.length || 0,
+    readAlong: debugWindow.tribeReadAlongStatus?.(),
     wordLookupDismissGuard: getWordLookupDismissGuardDebugState(),
   })
   console.info(
-    '[1Tribe debug] Console helpers enabled: oneTribeLookupWord("doorbell"), oneTribeNextPage(), oneTribePreviousPage(), oneTribeWordHotspotDebug(), oneTribeProbeReadAlongTimings(), oneTribeProbeEpicPlayback(), oneTribeStartEpicPlaybackFollow(), oneTribeStopEpicPlaybackFollow(), oneTribeReadAlongStatus(), oneTribeDebugStatus()',
+    '[1Tribe debug] Console helpers enabled: tribeLookupWord("doorbell"), tribeNextPage(), tribePreviousPage(), tribeWordHotspotDebug(), tribeProbeReadAlongTimings(), tribeProbeEpicPlayback(), tribeStartEpicPlaybackFollow(), tribeStopEpicPlaybackFollow(), tribeReadAlongStatus(), tribeDebugStatus()',
   )
   const epicPlaybackPageChangeCleanup = context.events.on('pageChange', () => {
     if (shouldUseReadAlong()) {
@@ -2761,67 +940,64 @@ function installDebugCommands(context: ExtensionContext): () => void {
   }
 
   return () => {
-    if (debugWindow.OneTribeDebug === debugApi) {
-      delete debugWindow.OneTribeDebug
+    if (debugWindow.TribeDebug === debugApi) {
+      delete debugWindow.TribeDebug
     }
-    if (debugWindow.oneTribeLookupWord === debugApi.lookupWord) {
-      delete debugWindow.oneTribeLookupWord
+    if (debugWindow.tribeLookupWord === debugApi.lookupWord) {
+      delete debugWindow.tribeLookupWord
     }
-    delete debugWindow.oneTribeCloseModal
-    delete debugWindow.oneTribeArmWordLookupDismiss
-    delete debugWindow.oneTribeNextPage
-    delete debugWindow.oneTribePreviousPage
-    if (debugWindow.oneTribeClickWordHotspot === fallbackClickWordHotspot) {
-      delete debugWindow.oneTribeClickWordHotspot
+    delete debugWindow.tribeCloseModal
+    delete debugWindow.tribeArmWordLookupDismiss
+    delete debugWindow.tribeNextPage
+    delete debugWindow.tribePreviousPage
+    if (debugWindow.tribeClickWordHotspot === fallbackClickWordHotspot) {
+      delete debugWindow.tribeClickWordHotspot
     }
-    if (debugWindow.oneTribeForceWordHotspotPage === fallbackForceWordHotspotPage) {
-      delete debugWindow.oneTribeForceWordHotspotPage
+    if (debugWindow.tribeForceWordHotspotPage === fallbackForceWordHotspotPage) {
+      delete debugWindow.tribeForceWordHotspotPage
     }
-    if (debugWindow.oneTribeWordHotspotDebug === fallbackWordHotspotDebug) {
-      delete debugWindow.oneTribeWordHotspotDebug
+    if (debugWindow.tribeWordHotspotDebug === fallbackWordHotspotDebug) {
+      delete debugWindow.tribeWordHotspotDebug
     }
-    if (debugWindow.oneTribeProbeReadAlongAudio === readAlongAudioProbe) {
-      delete debugWindow.oneTribeProbeReadAlongAudio
+    if (debugWindow.tribeProbeReadAlongAudio === readAlongAudioProbe) {
+      delete debugWindow.tribeProbeReadAlongAudio
     }
-    if (debugWindow.oneTribeProbeReadAlongAudioAlignment === readAlongAudioAlignmentProbe) {
-      delete debugWindow.oneTribeProbeReadAlongAudioAlignment
+    if (debugWindow.tribeProbeReadAlongAudioAlignment === readAlongAudioAlignmentProbe) {
+      delete debugWindow.tribeProbeReadAlongAudioAlignment
     }
-    if (debugWindow.oneTribeProbeReadAlongAudioUrl === readAlongAudioUrlProbe) {
-      delete debugWindow.oneTribeProbeReadAlongAudioUrl
+    if (debugWindow.tribeProbeReadAlongAudioUrl === readAlongAudioUrlProbe) {
+      delete debugWindow.tribeProbeReadAlongAudioUrl
     }
-    if (debugWindow.oneTribeProbeReadAlongTimings === readAlongTimingProbe) {
-      delete debugWindow.oneTribeProbeReadAlongTimings
+    if (debugWindow.tribeProbeReadAlongTimings === readAlongTimingProbe) {
+      delete debugWindow.tribeProbeReadAlongTimings
     }
-    if (debugWindow.oneTribePreviewReadAlongAtTime === readAlongTimePreview) {
-      delete debugWindow.oneTribePreviewReadAlongAtTime
+    if (debugWindow.tribePreviewReadAlongAtTime === readAlongTimePreview) {
+      delete debugWindow.tribePreviewReadAlongAtTime
     }
-    if (debugWindow.oneTribeStartReadAlongAudio === readAlongPlaybackStart) {
-      delete debugWindow.oneTribeStartReadAlongAudio
+    if (debugWindow.tribeStartReadAlongAudio === readAlongPlaybackStart) {
+      delete debugWindow.tribeStartReadAlongAudio
     }
-    if (debugWindow.oneTribePauseReadAlongAudio === readAlongPlaybackPause) {
-      delete debugWindow.oneTribePauseReadAlongAudio
+    if (debugWindow.tribePauseReadAlongAudio === readAlongPlaybackPause) {
+      delete debugWindow.tribePauseReadAlongAudio
     }
-    if (debugWindow.oneTribeStopReadAlongAudio === readAlongPlaybackStop) {
-      delete debugWindow.oneTribeStopReadAlongAudio
+    if (debugWindow.tribeStopReadAlongAudio === readAlongPlaybackStop) {
+      delete debugWindow.tribeStopReadAlongAudio
     }
-    if (debugWindow.oneTribeProbeEpicPlayback === epicPlaybackProbe) {
-      delete debugWindow.oneTribeProbeEpicPlayback
+    if (debugWindow.tribeProbeEpicPlayback === epicPlaybackProbe) {
+      delete debugWindow.tribeProbeEpicPlayback
     }
-    if (debugWindow.oneTribeStartEpicPlaybackFollow === epicPlaybackFollowStart) {
-      delete debugWindow.oneTribeStartEpicPlaybackFollow
+    if (debugWindow.tribeStartEpicPlaybackFollow === epicPlaybackFollowStart) {
+      delete debugWindow.tribeStartEpicPlaybackFollow
     }
-    if (debugWindow.oneTribeStopEpicPlaybackFollow === epicPlaybackFollowStop) {
-      delete debugWindow.oneTribeStopEpicPlaybackFollow
+    if (debugWindow.tribeStopEpicPlaybackFollow === epicPlaybackFollowStop) {
+      delete debugWindow.tribeStopEpicPlaybackFollow
     }
-    if (debugWindow.oneTribeReadAlongStatus === readAlongStatusTracker) {
-      delete debugWindow.oneTribeReadAlongStatus
+    if (debugWindow.tribeReadAlongStatus === readAlongStatusTracker) {
+      delete debugWindow.tribeReadAlongStatus
     }
     epicPlaybackPageChangeCleanup()
-    stopReadAlongPlayback()
-    if (oneTribeEpicMediaProbeCleanup) {
-      oneTribeEpicMediaProbeCleanup()
-    }
-    delete debugWindow.oneTribeDebugStatus
+    cleanupReadAlongDebugState()
+    delete debugWindow.tribeDebugStatus
   }
 }
 
@@ -2844,15 +1020,15 @@ function shouldUseSimpleRiveOverlay(): boolean {
 }
 
 function shouldUseStandaloneWordHotspots(): boolean {
-  const explicitValue = getStringParam('oneTribeStandaloneWordHotspots')
+  const explicitValue = getStringParam('tribeStandaloneWordHotspots')
   if (explicitValue !== null) {
     return explicitValue === '1' || explicitValue === 'true'
   }
 
-  if (getBooleanParam('oneTribeWordHotspotTest', false)) return true
+  if (getBooleanParam('tribeWordHotspotTest', false)) return true
 
   const folder = (getStringParam('riveWordHotspotFolder') || getStringParam('riveFolder') || '').trim()
-  return isLocalDebugExtensionScript() && ['Test_June2_4-5', ...getSupportedOneTribeRiveFolders()].includes(folder)
+  return isLocalDebugExtensionScript() && ['Test_June2_4-5', ...getSupportedTribeRiveFolders()].includes(folder)
 }
 
 function getRuntimeConfig(): RiveRuntimeConfig {
@@ -2869,7 +1045,7 @@ function getRuntimeConfig(): RiveRuntimeConfig {
       ]
     : isSampleSet
       ? SAMPLE_SPREADS
-      : ONE_TRIBE_SPREADS
+      : TRIBE_SPREADS
 
   return {
     autoBind: getBooleanParam('riveAutoBind', true),
@@ -2913,1122 +1089,10 @@ const SPREADS = runtimeConfig.spreads
 RuntimeLoader.setWasmUrl(RIVE_WASM_SOURCE)
 RuntimeLoader.setWasmFallbackUrl(RIVE_WASM_FALLBACK_SOURCE)
 
-const styles = `
-  .tribe-extension-root {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
 
-  .tribe-rive-frame {
-    position: absolute;
-    pointer-events: auto;
-    min-width: 320px;
-    min-height: 180px;
-    border: 2px dashed rgba(240, 193, 90, 0.85);
-    background:
-      linear-gradient(135deg, rgba(14, 111, 104, 0.22), rgba(240, 193, 90, 0.16)),
-      rgba(24, 63, 59, 0.18);
-  }
 
-  .tribe-rive-canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    outline: 0;
-  }
 
-  .tribe-rive-status {
-    position: absolute;
-    left: 16px;
-    bottom: 16px;
-    max-width: min(320px, calc(100% - 32px));
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: rgba(24, 63, 59, 0.88);
-    color: #ffffff;
-    font-size: 13px;
-    line-height: 1.35;
-    pointer-events: none;
-    z-index: 2;
-  }
-`
 
-const commandHarnessStyles = `
-  :host {
-    position: relative;
-  }
-
-  .tribe-command-harness {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 2147483647;
-    display: grid;
-    gap: 8px;
-    width: min(260px, calc(100vw - 32px));
-    padding: 10px;
-    border: 1px solid rgba(24, 63, 59, 0.22);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
-    color: #183f3b;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    pointer-events: auto;
-  }
-
-  .tribe-command-harness.is-epic-native-passthrough-right {
-    right: auto;
-    left: 16px;
-  }
-
-  .tribe-command-harness.is-completion-handoff {
-    display: none !important;
-    pointer-events: none !important;
-  }
-
-  .tribe-command-harness__title {
-    margin: 0;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1.2;
-  }
-
-  .tribe-command-harness__controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .tribe-command-harness__button {
-    min-height: 36px;
-    border: 0;
-    border-radius: 6px;
-    background: #f0c15a;
-    color: #111827;
-    cursor: pointer;
-    font: 800 13px/1 Inter, ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: 0;
-  }
-
-  .tribe-command-harness__button:hover,
-  .tribe-command-harness__button:focus-visible {
-    background: #ffd978;
-    outline: 2px solid rgba(24, 63, 59, 0.45);
-    outline-offset: 2px;
-  }
-
-  .tribe-command-harness__preview {
-    display: grid;
-    gap: 4px;
-  }
-
-  .tribe-command-harness__stage {
-    box-sizing: border-box;
-    position: relative;
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    border: 1px solid rgba(24, 63, 59, 0.18);
-    border-radius: 6px;
-    background: #ffffff;
-    overflow: hidden;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 2147483000;
-    width: 100%;
-    height: 100%;
-    aspect-ratio: auto;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    pointer-events: auto;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-takeover {
-    background: #ffffff;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-takeover.is-epic-native-shell {
-    background: transparent;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-own-book-frame {
-    border: var(--tribe-command-harness-book-frame-border, 3px solid #111111);
-    border-radius: 0;
-    background: #ffffff;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.88);
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-takeover.is-native-passthrough-suspended {
-    background: transparent;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough {
-    pointer-events: auto;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough-left:not(.is-epic-native-passthrough-right) {
-    clip-path: inset(0 0 0 50%);
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough-right:not(.is-epic-native-passthrough-left) {
-    clip-path: inset(0 50% 0 0);
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough-left.is-epic-native-passthrough-right {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-completion-handoff {
-    display: none !important;
-    opacity: 0;
-    pointer-events: none !important;
-    visibility: hidden;
-  }
-
-  .tribe-command-harness__canvas {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    background: transparent;
-    pointer-events: auto;
-  }
-
-  .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough-left.is-epic-native-passthrough-right
-    .tribe-command-harness__canvas {
-    pointer-events: none !important;
-  }
-
-  .tribe-command-harness__edge-gutter {
-    box-sizing: border-box;
-    position: absolute;
-    z-index: 2147483200;
-    display: block;
-    border: 0;
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    outline: 0;
-    pointer-events: auto;
-    touch-action: manipulation;
-  }
-
-  .tribe-command-harness__edge-gutter[hidden] {
-    display: none;
-  }
-
-  .tribe-command-harness__edge-gutter--back {
-    cursor: -webkit-image-set(
-        url("/assets/app/read/page-turn-arrows/icn-back-page@2x.png") 1x,
-        url("/assets/app/read/page-turn-arrows/icn-back-page@2x.png") 2x
-      )
-      28 28,
-      pointer;
-  }
-
-  .tribe-command-harness__edge-gutter--next {
-    cursor: -webkit-image-set(
-        url("/assets/app/read/page-turn-arrows/icn-next-page@2x.png") 1x,
-        url("/assets/app/read/page-turn-arrows/icn-next-page@2x.png") 2x
-      )
-      28 28,
-      pointer;
-  }
-
-  .tribe-command-harness__edge-gutter::after {
-    display: none;
-  }
-
-  .tribe-command-harness__status {
-    min-height: 16px;
-    margin: 0;
-    color: #4d625d;
-    font-size: 11px;
-    line-height: 1.35;
-  }
-`
-
-const drawerStyles = `
-  .tribe-drawer {
-    box-sizing: border-box;
-    display: grid;
-    gap: 16px;
-    align-content: start;
-    min-height: 100%;
-    padding: 24px;
-    background: #fbfaf7;
-    color: #20302d;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-
-  .tribe-drawer h2 {
-    margin: 0;
-    color: #183f3b;
-    font-size: 22px;
-    line-height: 1.18;
-    letter-spacing: 0;
-  }
-
-  .tribe-drawer p {
-    margin: 0;
-    color: #4d625d;
-    font-size: 14px;
-    line-height: 1.55;
-    letter-spacing: 0;
-  }
-
-  .tribe-meta {
-    display: grid;
-    gap: 8px;
-    padding: 14px;
-    border: 1px solid #d9ddd5;
-    border-radius: 8px;
-    background: #ffffff;
-  }
-
-  .tribe-meta-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    color: #2f4540;
-    font-size: 13px;
-    line-height: 1.35;
-  }
-
-  .tribe-meta-row strong {
-    color: #183f3b;
-    font-weight: 700;
-  }
-
-  .tribe-close {
-    justify-self: start;
-    border: 0;
-    border-radius: 6px;
-    padding: 10px 14px;
-    background: #183f3b;
-    color: #ffffff;
-    cursor: pointer;
-    font: 700 14px/1 Inter, ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: 0;
-  }
-
-  .tribe-close:hover {
-    background: #0e6f68;
-  }
-`
-
-const simpleOverlayStyles = `
-  .tribe-simple-overlay-root {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 2147483647;
-  }
-
-
-  .tribe-simple-overlay-root.is-reading-area-replacement {
-    background: transparent;
-  }
-
-  .tribe-simple-overlay-root.is-reading-area-replacement.is-hiding-reader-content {
-    background: var(--tribe-rive-replacement-backdrop, #ffffff);
-  }
-
-  .tribe-simple-overlay-root.is-epic-native-passthrough {
-    background: transparent !important;
-  }
-
-  .tribe-simple-overlay-root.is-reading-area-replacement .tribe-simple-rive-frame {
-    background: var(--tribe-rive-replacement-backdrop, #ffffff);
-  }
-
-  .tribe-simple-overlay-root.is-epic-native-passthrough-left:not(.is-epic-native-passthrough-right)
-    .tribe-simple-rive-frame {
-    clip-path: inset(0 0 0 50%);
-  }
-
-  .tribe-simple-overlay-root.is-epic-native-passthrough-right:not(.is-epic-native-passthrough-left)
-    .tribe-simple-rive-frame {
-    clip-path: inset(0 50% 0 0);
-  }
-
-  .tribe-simple-overlay-root.is-epic-native-passthrough-left.is-epic-native-passthrough-right
-    .tribe-simple-rive-frame {
-    opacity: 0;
-    pointer-events: none !important;
-  }
-
-  .tribe-simple-reading-mask {
-    position: absolute;
-    z-index: 0;
-    background: var(--tribe-rive-replacement-backdrop, #ffffff);
-    pointer-events: none;
-  }
-
-  .tribe-simple-reading-mask[hidden] {
-    display: none;
-  }
-
-  .tribe-simple-rive-frame {
-    position: absolute;
-    z-index: 1;
-    overflow: hidden;
-    background: transparent;
-    pointer-events: none;
-    isolation: isolate;
-    contain: layout paint;
-    --tribe-page-flip-ms: 520ms;
-  }
-
-  .tribe-simple-rive-canvas {
-    display: block;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: 0;
-    outline: 0;
-    opacity: 1;
-    pointer-events: none;
-    transform: translateZ(0);
-    transform-origin: center center;
-    transition: opacity 140ms ease;
-    will-change: opacity, transform, filter;
-  }
-
-  .tribe-simple-rive-canvas.tribe-simple-interaction-canvas {
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transition: none;
-    z-index: 3;
-  }
-
-  .tribe-simple-overlay-root.is-rive-interactive .tribe-simple-interaction-canvas {
-    pointer-events: auto;
-  }
-
-  .tribe-simple-completion-page {
-    box-sizing: border-box;
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    display: grid;
-    place-items: center;
-    background: #ffffff;
-    pointer-events: none;
-  }
-
-  .tribe-simple-completion-page[hidden] {
-    display: none;
-  }
-
-  .tribe-simple-completion-page .book-precompletion-page-container {
-    box-sizing: border-box;
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 100%;
-  }
-
-  .tribe-simple-completion-page .almost-done {
-    display: block;
-    max-width: min(72%, 520px);
-    max-height: 72%;
-    object-fit: contain;
-  }
-
-  .tribe-simple-overlay-root.is-rive-interactive .tribe-simple-rive-frame {
-    pointer-events: auto;
-  }
-
-  .tribe-simple-overlay-root.is-rive-interactive .tribe-simple-active-canvas {
-    cursor: pointer;
-    pointer-events: auto;
-  }
-
-  .tribe-simple-overlay-root.is-rive-interactive .tribe-simple-loading-canvas {
-    pointer-events: none;
-  }
-
-  .tribe-simple-overlay-root.is-epic-native-passthrough-left.is-epic-native-passthrough-right
-    .tribe-simple-rive-frame,
-  .tribe-simple-overlay-root.is-epic-native-passthrough-left.is-epic-native-passthrough-right
-    .tribe-simple-rive-canvas,
-  .tribe-simple-overlay-root.is-epic-native-passthrough-left.is-epic-native-passthrough-right
-    .tribe-word-hotspot-button {
-    pointer-events: none !important;
-  }
-
-  .tribe-simple-overlay-root.is-epic-native-passthrough-left .tribe-simple-nav-gutter--back,
-  .tribe-simple-overlay-root.is-epic-native-passthrough-right .tribe-simple-nav-gutter--next {
-    pointer-events: none !important;
-  }
-
-  .tribe-simple-transition-canvas {
-    position: absolute;
-    inset: 0;
-    z-index: 6;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .tribe-simple-nav-gutter {
-    box-sizing: border-box;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    z-index: 20;
-    display: block;
-    border: 0;
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    outline: 0;
-    pointer-events: auto;
-    touch-action: manipulation;
-  }
-
-  .tribe-simple-nav-gutter[hidden] {
-    display: none;
-  }
-
-  .tribe-simple-nav-gutter--back {
-    cursor: -webkit-image-set(
-        url("/assets/app/read/page-turn-arrows/icn-back-page@2x.png") 1x,
-        url("/assets/app/read/page-turn-arrows/icn-back-page@2x.png") 2x
-      )
-      28 28,
-      pointer;
-  }
-
-  .tribe-simple-nav-gutter--next {
-    cursor: -webkit-image-set(
-        url("/assets/app/read/page-turn-arrows/icn-next-page@2x.png") 1x,
-        url("/assets/app/read/page-turn-arrows/icn-next-page@2x.png") 2x
-      )
-      28 28,
-      pointer;
-  }
-
-  .tribe-simple-nav-gutter::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 56px;
-    height: 56px;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-50%);
-    transition: opacity 100ms ease;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
-  }
-
-  .tribe-simple-nav-gutter--back::after {
-    left: 6px;
-    background-image: url("/assets/app/read/page-turn-arrows/icn-back-page@2x.png");
-  }
-
-  .tribe-simple-nav-gutter--next::after {
-    right: 6px;
-    background-image: url("/assets/app/read/page-turn-arrows/icn-next-page@2x.png");
-  }
-
-  .tribe-simple-nav-gutter:hover::after,
-  .tribe-simple-nav-gutter:focus-visible::after {
-    opacity: 1;
-  }
-
-  .tribe-simple-rive-frame::before,
-  .tribe-simple-rive-frame::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .tribe-simple-rive-frame::before {
-    width: 50%;
-    z-index: 4;
-    background:
-      linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.08));
-    box-shadow: 0 0 14px rgba(0, 0, 0, 0.14);
-  }
-
-  .tribe-simple-rive-frame::after {
-    width: 10px;
-    z-index: 5;
-    background:
-      linear-gradient(
-        90deg,
-        rgba(0, 0, 0, 0),
-        rgba(0, 0, 0, 0.16),
-        rgba(255, 255, 255, 0.2),
-        rgba(0, 0, 0, 0)
-      );
-  }
-
-  .tribe-simple-rive-frame.is-flipping-next::before {
-    left: 50%;
-    transform-origin: left center;
-    animation: tribe-simple-page-cover-next var(--tribe-page-flip-ms) cubic-bezier(0.32, 0.72, 0.24, 1) both;
-  }
-
-  .tribe-simple-rive-frame.is-flipping-back::before {
-    right: 50%;
-    transform-origin: right center;
-    animation: tribe-simple-page-cover-back var(--tribe-page-flip-ms) cubic-bezier(0.32, 0.72, 0.24, 1) both;
-  }
-
-  .tribe-simple-rive-frame.is-flipping-next::after {
-    left: calc(50% - 5px);
-    animation: tribe-simple-page-crease var(--tribe-page-flip-ms) cubic-bezier(0.32, 0.72, 0.24, 1) both;
-  }
-
-  .tribe-simple-rive-frame.is-flipping-back::after {
-    right: calc(50% - 5px);
-    animation: tribe-simple-page-crease var(--tribe-page-flip-ms) cubic-bezier(0.32, 0.72, 0.24, 1) both;
-  }
-
-  .tribe-simple-rive-frame.is-flipping-next .tribe-simple-active-canvas {
-    animation: tribe-simple-page-hold var(--tribe-page-flip-ms) cubic-bezier(0.25, 0.82, 0.22, 1) both;
-  }
-
-  .tribe-simple-rive-frame.is-flipping-back .tribe-simple-active-canvas {
-    animation: tribe-simple-page-hold var(--tribe-page-flip-ms) cubic-bezier(0.25, 0.82, 0.22, 1) both;
-  }
-
-  @keyframes tribe-simple-page-hold {
-    0% {
-      filter: brightness(1);
-      transform: translateX(0) scale(1);
-    }
-    48% {
-      filter: brightness(0.97);
-      transform: translateX(0) scale(1);
-    }
-    100% {
-      filter: brightness(1);
-      transform: translateX(0) scale(1);
-    }
-  }
-
-  @keyframes tribe-simple-page-cover-next {
-    0% {
-      opacity: 0;
-      transform: scaleX(0);
-    }
-    16% {
-      opacity: 0.28;
-      transform: scaleX(0.08);
-    }
-    58% {
-      opacity: 0.28;
-      transform: scaleX(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scaleX(1);
-    }
-  }
-
-  @keyframes tribe-simple-page-cover-back {
-    0% {
-      opacity: 0;
-      transform: scaleX(0);
-    }
-    16% {
-      opacity: 0.28;
-      transform: scaleX(0.08);
-    }
-    58% {
-      opacity: 0.28;
-      transform: scaleX(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scaleX(1);
-    }
-  }
-
-  @keyframes tribe-simple-page-crease {
-    0% {
-      opacity: 0;
-    }
-    18% {
-      opacity: 0.34;
-    }
-    62% {
-      opacity: 0.34;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-
-  .tribe-simple-rive-status {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    max-width: min(360px, calc(100% - 24px));
-    padding: 8px 10px;
-    border-radius: 6px;
-    background: rgba(16, 20, 18, 0.84);
-    color: #ffffff;
-    font-size: 12px;
-    line-height: 1.35;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    pointer-events: none;
-  }
-
-  .tribe-simple-rive-start {
-    position: absolute;
-    right: 12px;
-    bottom: 12px;
-    z-index: 6;
-    border: 0;
-    border-radius: 6px;
-    padding: 10px 12px;
-    background: #006dff;
-    color: #ffffff;
-    cursor: pointer;
-    font: 700 13px/1 Inter, ui-sans-serif, system-ui, sans-serif;
-    pointer-events: auto;
-  }
-
-  .tribe-simple-rive-start[hidden] {
-    display: none;
-  }
-
-  .tribe-simple-sequential-controls {
-    position: absolute;
-    left: 12px;
-    bottom: 12px;
-    z-index: 7;
-    display: flex;
-    gap: 8px;
-    pointer-events: auto;
-  }
-
-  .tribe-simple-sequential-controls[hidden] {
-    display: none;
-  }
-
-  .tribe-simple-sequential-controls button {
-    border: 0;
-    border-radius: 6px;
-    padding: 9px 12px;
-    background: #006dff;
-    color: #ffffff;
-    cursor: pointer;
-    font: 700 13px/1 Inter, ui-sans-serif, system-ui, sans-serif;
-  }
-
-  .tribe-simple-state-controls {
-    box-sizing: border-box;
-    position: absolute;
-    left: 12px;
-    top: 12px;
-    z-index: 8;
-    display: grid;
-    gap: 8px;
-    width: min(420px, calc(100% - 24px));
-    max-height: calc(100% - 24px);
-    overflow: auto;
-    padding: 10px;
-    border-radius: 8px;
-    background: rgba(16, 20, 18, 0.88);
-    color: #ffffff;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    pointer-events: auto;
-  }
-
-  .tribe-simple-state-controls[hidden] {
-    display: none;
-  }
-
-  .tribe-simple-state-controls strong {
-    display: block;
-    font-size: 12px;
-    line-height: 1.25;
-    letter-spacing: 0;
-  }
-
-  .tribe-simple-state-controls small {
-    display: block;
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 11px;
-    line-height: 1.35;
-    letter-spacing: 0;
-  }
-
-  .tribe-simple-state-control-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .tribe-simple-state-controls button {
-    border: 0;
-    border-radius: 6px;
-    padding: 8px 10px;
-    background: #f0c15a;
-    color: #151a18;
-    cursor: pointer;
-    font: 800 12px/1 Inter, ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: 0;
-  }
-
-  .tribe-simple-state-controls button.secondary {
-    background: #d7ebe7;
-  }
-
-  .tribe-simple-state-controls button[disabled] {
-    cursor: not-allowed;
-    opacity: 0.58;
-  }
-
-  .tribe-word-hotspot-layer {
-    position: absolute;
-    inset: 0;
-    z-index: 12;
-    pointer-events: none;
-  }
-
-  .tribe-word-hotspot-layer[hidden] {
-    display: none;
-  }
-
-  :host-context(.tribe-word-lookup-passthrough) .tribe-simple-rive-frame,
-  :host-context(.tribe-word-lookup-passthrough) .tribe-simple-rive-canvas,
-  :host-context(.tribe-word-lookup-passthrough) .tribe-simple-nav-gutter,
-  :host-context(.tribe-word-lookup-passthrough) .tribe-word-hotspot-layer,
-  :host-context(.tribe-word-lookup-passthrough) .tribe-word-hotspot-button {
-    pointer-events: none !important;
-  }
-
-  .tribe-word-hotspot-button {
-    position: absolute;
-    z-index: 1;
-    box-sizing: border-box;
-    border: 0;
-    border-radius: 0;
-    padding: 0;
-    background: transparent;
-    color: transparent;
-    cursor: pointer;
-    font: 0/0 sans-serif;
-    isolation: isolate;
-    overflow: visible;
-    pointer-events: auto;
-  }
-
-  .tribe-word-hotspot-button::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    box-sizing: border-box;
-    outline: var(--tribe-word-hotspot-stroke, 3px) solid transparent;
-    outline-offset: 0;
-    pointer-events: none;
-    transform: scale(
-      var(--tribe-word-hotspot-outline-scale-x, 1.08),
-      var(--tribe-word-hotspot-outline-scale-y, 1.16)
-    );
-    transform-origin: center;
-    box-shadow: none;
-    transition:
-      outline-color 80ms ease,
-      box-shadow 80ms ease;
-  }
-
-  .tribe-word-hotspot-button:hover::before,
-  .tribe-word-hotspot-button:focus-visible::before,
-  .tribe-word-hotspot-button.is-read-along-active::before {
-    outline-color: #000000;
-    box-shadow:
-      var(--tribe-word-hotspot-shadow-x, 5px)
-      var(--tribe-word-hotspot-shadow-y, 5px)
-      0
-      #000000;
-  }
-
-  .tribe-word-hotspot-button.is-suspect {
-    background: transparent;
-  }
-
-  .tribe-word-hotspot-button.is-suspect:hover::before,
-  .tribe-word-hotspot-button.is-suspect:focus-visible::before {
-    outline-color: #000000;
-  }
-
-  .tribe-word-hotspot-button:hover,
-  .tribe-word-hotspot-button:focus-visible,
-  .tribe-word-hotspot-button.is-read-along-active {
-    background: transparent;
-    box-shadow: none;
-    outline: none;
-  }
-
-  .tribe-word-hotspot-magnifier {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 2;
-    display: none;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    image-rendering: auto;
-    pointer-events: none;
-    transform: translate(-50%, -50%) scale(var(--tribe-word-hotspot-word-scale, 1.14));
-    transform-origin: center;
-  }
-
-  .tribe-word-hotspot-button:hover .tribe-word-hotspot-magnifier,
-  .tribe-word-hotspot-button:focus-visible .tribe-word-hotspot-magnifier,
-  .tribe-word-hotspot-button.is-read-along-active .tribe-word-hotspot-magnifier {
-    display: block;
-  }
-`
-
-const standaloneWordHotspotStyles = `
-  .tribe-standalone-word-hotspot-root {
-    position: fixed;
-    inset: 0;
-    z-index: 2147483647;
-    pointer-events: none;
-  }
-
-  .tribe-standalone-word-hotspot-root.is-epic-completion-visible {
-    display: none !important;
-    pointer-events: none !important;
-  }
-
-  .tribe-standalone-word-hotspot-frame {
-    position: absolute;
-    overflow: visible;
-    pointer-events: none;
-    outline: none;
-  }
-
-  .tribe-standalone-word-hotspot-status {
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    z-index: 2;
-    max-width: min(360px, calc(100% - 16px));
-    border-radius: 6px;
-    padding: 7px 9px;
-    background: rgba(9, 74, 78, 0.92);
-    color: #ffffff;
-    font: 700 12px/1.3 Inter, ui-sans-serif, system-ui, sans-serif;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-    pointer-events: none;
-  }
-
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-root,
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-frame,
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-button {
-    pointer-events: none !important;
-  }
-
-  .tribe-standalone-word-hotspot-button {
-    position: absolute;
-    z-index: 1;
-    box-sizing: border-box;
-    min-width: 10px;
-    min-height: 10px;
-    border: 0;
-    border-radius: 0;
-    padding: 0;
-    background: transparent;
-    color: transparent;
-    cursor: pointer;
-    font: 0/0 sans-serif;
-    isolation: isolate;
-    overflow: visible;
-    box-shadow: none;
-    pointer-events: auto;
-  }
-
-  .tribe-standalone-word-hotspot-button::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    box-sizing: border-box;
-    outline: var(--tribe-word-hotspot-stroke, 3px) solid transparent;
-    outline-offset: 0;
-    pointer-events: none;
-    transform: scale(
-      var(--tribe-word-hotspot-outline-scale-x, 1.08),
-      var(--tribe-word-hotspot-outline-scale-y, 1.16)
-    );
-    transform-origin: center;
-    box-shadow: none;
-    transition:
-      outline-color 80ms ease,
-      box-shadow 80ms ease;
-  }
-
-  .tribe-standalone-word-hotspot-button:hover::before,
-  .tribe-standalone-word-hotspot-button:focus-visible::before,
-  .tribe-standalone-word-hotspot-button.is-read-along-active::before {
-    outline-color: #000000;
-    box-shadow:
-      var(--tribe-word-hotspot-shadow-x, 5px)
-      var(--tribe-word-hotspot-shadow-y, 5px)
-      0
-      #000000;
-  }
-
-  .tribe-standalone-word-hotspot-button.is-suspect {
-    background: transparent;
-  }
-
-  .tribe-standalone-word-hotspot-button.is-suspect:hover::before,
-  .tribe-standalone-word-hotspot-button.is-suspect:focus-visible::before {
-    outline-color: #000000;
-  }
-
-  .tribe-standalone-word-hotspot-button:hover,
-  .tribe-standalone-word-hotspot-button:focus-visible,
-  .tribe-standalone-word-hotspot-button.is-read-along-active {
-    background: transparent;
-    box-shadow: none;
-    outline: none;
-  }
-
-  .tribe-standalone-word-hotspot-magnifier {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 2;
-    display: none;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    image-rendering: auto;
-    pointer-events: none;
-    transform: translate(-50%, -50%) scale(var(--tribe-word-hotspot-word-scale, 1.14));
-    transform-origin: center;
-  }
-
-  .tribe-standalone-word-hotspot-button:hover .tribe-standalone-word-hotspot-magnifier,
-  .tribe-standalone-word-hotspot-button:focus-visible .tribe-standalone-word-hotspot-magnifier,
-  .tribe-standalone-word-hotspot-button.is-read-along-active .tribe-standalone-word-hotspot-magnifier {
-    display: block;
-  }
-`
-
-const actionToCommand: Record<string, ReaderCommand> = {
-  drawer: 'openDrawer',
-  opendrawer: 'openDrawer',
-  open_drawer: 'openDrawer',
-  close: 'closeDrawer',
-  closedrawer: 'closeDrawer',
-  close_drawer: 'closeDrawer',
-  modal: 'openModal',
-  openmodal: 'openModal',
-  open_modal: 'openModal',
-  closemodal: 'closeModal',
-  close_modal: 'closeModal',
-  next: 'pageForward',
-  forward: 'pageForward',
-  pageforward: 'pageForward',
-  page_forward: 'pageForward',
-  pagenext: 'pageForward',
-  page_next: 'pageForward',
-  nextpage: 'pageForward',
-  next_page: 'pageForward',
-  nextpagecommand: 'pageForward',
-  goforward: 'pageForward',
-  go_forward: 'pageForward',
-  gonext: 'pageForward',
-  go_next: 'pageForward',
-  back: 'pageBack',
-  previous: 'pageBack',
-  prev: 'pageBack',
-  backward: 'pageBack',
-  pageback: 'pageBack',
-  page_back: 'pageBack',
-  pageprevious: 'pageBack',
-  page_previous: 'pageBack',
-  backpage: 'pageBack',
-  back_page: 'pageBack',
-  previouspage: 'pageBack',
-  previous_page: 'pageBack',
-  goback: 'pageBack',
-  go_back: 'pageBack',
-  lookup_word: 'lookup_word',
-  lookupword: 'lookup_word',
-  look_up_word: 'lookup_word',
-  word_lookup: 'lookup_word',
-  wordlookup: 'lookup_word',
-  define: 'lookup_word',
-  definition: 'lookup_word',
-}
-
-function getPageNavigationCommand(actionName: string): ReaderCommand | null {
-  const normalized = normalizeActionName(actionName)
-  const forwardPattern = /^(next|forward|pageforward|page_forward|pagenext|page_next|nextpage|next_page|goforward|go_forward|gonext|go_next|pagegoforward|page_go_forward|pagegonext|page_go_next)(?:_?\d+)?$/
-  const backPattern = /^(back|previous|prev|backward|pageback|page_back|pageprevious|page_previous|backpage|back_page|goback|go_back|pagegoback|page_go_back|pagegoprevious|page_go_previous|pagegoprev|page_go_prev)(?:_?\d+)?$/
-
-  if (forwardPattern.test(normalized)) {
-    return 'pageForward'
-  }
-  if (backPattern.test(normalized)) {
-    return 'pageBack'
-  }
-
-  return null
-}
-
-function isPageNavigationCommand(
-  command: ReaderCommand,
-): command is 'pageForward' | 'pageBack' | 'nextPage' | 'previousPage' {
-  return command === 'pageForward' || command === 'pageBack' || command === 'nextPage' || command === 'previousPage'
-}
-
-function getPageNavigationDirection(command: ReaderCommand): number | null {
-  if (command === 'pageForward' || command === 'nextPage') return 1
-  if (command === 'pageBack' || command === 'previousPage') return -1
-  return null
-}
-
-function getEpicPageNavigationCommand(command: ReaderCommand): EpicPageNavigationCommand | null {
-  const direction = getPageNavigationDirection(command)
-  if (direction === 1) return 'nextPage'
-  if (direction === -1) return 'previousPage'
-  return null
-}
-
-function getLookupWordCommand(actionName: string): ReaderCommand | null {
-  return /^(?:lookup[_\s-]?word|lookupword|word[_\s-]?lookup|define|definition)(?:[:=\s_-].+)?$/i.test(
-    actionName.trim(),
-  )
-    ? 'lookup_word'
-    : null
-}
 
 function injectStyle(root: ShadowRoot, css: string, id: string): HTMLStyleElement {
   const existing = root.getElementById(id)
@@ -4058,7 +1122,7 @@ function injectDocumentStyle(css: string, id: string): HTMLStyleElement {
 
 function activateCommandHarness(context: ExtensionContext): () => void {
   const readingRoot = context.slots.get('reading-area')
-  const activeBookConfig = getEpicOneTribeBookConfig(context.data.getBookId()) || getEpicOneTribeBookConfig()
+  const activeBookConfig = getEpicTribeBookConfig(context.data.getBookId()) || getEpicTribeBookConfig()
   if (!activeBookConfig) {
     console.warn('[1Tribe reader integration] No configured book integration is available for this Epic book.', {
       bookId: context.data.getBookId(),
@@ -4087,53 +1151,53 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   let previewLoadSerial = 0
   let previewSwapHoldUntil = 0
   let pendingPreviewSwapTimer: number | null = null
-  const shouldUseTakeover = getBooleanParam('oneTribeCommandHarnessTakeover', false)
-  const isPreviewEnabled = shouldUseTakeover || getBooleanParam('oneTribeCommandHarnessRive', false)
+  const shouldUseTakeover = getBooleanParam('tribeCommandHarnessTakeover', false)
+  const isPreviewEnabled = shouldUseTakeover || getBooleanParam('tribeCommandHarnessRive', false)
   const shouldUseOwnBookFrame =
-    isPreviewEnabled && getBooleanParam('oneTribeCommandHarnessUseOwnBookFrame', false)
+    isPreviewEnabled && getBooleanParam('tribeCommandHarnessUseOwnBookFrame', false)
   const shouldFitToEpicBookFrame =
-    isPreviewEnabled && !shouldUseOwnBookFrame && getBooleanParam('oneTribeCommandHarnessUseEpicBookFrame', false)
-  const ownBookFrameAspectParam = getStringParam('oneTribeCommandHarnessOwnBookFrameAspect')
-  const ownBookFrameAspect = ownBookFrameAspectParam === null ? null : getNumberParam('oneTribeCommandHarnessOwnBookFrameAspect', 1216 / 837)
-  const requestedEpicBookFrameInsetPx = Number(getStringParam('oneTribeCommandHarnessEpicBookFrameInsetPx'))
+    isPreviewEnabled && !shouldUseOwnBookFrame && getBooleanParam('tribeCommandHarnessUseEpicBookFrame', false)
+  const ownBookFrameAspectParam = getStringParam('tribeCommandHarnessOwnBookFrameAspect')
+  const ownBookFrameAspect = ownBookFrameAspectParam === null ? null : getNumberParam('tribeCommandHarnessOwnBookFrameAspect', 1216 / 837)
+  const requestedEpicBookFrameInsetPx = Number(getStringParam('tribeCommandHarnessEpicBookFrameInsetPx'))
   const epicBookFrameInsetPx = Number.isFinite(requestedEpicBookFrameInsetPx)
     ? Math.max(0, requestedEpicBookFrameInsetPx)
     : 1
   const isEpicDebugSkipPageRenderEnabled = window.localStorage.getItem('epic_debug_skip_page_render') === '1'
   const shouldUseEpicNativeShell =
     shouldFitToEpicBookFrame &&
-    getBooleanParam('oneTribeCommandHarnessUseEpicNativeShell', isEpicDebugSkipPageRenderEnabled)
+    getBooleanParam('tribeCommandHarnessUseEpicNativeShell', isEpicDebugSkipPageRenderEnabled)
   const shouldPreloadForwardNeighbor =
-    isPreviewEnabled && getBooleanParam('oneTribeCommandHarnessForwardPreload', false)
-  const shouldPlayPreviewPageIn = getBooleanParam('oneTribeCommandHarnessPageIn', isPreviewEnabled)
-  const previewPageInAnimation = getStringParam('oneTribeCommandHarnessPageInAnimation') || 'Page_in'
-  const shouldPlayPreviewPageOut = getBooleanParam('oneTribeCommandHarnessPageOut', isPreviewEnabled)
-  const previewPageOutAnimation = getStringParam('oneTribeCommandHarnessPageOutAnimation') || 'Page_next'
-  const shouldPlayPreviewPageBack = getBooleanParam('oneTribeCommandHarnessPageBack', isPreviewEnabled)
-  const previewPageBackAnimation = getStringParam('oneTribeCommandHarnessPageBackAnimation') || 'Page_go back'
-  const previewBackIdleAnimation = getStringParam('oneTribeCommandHarnessBackIdleAnimation') || 'Page_idle'
-  const shouldKeepSpread02OnPageIn = getBooleanParam('oneTribeCommandHarnessSpread02StayOnPageIn', false)
-  const shouldRunPreviewIdleAfterPageInAllSpreads = getBooleanParam('oneTribeCommandHarnessIdleAfterPageIn', false)
+    isPreviewEnabled && getBooleanParam('tribeCommandHarnessForwardPreload', false)
+  const shouldPlayPreviewPageIn = getBooleanParam('tribeCommandHarnessPageIn', isPreviewEnabled)
+  const previewPageInAnimation = getStringParam('tribeCommandHarnessPageInAnimation') || 'Page_in'
+  const shouldPlayPreviewPageOut = getBooleanParam('tribeCommandHarnessPageOut', isPreviewEnabled)
+  const previewPageOutAnimation = getStringParam('tribeCommandHarnessPageOutAnimation') || 'Page_next'
+  const shouldPlayPreviewPageBack = getBooleanParam('tribeCommandHarnessPageBack', isPreviewEnabled)
+  const previewPageBackAnimation = getStringParam('tribeCommandHarnessPageBackAnimation') || 'Page_go back'
+  const previewBackIdleAnimation = getStringParam('tribeCommandHarnessBackIdleAnimation') || 'Page_idle'
+  const shouldKeepSpread02OnPageIn = getBooleanParam('tribeCommandHarnessSpread02StayOnPageIn', false)
+  const shouldRunPreviewIdleAfterPageInAllSpreads = getBooleanParam('tribeCommandHarnessIdleAfterPageIn', false)
   const shouldResumeStateMachineAfterPageIdle = getBooleanParam(
-    'oneTribeCommandHarnessResumeStateMachineAfterIdle',
+    'tribeCommandHarnessResumeStateMachineAfterIdle',
     false,
   )
-  const shouldRunSpread02IdleAfterPageIn = getBooleanParam('oneTribeCommandHarnessSpread02IdleAfterPageIn', false)
-  const previewAnimationHoldMs = Math.max(2200, getNumberParam('oneTribeCommandHarnessAnimationHoldMs', 2600))
+  const shouldRunSpread02IdleAfterPageIn = getBooleanParam('tribeCommandHarnessSpread02IdleAfterPageIn', false)
+  const previewAnimationHoldMs = Math.max(2200, getNumberParam('tribeCommandHarnessAnimationHoldMs', 2600))
   const previewIdleAfterPageInFallbackMs = Math.max(
     0,
     getNumberParam(
-      'oneTribeCommandHarnessIdleAfterPageInFallbackMs',
-      getNumberParam('oneTribeCommandHarnessSpread02IdleAfterPageInFallbackMs', previewAnimationHoldMs),
+      'tribeCommandHarnessIdleAfterPageInFallbackMs',
+      getNumberParam('tribeCommandHarnessSpread02IdleAfterPageInFallbackMs', previewAnimationHoldMs),
     ),
   )
   const previewStateMachineAfterPageIdleMs = Math.max(
     0,
-    getNumberParam('oneTribeCommandHarnessResumeStateMachineAfterIdleMs', 120),
+    getNumberParam('tribeCommandHarnessResumeStateMachineAfterIdleMs', 120),
   )
-  const previewInputResetMs = getNumberParam('oneTribeCommandHarnessInputResetMs', previewAnimationHoldMs)
-  const edgeNavRatio = Math.max(0, Math.min(24, getNumberParam('oneTribeCommandHarnessEdgeNavPct', 5))) / 100
-  const shouldShowCommandHarnessControls = getBooleanParam('oneTribeCommandHarnessShowControls', false)
+  const previewInputResetMs = getNumberParam('tribeCommandHarnessInputResetMs', previewAnimationHoldMs)
+  const edgeNavRatio = Math.max(0, Math.min(24, getNumberParam('tribeCommandHarnessEdgeNavPct', 5))) / 100
+  const shouldShowCommandHarnessControls = getBooleanParam('tribeCommandHarnessShowControls', false)
   let armedEdgeGutterDirection: CommandHarnessEdgeDirection | null = null
   let lastEdgeGutterNavigationAt = 0
   let lastEdgeGutterNavigation: Record<string, unknown> | null = null
@@ -4648,7 +1712,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     syncCommandHarnessPreviewPointerEvents()
     positionCommandHarnessEdgeGutters()
     updateCommandButtons()
-    context.analytics.log(active ? 'one_tribe_command_harness_completion_handoff' : 'one_tribe_command_harness_completion_restore', {
+    context.analytics.log(active ? '1tribe_command_harness_completion_handoff' : '1tribe_command_harness_completion_restore', {
       bookId: context.data.getBookId(),
       currentPage: context.data.getCurrentPage(),
       lastPreviewReaderEnd,
@@ -5102,7 +2166,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const executeEpicNavigation = (command: EpicPageNavigationCommand) => {
     context.commands.execute(command)
     context.analytics.log(
-      command === 'nextPage' ? 'one_tribe_command_harness_next_page' : 'one_tribe_command_harness_previous_page',
+      command === 'nextPage' ? '1tribe_command_harness_next_page' : '1tribe_command_harness_previous_page',
       {
         bookId: context.data.getBookId(),
         page: context.data.getCurrentPage(),
@@ -5116,7 +2180,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
   const executeEpicGoToPage = (page: number, reason: string) => {
     context.commands.execute('goToPage', page)
-    context.analytics.log('one_tribe_command_harness_go_to_page', {
+    context.analytics.log('1tribe_command_harness_go_to_page', {
       bookId: context.data.getBookId(),
       page,
       reason,
@@ -5225,7 +2289,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   }
 
   const dispatchCommandHarnessTurnEvent = (
-    type: 'oneTribeCommandHarnessTurnStart' | 'oneTribeCommandHarnessTurnSettle',
+    type: 'tribeCommandHarnessTurnStart' | 'tribeCommandHarnessTurnSettle',
     detail: Record<string, unknown>,
   ) => {
     document.dispatchEvent(
@@ -6322,7 +3386,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       }
     }
     updateCommandButtons()
-    dispatchCommandHarnessTurnEvent('oneTribeCommandHarnessTurnSettle', {
+    dispatchCommandHarnessTurnEvent('tribeCommandHarnessTurnSettle', {
       activeFile: previewActiveLayer.file.file,
       direction: 'next',
       targetIndex: previewActiveLayer.index,
@@ -6362,7 +3426,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         : `Back done. ${previewActiveLayer.file.label} is running ${entry.stateMachine}.`
     }
     updateCommandButtons()
-    dispatchCommandHarnessTurnEvent('oneTribeCommandHarnessTurnSettle', {
+    dispatchCommandHarnessTurnEvent('tribeCommandHarnessTurnSettle', {
       activeFile: previewActiveLayer.file.file,
       direction: 'back',
       targetIndex: previewActiveLayer.index,
@@ -6442,7 +3506,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       ? `Playing ${outgoingLayer.file.label} ${frontEntry.animation}; ${incomingLayer.file.label} ${backEntry.animation}; idle scheduled after Page_in.`
       : `Playing ${outgoingLayer.file.label} ${frontEntry.animation}; ${incomingLayer.file.label} ${backEntry.animation}.`
     previewAnimatingTurn = { direction: 'next', targetIndex, targetPage }
-    dispatchCommandHarnessTurnEvent('oneTribeCommandHarnessTurnStart', {
+    dispatchCommandHarnessTurnEvent('tribeCommandHarnessTurnStart', {
       direction: 'next',
       incomingFile: incomingLayer.file.file,
       outgoingFile: outgoingLayer.file.file,
@@ -6547,7 +3611,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     const incomingEntry = startCommandHarnessStateMachine(incomingLayer, `back incoming idle ${incomingLayer.file.label}`)
 
     previewAnimatingTurn = { direction: 'back', targetIndex, targetPage }
-    dispatchCommandHarnessTurnEvent('oneTribeCommandHarnessTurnStart', {
+    dispatchCommandHarnessTurnEvent('tribeCommandHarnessTurnStart', {
       direction: 'back',
       incomingFile: incomingLayer.file.file,
       outgoingFile: outgoingLayer.file.file,
@@ -7036,14 +4100,14 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   }
   window.addEventListener('resize', resizePreview)
 
-  const debugWindow = window as OneTribeDebugWindow
-  debugWindow.oneTribeCommandHarnessNextPage = runNextPage
-  debugWindow.oneTribeCommandHarnessPreviousPage = runPreviousPage
-  debugWindow.oneTribeEpicNativePassthroughDebug = getCommandHarnessNativePassthroughDebug
-  debugWindow.oneTribeCommandHarnessCompletionDebug = getCommandHarnessCompletionDebug
-  debugWindow.oneTribeCommandHarnessReleaseForCompletion = (reason = 'manual completion handoff') =>
+  const debugWindow = window as TribeDebugWindow
+  debugWindow.tribeCommandHarnessNextPage = runNextPage
+  debugWindow.tribeCommandHarnessPreviousPage = runPreviousPage
+  debugWindow.tribeEpicNativePassthroughDebug = getCommandHarnessNativePassthroughDebug
+  debugWindow.tribeCommandHarnessCompletionDebug = getCommandHarnessCompletionDebug
+  debugWindow.tribeCommandHarnessReleaseForCompletion = (reason = 'manual completion handoff') =>
     setCommandHarnessCompletionHandoff(true, reason, { trigger: 'manual' })
-  debugWindow.oneTribeCommandHarnessRestoreOverlay = (reason = 'manual restore') =>
+  debugWindow.tribeCommandHarnessRestoreOverlay = (reason = 'manual restore') =>
     setCommandHarnessCompletionHandoff(false, reason, { trigger: 'manual' })
   document.addEventListener('click', handleCommandHarnessCompletionClick, true)
   startCommandHarnessCompletionObserver()
@@ -7052,29 +4116,29 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     setStatusForPageChange(payload, 'pageChange')
   })
 
-  context.analytics.log('one_tribe_command_harness_activated', {
+  context.analytics.log('1tribe_command_harness_activated', {
     bookId: context.data.getBookId(),
     page: context.data.getCurrentPage(),
   })
   console.info(
-    '[1Tribe command harness] Ready. Run oneTribeCommandHarnessNextPage(), oneTribeCommandHarnessPreviousPage(), or click a button.',
+    '[1Tribe command harness] Ready. Run tribeCommandHarnessNextPage(), tribeCommandHarnessPreviousPage(), or click a button.',
   )
 
   return () => {
-    if (debugWindow.oneTribeCommandHarnessNextPage === runNextPage) {
-      delete debugWindow.oneTribeCommandHarnessNextPage
+    if (debugWindow.tribeCommandHarnessNextPage === runNextPage) {
+      delete debugWindow.tribeCommandHarnessNextPage
     }
-    if (debugWindow.oneTribeCommandHarnessPreviousPage === runPreviousPage) {
-      delete debugWindow.oneTribeCommandHarnessPreviousPage
+    if (debugWindow.tribeCommandHarnessPreviousPage === runPreviousPage) {
+      delete debugWindow.tribeCommandHarnessPreviousPage
     }
-    if (debugWindow.oneTribeEpicNativePassthroughDebug === getCommandHarnessNativePassthroughDebug) {
-      delete debugWindow.oneTribeEpicNativePassthroughDebug
+    if (debugWindow.tribeEpicNativePassthroughDebug === getCommandHarnessNativePassthroughDebug) {
+      delete debugWindow.tribeEpicNativePassthroughDebug
     }
-    if (debugWindow.oneTribeCommandHarnessCompletionDebug === getCommandHarnessCompletionDebug) {
-      delete debugWindow.oneTribeCommandHarnessCompletionDebug
+    if (debugWindow.tribeCommandHarnessCompletionDebug === getCommandHarnessCompletionDebug) {
+      delete debugWindow.tribeCommandHarnessCompletionDebug
     }
-    delete debugWindow.oneTribeCommandHarnessReleaseForCompletion
-    delete debugWindow.oneTribeCommandHarnessRestoreOverlay
+    delete debugWindow.tribeCommandHarnessReleaseForCompletion
+    delete debugWindow.tribeCommandHarnessRestoreOverlay
     document.removeEventListener('click', handleCommandHarnessCompletionClick, true)
     if (commandHarnessCompletionCheckTimer !== null) {
       window.clearTimeout(commandHarnessCompletionCheckTimer)
@@ -7171,873 +4235,12 @@ async function fetchRiveBuffer(
   return bytes.buffer
 }
 
-function normalizeActionName(name: string): string {
-  return name.trim().replace(/[\s-]/g, '_').toLowerCase()
-}
-
-function getRiveEventPayload(event: RiveRuntimeEvent): { name?: string; properties?: Record<string, unknown> } {
-  const data = event.data
-  if (!data || typeof data !== 'object' || !('name' in data)) {
-    return {}
-  }
-
-  const payload = data as { name?: unknown; properties?: unknown }
-  return {
-    name: typeof payload.name === 'string' ? payload.name : undefined,
-    properties:
-      payload.properties && typeof payload.properties === 'object'
-        ? (payload.properties as Record<string, unknown>)
-        : undefined,
-  }
-}
-
-function getCommand(action: RiveAction): ReaderCommand | null {
-  const normalized = normalizeActionName(action.name)
-  return actionToCommand[normalized] || getPageNavigationCommand(action.name) || getLookupWordCommand(action.name)
-}
-
-function cleanLookupWord(value: unknown): string | null {
-  if (typeof value !== 'string') return null
-
-  const word = value.trim().replace(/^["']|["']$/g, '')
-  return word.length > 0 ? word : null
-}
-
-function getLookupWordPayload(action: RiveAction): string | null {
-  const keys = ['word', 'lookupWord', 'lookup_word', 'term', 'text', 'value', 'label']
-
-  for (const key of keys) {
-    const word = cleanLookupWord(action.properties?.[key])
-    if (word) return word
-  }
-
-  const match = action.name
-    .trim()
-    .match(/^(?:lookup[_\s-]?word|lookupword|word[_\s-]?lookup|define|definition)[:=\s_-]+(.+)$/i)
-  if (!match) return null
-
-  return cleanLookupWord(match[1]?.replace(/_/g, ' '))
-}
-
-function getModalSize(properties?: Record<string, unknown>): { width: number; height: number } {
-  const width = Number(properties?.width)
-  const height = Number(properties?.height)
-
-  return {
-    width: Number.isFinite(width) && width > 0 ? width : 960,
-    height: Number.isFinite(height) && height > 0 ? height : 640,
-  }
-}
-
 function getSpreadForPage(page: number): SpreadConfig {
   return SPREADS.find((spread) => page >= spread.pages[0] && page <= spread.pages[1]) || SPREADS[0]
 }
 
 function getSpreadSource(spread: SpreadConfig): string {
   return new URL(spread.file, extensionScriptUrl).href
-}
-
-function getSimpleRiveFileSource(file: string): string {
-  return new URL(file, extensionScriptUrl).href
-}
-
-function parseSimpleRivePages(value: string): [number, number] | null {
-  const decoded = (() => {
-    try {
-      return decodeURIComponent(value)
-    } catch {
-      return value
-    }
-  })()
-  const fileName = decoded.replace(/^.*[/\\]/, '').replace(/\.riv$/i, '')
-  const normalized = fileName.replace(/[_\s]+/g, '-')
-  const matches = Array.from(normalized.matchAll(/0*(\d{1,3})\s*(?:-|&|and)\s*0*(\d{1,3})/gi))
-  const match = matches.at(-1)
-  if (!match) {
-    const singlePageMatch = normalized.match(/(?:^|-)0*(\d{1,3})$/)
-    if (!singlePageMatch) return null
-
-    const page = Number(singlePageMatch[1])
-    return Number.isFinite(page) ? [page, page] : null
-  }
-
-  const start = Number(match[1])
-  const end = Number(match[2])
-  if (!Number.isFinite(start) || !Number.isFinite(end)) return null
-
-  return [Math.min(start, end), Math.max(start, end)]
-}
-
-function getSimpleRiveCompatibilityUrl(rawUrl: string): string | null {
-  const decoded = (() => {
-    try {
-      return decodeURIComponent(rawUrl)
-    } catch {
-      return rawUrl
-    }
-  })()
-  if (!/[\\/]rive[\\/]ICanFindIt_83936[\\/]/i.test(decoded)) return null
-  if (!/(Epic_I_Can_Find_It_|sdk_icanfindit_spread_)/i.test(decoded)) return null
-
-  const pages = parseSimpleRivePages(decoded)
-  if (!pages) return null
-
-  const [start, end] = pages
-  const prefix = decoded.replace(/[^/\\]+$/, '')
-  const padPage = (page: number) => String(page).padStart(2, '0')
-  return `${prefix}83936_spread_${padPage(start || end)}.riv`
-}
-function parseSimpleRiveBookId(value: string): number | null {
-  const decoded = (() => {
-    try {
-      return decodeURIComponent(value)
-    } catch {
-      return value
-    }
-  })()
-  const segments = decoded.split(/[\\/]/).filter(Boolean).reverse()
-
-  for (const segment of segments) {
-    const match = segment.match(/(?:^|_)(\d{5,})(?:$|[_\-.])/)
-    if (!match) continue
-
-    const bookId = Number(match[1])
-    if (Number.isFinite(bookId)) return bookId
-  }
-
-  return null
-}
-
-function getSimpleRiveFileLabel(file: string): string {
-  return file.replace(/^.*\//, '')
-}
-
-function getPageStateMachineNameCandidates(pages: [number, number] | null): string[] {
-  if (!pages) return []
-
-  const start = String(pages[0]).padStart(2, '0')
-  const end = String(pages[1]).padStart(2, '0')
-  const candidates = [`Page_${start}_${end}`]
-
-  if (pages[0] === 0 && pages[1] === 1) {
-    candidates.unshift('Page_01')
-  }
-
-  if (pages[0] === pages[1]) {
-    candidates.unshift(`Page_${end}`)
-  }
-
-  return Array.from(new Set(candidates))
-}
-
-function getPageAnimationNameCandidates(pages: [number, number] | null): string[] {
-  if (!pages) return []
-
-  const start = String(pages[0]).padStart(2, '0')
-  const end = String(pages[1]).padStart(2, '0')
-  const candidates = [
-    `Page Turn${start}`,
-    `Page Turn ${start}`,
-    `Page_Turn${start}`,
-    `Page_Turn_${start}`,
-    `PageTurn${start}`,
-    `Page_${start}`,
-    `Page_${start}_${end}`,
-  ]
-
-  if (pages[0] !== pages[1]) {
-    candidates.push(
-      `Page Turn${end}`,
-      `Page Turn ${end}`,
-      `Page_Turn${end}`,
-      `Page_Turn_${end}`,
-      `PageTurn${end}`,
-    )
-  }
-
-  return Array.from(new Set(candidates))
-}
-
-function normalizeRiveNameForMatch(name: string): string {
-  return name.trim().toLowerCase().replace(/[\s_-]+/g, '')
-}
-
-function getRiveAnimationNameMatchKeys(name: string | null): string[] {
-  if (!name) return []
-
-  const normalizedName = normalizeRiveNameForMatch(name)
-  const keys = new Set<string>([normalizedName])
-  const add = (...aliases: string[]) => {
-    for (const alias of aliases) {
-      keys.add(normalizeRiveNameForMatch(alias))
-    }
-  }
-
-  if (['pagenext', 'next', 'pageforward', 'forward', 'pageout'].includes(normalizedName)) {
-    add('Page_Next', 'Page_next', 'Next', 'Page_out')
-  }
-
-  if (['pageprev', 'prev', 'pageprevious', 'previous', 'pageback', 'back', 'pagegoback', 'goback'].includes(normalizedName)) {
-    add('Page_Prev', 'Page_prev', 'Prev', 'Page_go back')
-  }
-
-  if (['pagein', 'in'].includes(normalizedName)) {
-    add('Page_in', 'Page_In')
-  }
-
-  if (['pageidle', 'idle'].includes(normalizedName)) {
-    add('idle', 'Idle', 'Page_idle')
-  }
-
-  return Array.from(keys)
-}
-
-function getRiveAnimationInputNameCandidates(name: string | null): string[] {
-  if (!name) return []
-
-  const normalizedName = normalizeRiveNameForMatch(name)
-  const candidates = new Map<string, string>()
-  const add = (...names: string[]) => {
-    for (const candidate of names) {
-      if (!candidate) continue
-      const key = normalizeRiveNameForMatch(candidate)
-      if (!candidates.has(key)) candidates.set(key, candidate)
-    }
-  }
-
-  add(name)
-
-  if (['pagenext', 'next', 'pageforward', 'forward', 'pageout'].includes(normalizedName)) {
-    add('Next', 'Page_next', 'Page_Next', 'Page_out', 'Page_Out')
-  }
-
-  if (['pagein', 'in'].includes(normalizedName)) {
-    add('Page_in', 'Page_In', 'In')
-  }
-
-  if (['pageprev', 'prev', 'pageprevious', 'previous', 'pageback', 'back', 'pagegoback', 'goback'].includes(normalizedName)) {
-    add('Back', 'Prev', 'Page_go back', 'Page_Go_Back', 'Page_back', 'Page_Back')
-  }
-
-  if (['pageidle', 'idle'].includes(normalizedName)) {
-    add('idle', 'Idle', 'Page_idle')
-  }
-
-  return Array.from(candidates.values())
-}
-
-function isRiveAnimationNameMatch(animationName: string, requestedName: string | null): boolean {
-  if (!requestedName) return false
-
-  const requested = requestedName.trim()
-  const animation = animationName.trim()
-  if (animation.toLowerCase() === requested.toLowerCase()) return true
-
-  const requestedKeys = getRiveAnimationNameMatchKeys(requested)
-  return requestedKeys.includes(normalizeRiveNameForMatch(animation))
-}
-
-function isExactRiveAnimationNameMatch(animationName: string, requestedName: string | null): boolean {
-  return Boolean(requestedName && animationName.trim().toLowerCase() === requestedName.trim().toLowerCase())
-}
-
-function getSimpleRiveAnimationEntry(
-  contents: SimpleRiveContents,
-  file: SimpleRiveFile,
-  requestedName: string | null,
-  shouldAutoSelect: boolean,
-  requestedArtboard: string | null,
-): SimpleRiveAnimationEntry | null {
-  const artboards = contents.artboards || []
-  const findByName = (name: string | null): SimpleRiveAnimationEntry | null => {
-    if (!name) return null
-
-    for (const artboard of artboards) {
-      if (requestedArtboard && artboard.name !== requestedArtboard) continue
-
-      for (const animation of artboard.animations || []) {
-        if (isRiveAnimationNameMatch(animation, name)) {
-          return {
-            artboard: artboard.name,
-            animation,
-          }
-        }
-      }
-    }
-
-    return null
-  }
-
-  const explicitMatch = shouldAutoSelect ? null : findByName(requestedName)
-  if (explicitMatch) return explicitMatch
-
-  for (const pageAnimationName of getPageAnimationNameCandidates(file.pages)) {
-    const pageMatch = findByName(pageAnimationName)
-    if (pageMatch) return pageMatch
-  }
-
-  if (!shouldAutoSelect) return null
-
-  for (const artboard of artboards) {
-    if (requestedArtboard && artboard.name !== requestedArtboard) continue
-
-    const animation = artboard.animations?.[0]
-    if (animation) {
-      return {
-        artboard: artboard.name,
-        animation,
-      }
-    }
-  }
-
-  return null
-}
-
-function getSimpleRiveStateMachineEntry(
-  contents: SimpleRiveContents,
-  file: SimpleRiveFile,
-  requestedName: string | null,
-  shouldAutoSelect: boolean,
-  requestedArtboard: string | null,
-): SimpleRiveStateMachineEntry | null {
-  const artboards = contents.artboards || []
-  const findByName = (name: string | null): SimpleRiveStateMachineEntry | null => {
-    if (!name) return null
-
-    const normalizedName = name.toLowerCase()
-    for (const artboard of artboards) {
-      if (requestedArtboard && artboard.name !== requestedArtboard) continue
-
-      for (const stateMachine of artboard.stateMachines || []) {
-        if (stateMachine.name.toLowerCase() === normalizedName) {
-          return {
-            artboard: artboard.name,
-            stateMachine: stateMachine.name,
-          }
-        }
-      }
-    }
-
-    return null
-  }
-
-  const pageStateMachineNames = getPageStateMachineNameCandidates(file.pages)
-  const explicitMatch = shouldAutoSelect ? null : findByName(requestedName)
-  if (explicitMatch) return explicitMatch
-
-  for (const pageStateMachineName of pageStateMachineNames) {
-    const pageMatch = findByName(pageStateMachineName)
-    if (pageMatch) return pageMatch
-  }
-
-  if (!shouldAutoSelect) return null
-
-  for (const artboard of artboards) {
-    if (requestedArtboard && artboard.name !== requestedArtboard) continue
-
-    const stateMachine = artboard.stateMachines?.[0]
-    if (stateMachine) {
-      return {
-        artboard: artboard.name,
-        stateMachine: stateMachine.name,
-      }
-    }
-  }
-
-  return null
-}
-
-function listSimpleRiveStateMachines(contents: SimpleRiveContents): string {
-  return (
-    contents.artboards
-      ?.flatMap((artboard) => (artboard.stateMachines || []).map((stateMachine) => `${artboard.name} / ${stateMachine.name}`))
-      .join(', ') || 'none'
-  )
-}
-
-function listSimpleRiveAnimations(contents: SimpleRiveContents): string {
-  return (
-    contents.artboards
-      ?.flatMap((artboard) => (artboard.animations || []).map((animation) => `${artboard.name} / ${animation}`))
-      .join(', ') || 'none'
-  )
-}
-
-function getSimpleRiveAnimationNames(contents: SimpleRiveContents): string[] {
-  const names = contents.artboards?.flatMap((artboard) => artboard.animations || []) || []
-  return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b))
-}
-
-function expandPageRange(pages: [number, number]): number[] {
-  const start = Math.floor(pages[0])
-  const end = Math.floor(pages[1])
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return []
-
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index)
-}
-
-function getSimpleRiveFilesFromParams(): SimpleRiveFile[] | null {
-  const forcedFile = getStringParam('riveFile')?.trim()
-  if (forcedFile) {
-    const label = getStringParam('riveLabel')?.trim() || forcedFile
-    const pages = (parseSimpleRivePages(label) ||
-      parseSimpleRivePages(forcedFile) || [1, Number.MAX_SAFE_INTEGER]) as [number, number]
-
-    return [
-      {
-        bookId: parseSimpleRiveBookId(label) || parseSimpleRiveBookId(forcedFile),
-        folder: null,
-        name: label,
-        pages,
-        readerPages: pages[1] === Number.MAX_SAFE_INTEGER ? null : expandPageRange(pages),
-        animation: getStringParam('riveAnimation')?.trim() || null,
-        stateMachine: getStringParam('riveStateMachine')?.trim() || null,
-        artboard: getStringParam('riveArtboard')?.trim() || null,
-        url: getSimpleRiveFileSource(forcedFile),
-      },
-    ]
-  }
-
-  const forcedFiles = getStringParam('riveFiles')
-    ?.split(',')
-    .map((file) => file.trim())
-    .filter(Boolean)
-
-  if (!forcedFiles?.length) return null
-
-  return forcedFiles.map((file) => {
-    const pages = parseSimpleRivePages(file)
-    return {
-      bookId: parseSimpleRiveBookId(file),
-      folder: null,
-      name: getSimpleRiveFileLabel(file),
-      pages,
-      readerPages: pages ? expandPageRange(pages) : null,
-      animation: null,
-      stateMachine: null,
-      artboard: null,
-      url: getSimpleRiveFileSource(file),
-    }
-  })
-}
-
-function getStringField(item: Record<string, unknown>, names: string[]): string | null {
-  for (const name of names) {
-    const value = item[name]
-    if (typeof value === 'string' && value.trim()) return value.trim()
-  }
-
-  return null
-}
-
-function getNumberArrayField(item: Record<string, unknown>, names: string[]): number[] | null {
-  for (const name of names) {
-    const value = item[name]
-    if (!Array.isArray(value)) continue
-
-    const values = value.map((entry) => Number(entry)).filter((entry) => Number.isFinite(entry))
-    if (values.length) return Array.from(new Set(values)).sort((a, b) => a - b)
-  }
-
-  return null
-}
-
-function getPageRangeField(item: Record<string, unknown>, names: string[]): [number, number] | null {
-  for (const name of names) {
-    const value = item[name]
-    if (!Array.isArray(value) || value.length < 2) continue
-
-    const start = Number(value[0])
-    const end = Number(value[1])
-    if (Number.isFinite(start) && Number.isFinite(end)) {
-      return [Math.min(start, end), Math.max(start, end)]
-    }
-  }
-
-  return null
-}
-
-function getFolderFromRiveUrl(url: string): string | null {
-  const parts = url.split(/[\\/]/).filter(Boolean)
-  const riveIndex = parts.findIndex((part) => part === 'rive')
-  return riveIndex >= 0 && parts[riveIndex + 1] ? parts[riveIndex + 1] : null
-}
-
-function normalizeSimpleRiveFile(file: unknown, listUrl: string): SimpleRiveFile | null {
-  if (!file || typeof file !== 'object') return null
-
-  const item = file as Record<string, unknown>
-  const rawUrl = getStringField(item, ['url', 'file', 'riveFile'])
-  if (!rawUrl) return null
-
-  const fileUrl = getSimpleRiveCompatibilityUrl(rawUrl) || rawUrl
-  const folder = getStringField(item, ['folder']) || getFolderFromRiveUrl(fileUrl) || getFolderFromRiveUrl(rawUrl)
-  const name = getStringField(item, ['name', 'label']) || getSimpleRiveFileLabel(fileUrl)
-  const explicitBookId = Number(item.bookId)
-  const explicitPages = getPageRangeField(item, ['pages', 'rivePages'])
-  const pages =
-    explicitPages && explicitPages.every((page) => Number.isFinite(page))
-      ? explicitPages
-      : parseSimpleRivePages(name) || parseSimpleRivePages(fileUrl) || parseSimpleRivePages(rawUrl)
-  const readerPages = getNumberArrayField(item, ['readerPages', 'readerPageIndexes', 'readerPageIndices'])
-  const readerPageIndex = Number(item.readerPageIndex ?? item.readerPage)
-  const url = new URL(fileUrl, listUrl).href
-  const normalizedReaderPages =
-    readerPages ||
-    (Number.isFinite(readerPageIndex) ? [readerPageIndex] : pages ? expandPageRange(pages) : null)
-
-  return {
-    bookId: Number.isFinite(explicitBookId) ? explicitBookId : parseSimpleRiveBookId(name) || parseSimpleRiveBookId(fileUrl) || parseSimpleRiveBookId(rawUrl),
-    folder,
-    name,
-    pages,
-    readerPages: normalizedReaderPages,
-    animation: getStringField(item, ['animation', 'riveAnimation']),
-    stateMachine: getStringField(item, ['stateMachine']),
-    artboard: getStringField(item, ['artboard']),
-    url,
-  }
-}
-
-function getPageMapEntriesFromBook(bookId: number, bookConfig: unknown, mapUrl: string): SimpleRiveFile[] {
-  if (!bookConfig || typeof bookConfig !== 'object') return []
-
-  const config = bookConfig as Record<string, unknown>
-  const folder = getStringField(config, ['folder'])
-  const readerPageOffset = Number(config.readerPageOffset || 0)
-  const pages = config.pages
-  if (!pages || typeof pages !== 'object' || Array.isArray(pages)) return []
-
-  const entries: SimpleRiveFile[] = []
-  for (const [readerPageIndex, value] of Object.entries(pages as Record<string, unknown>)) {
-    if (!value || typeof value !== 'object') continue
-
-    const item = value as Record<string, unknown>
-    const pageNumber = Number(readerPageIndex) + (Number.isFinite(readerPageOffset) ? readerPageOffset : 0)
-    const file = getStringField(item, ['file', 'url', 'riveFile'])
-    if (!Number.isFinite(pageNumber) || !file) continue
-
-    const normalized = normalizeSimpleRiveFile(
-      {
-        ...item,
-        bookId,
-        folder: getStringField(item, ['folder']) || folder,
-        url: file,
-        readerPageIndex: pageNumber,
-        pages: getPageRangeField(item, ['rivePages', 'pages']) || parseSimpleRivePages(file),
-      },
-      mapUrl,
-    )
-    if (normalized) entries.push(normalized)
-  }
-
-  return entries
-}
-
-function mergeSimpleRiveFileEntries(files: SimpleRiveFile[]): SimpleRiveFile[] {
-  const merged = new Map<string, SimpleRiveFile>()
-
-  for (const file of files) {
-    const key = [
-      file.bookId ?? 'all',
-      file.url,
-      file.artboard ?? '',
-      file.stateMachine ?? '',
-      file.animation ?? '',
-    ].join('|')
-    const existing = merged.get(key)
-    if (!existing) {
-      merged.set(key, {
-        ...file,
-        readerPages: file.readerPages ? Array.from(new Set(file.readerPages)).sort((a, b) => a - b) : null,
-      })
-      continue
-    }
-
-    const readerPages = Array.from(
-      new Set([...(existing.readerPages || []), ...(file.readerPages || [])]),
-    ).sort((a, b) => a - b)
-    existing.readerPages = readerPages.length ? readerPages : existing.readerPages
-    existing.pages = existing.pages || file.pages
-    existing.folder = existing.folder || file.folder
-    existing.animation = existing.animation || file.animation
-    existing.stateMachine = existing.stateMachine || file.stateMachine
-    existing.artboard = existing.artboard || file.artboard
-  }
-
-  return Array.from(merged.values())
-}
-
-function normalizeRivePageMap(map: unknown, mapUrl: string): SimpleRiveFile[] {
-  if (!map || typeof map !== 'object') return []
-
-  const root = map as Record<string, unknown>
-  const books = root.books && typeof root.books === 'object' ? (root.books as Record<string, unknown>) : root
-  const entries: SimpleRiveFile[] = []
-
-  for (const [bookIdKey, bookConfig] of Object.entries(books)) {
-    const bookId = Number(bookIdKey)
-    if (!Number.isFinite(bookId)) continue
-
-    entries.push(...getPageMapEntriesFromBook(bookId, bookConfig, mapUrl))
-  }
-
-  return mergeSimpleRiveFileEntries(entries)
-}
-
-function getSimpleRiveBookIdFromContext(context: ExtensionContext): number | null {
-  const requestedBookId = Number(getStringParam('riveBookId'))
-  if (Number.isFinite(requestedBookId) && requestedBookId > 0) return requestedBookId
-
-  const contextBookId = Number(context.data.getBookId())
-  if (Number.isFinite(contextBookId) && contextBookId > 0) return contextBookId
-
-  const bookDataId = Number(context.data.getBookData()?.id)
-  if (Number.isFinite(bookDataId) && bookDataId > 0) return bookDataId
-
-  const urlMatch = window.location.pathname.match(/\/read\/(\d+)/)
-  if (urlMatch) {
-    const urlBookId = Number(urlMatch[1])
-    if (Number.isFinite(urlBookId) && urlBookId > 0) return urlBookId
-  }
-
-  return null
-}
-
-function sortSimpleRiveFiles(files: SimpleRiveFile[]): SimpleRiveFile[] {
-  return files.slice().sort((a, b) => {
-    const aPage = a.readerPages?.[0] ?? a.pages?.[0] ?? Number.MAX_SAFE_INTEGER
-    const bPage = b.readerPages?.[0] ?? b.pages?.[0] ?? Number.MAX_SAFE_INTEGER
-    if (aPage !== bPage) return aPage - bPage
-
-    return a.name.localeCompare(b.name)
-  })
-}
-
-function filterSimpleRiveFilesForBook(files: SimpleRiveFile[], bookId: number | null): SimpleRiveFile[] {
-  const requestedFolder = getStringParam('riveFolder')?.trim()
-  if (requestedFolder) {
-    return sortSimpleRiveFiles(files.filter((file) => file.folder === requestedFolder))
-  }
-
-  if (bookId === null) return sortSimpleRiveFiles(files)
-
-  const matchingFiles = files.filter((file) => file.bookId === bookId)
-  if (matchingFiles.length) return sortSimpleRiveFiles(matchingFiles)
-
-  const unscopedFiles = files.filter((file) => file.bookId === null)
-  return sortSimpleRiveFiles(unscopedFiles)
-}
-
-function getSimpleRiveFileForPage(
-  files: SimpleRiveFile[],
-  page: number,
-): { file: SimpleRiveFile; index: number } | null {
-  const exactReaderPageIndex = files.findIndex((file) => file.readerPages?.includes(page))
-  if (exactReaderPageIndex >= 0) {
-    return { file: files[exactReaderPageIndex], index: exactReaderPageIndex }
-  }
-
-  const index = files.findIndex((file) => {
-    if (!file.pages) return false
-
-    return page >= file.pages[0] && page <= file.pages[1]
-  })
-
-  return index >= 0 ? { file: files[index], index } : null
-}
-
-function inferSimpleRivePage(files: SimpleRiveFile[], page: number, direction: number): number {
-  const match = getSimpleRiveFileForPage(files, page)
-  const readerPages = match?.file.readerPages
-  if (readerPages?.length) {
-    if (direction > 0) return readerPages[readerPages.length - 1] + 1
-    return Math.max(0, readerPages[0] - 1)
-  }
-  if (!match?.file.pages) return Math.max(0, page + direction * 2)
-
-  if (direction > 0) return match.file.pages[1] + 1
-  return Math.max(0, match.file.pages[0] - 2)
-}
-
-function getSimpleRiveLastPage(files: SimpleRiveFile[]): number | null {
-  const endPages = files
-    .map((file) => file.readerPages?.[file.readerPages.length - 1] ?? file.pages?.[1])
-    .filter((page): page is number => typeof page === 'number' && Number.isFinite(page))
-
-  return endPages.length ? Math.max(...endPages) : null
-}
-
-function getFirstSimpleRivePage(files: SimpleRiveFile[]): number | null {
-  const page = files[0]?.readerPages?.[0] ?? files[0]?.pages?.[0]
-  return typeof page === 'number' && Number.isFinite(page) ? page : null
-}
-
-function getNavigationDirectionFromText(value: string): number | null {
-  const text = value
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/[_-]/g, ' ')
-    .toLowerCase()
-
-  const hasBackDirection = /\b(prev|previous|back|backward|left|arrow left|chevron left|page left)\b/.test(text)
-  const hasForwardDirection = /\b(next|forward|right|arrow right|chevron right|page right)\b/.test(text)
-
-  if (hasBackDirection && hasForwardDirection) {
-    return null
-  }
-
-  if (hasBackDirection) {
-    return -1
-  }
-
-  if (hasForwardDirection) {
-    return 1
-  }
-
-  return null
-}
-
-function getNavigationDirectionFromPayload(payload: unknown): number | null {
-  if (!payload || typeof payload !== 'object') return null
-
-  const data = payload as Record<string, unknown>
-  for (const key of ['direction', 'navigationDirection']) {
-    const value = Number(data[key])
-    if (value > 0) return 1
-    if (value < 0) return -1
-  }
-
-  const values = Object.values(payload as Record<string, unknown>)
-    .filter((value): value is string => typeof value === 'string')
-    .join(' ')
-
-  return getNavigationDirectionFromText(values)
-}
-
-function getReaderPageFromPayload(payload: unknown, fallback: number): number {
-  if (!payload || typeof payload !== 'object') return fallback
-
-  const data = payload as Record<string, unknown>
-  for (const key of ['pageIndex', 'currentPage', 'page', 'readerPageIndex']) {
-    const value = Number(data[key])
-    if (Number.isFinite(value)) return value
-  }
-
-  return fallback
-}
-
-function getNavigationDescriptor(element: Element, includeAncestors = true): string {
-  const parts: string[] = []
-  const attributes = [
-    'aria-label',
-    'title',
-    'alt',
-    'id',
-    'class',
-    'data-testid',
-    'data-test-id',
-    'data-qa',
-    'data-cy',
-    'role',
-  ]
-
-  let current: Element | null = element
-  let depth = 0
-  const maxDepth = includeAncestors ? 5 : 1
-  while (current && depth < maxDepth) {
-    for (const attribute of attributes) {
-      const value = current.getAttribute(attribute)
-      if (value) parts.push(value)
-    }
-
-    const text = current.textContent?.trim()
-    if (text && text.length <= 80) parts.push(text)
-
-    current = current.parentElement
-    depth += 1
-  }
-
-  return parts.join(' ')
-}
-
-function getNavigationDirectionFromClick(event: Event, flipBookRect: FlipBookRect | null): number | null {
-  if (!(event.target instanceof Element)) return null
-
-  const target = event.target
-  if (target.closest('[data-reader-navigation-ignore]')) return null
-
-  const control = target.closest<HTMLElement>(
-    'button,a,[role="button"],[aria-label],[title],[data-testid],[data-test-id],[data-qa],[data-cy]',
-  )
-
-  if (control) {
-    const controlDescriptorDirection = getNavigationDirectionFromText(getNavigationDescriptor(control, false))
-    if (controlDescriptorDirection) return controlDescriptorDirection
-  }
-
-  const descriptorDirection = getNavigationDirectionFromText(getNavigationDescriptor(target, !control))
-  if (descriptorDirection) return descriptorDirection
-
-  if (!control || !(event instanceof MouseEvent) || !flipBookRect) return null
-
-  const controlRect = control.getBoundingClientRect()
-  const centerY = controlRect.y + controlRect.height / 2
-  const isNearReaderVertically = centerY >= flipBookRect.y - 96 && centerY <= flipBookRect.y + flipBookRect.height + 96
-  if (!isNearReaderVertically) return null
-
-  const centerX = controlRect.x + controlRect.width / 2
-  if (centerX <= flipBookRect.x + flipBookRect.width * 0.22) return -1
-  if (centerX >= flipBookRect.x + flipBookRect.width * 0.78) return 1
-
-  return null
-}
-
-async function loadSimpleRiveFiles(signal: AbortSignal): Promise<SimpleRiveFile[]> {
-  const paramFiles = getSimpleRiveFilesFromParams()
-  if (paramFiles) return paramFiles
-
-  if (getBooleanParam('rivePageMap', true)) {
-    const mapUrl = new URL('rive-page-map.json', extensionScriptUrl).href
-    try {
-      const mapResponse = await fetch(mapUrl, {
-        cache: 'no-store',
-        signal,
-      })
-
-      if (mapResponse.ok) {
-        const mappedFiles = normalizeRivePageMap(await mapResponse.json(), mapUrl)
-        if (mappedFiles.length) {
-          console.info(`[1Tribe simple overlay] Loaded explicit Rive page map from ${mapUrl}.`, {
-            files: mappedFiles.length,
-          })
-          return mappedFiles
-        }
-      } else if (mapResponse.status !== 404) {
-        console.warn(`[1Tribe simple overlay] Unable to load ${mapUrl}: HTTP ${mapResponse.status}`)
-      }
-    } catch (error) {
-      if (!signal.aborted) {
-        console.warn(`[1Tribe simple overlay] Falling back to rive-files.json after page map error: ${String(error)}`)
-      }
-    }
-  }
-
-  const listUrl = new URL('rive-files.json', extensionScriptUrl).href
-  const response = await fetch(listUrl, {
-    cache: 'no-store',
-    signal,
-  })
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} while loading ${listUrl}`)
-  }
-
-  const items = (await response.json()) as unknown
-  if (!Array.isArray(items)) return []
-
-  return items
-    .map((item) => normalizeSimpleRiveFile(item, listUrl))
-    .filter((item): item is SimpleRiveFile => Boolean(item))
 }
 
 function syncReaderInputs(rive: Rive, stateMachineName: string | null, context: ExtensionContext): void {
@@ -8151,22 +4354,6 @@ function resizeCanvasToOwnBounds(canvas: HTMLCanvasElement, pixelRatio: number):
 
   if (canvas.width !== width) canvas.width = width
   if (canvas.height !== height) canvas.height = height
-}
-
-function normalizeWordHotspotFileName(value: string): string {
-  const normalized = value.replace(/\\/g, '/')
-  return normalized.split('/').filter(Boolean).at(-1) || normalized
-}
-
-function cleanWordHotspotText(value: string): string {
-  return value.replace(/[^A-Za-z0-9'-]+/g, '').trim()
-}
-
-function isSuspectWordHotspotText(value: string): boolean {
-  const clean = cleanWordHotspotText(value)
-  if (clean.length <= 1) return true
-  if (/^\d+$/.test(clean)) return true
-  return clean !== value.trim()
 }
 
 function getWordHotspotOcrUrl(hotspotFile: WordHotspotFile, manifestUrl: string): string | null {
@@ -8514,7 +4701,7 @@ function attachWordHotspotMagnifier(
   button.addEventListener('pointerdown', refresh)
   button.addEventListener('focus', refresh)
   const magnifierButton = button as WordHotspotMagnifierButton
-  magnifierButton.oneTribeRefreshMagnifier = refresh
+  magnifierButton.tribeRefreshMagnifier = refresh
 }
 
 function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => void {
@@ -8532,16 +4719,16 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   const outlineScaleX = Math.max(1, getNumberParam('riveWordHotspotOutlineScaleX', 1.16))
   const outlineScaleY = Math.max(1, getNumberParam('riveWordHotspotOutlineScaleY', 1.2))
   const shouldHideSuspect = getBooleanParam('riveWordHotspotHideSuspect', false)
-  const shouldShowWordHotspotStatus = getBooleanParam('oneTribeCommandHarnessShowControls', false)
+  const shouldShowWordHotspotStatus = getBooleanParam('tribeCommandHarnessShowControls', false)
   const requestedWordHotspotFrameMode =
-    (getStringParam('oneTribeWordHotspotFrameMode') || getStringParam('riveWordHotspotFrameMode') || 'rive-artboard')
+    (getStringParam('tribeWordHotspotFrameMode') || getStringParam('riveWordHotspotFrameMode') || 'rive-artboard')
       .trim()
       .toLowerCase()
   const wordHotspotFrameMode =
     requestedWordHotspotFrameMode === 'canvas' || requestedWordHotspotFrameMode === 'contain'
       ? requestedWordHotspotFrameMode
       : 'rive-artboard'
-  const debugWindow = window as OneTribeDebugWindow
+  const debugWindow = window as TribeDebugWindow
   let activeWordHotspots: ActiveWordHotspot[] = []
   let isDisposed = false
   let lastLookupKey = ''
@@ -8599,7 +4786,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       const folder =
         getStringParam('riveWordHotspotFolder')?.trim() ||
         getStringParam('riveFolder')?.trim() ||
-        getEpicOneTribeBookConfig(context.data.getBookId())?.wordHotspotFolder?.trim()
+        getEpicTribeBookConfig(context.data.getBookId())?.wordHotspotFolder?.trim()
       if (!folder) return null
 
       return new URL(`rive/${folder}/word-hotspots/word-hotspots.json`, extensionScriptUrl).href
@@ -8892,7 +5079,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     try {
       armWordLookupDismissGuard(hotspot.word, source, event)
       context.commands.execute('lookup_word', hotspot.word)
-      context.analytics.log('one_tribe_word_hotspot_lookup', {
+      context.analytics.log('1tribe_word_hotspot_lookup', {
         bookId: context.data.getBookId(),
         eventSource: source,
         file: hotspot.fileName,
@@ -8919,8 +5106,8 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   }
 
   const syncDebugHelpers = () => {
-    debugWindow.oneTribeWordHotspots = activeWordHotspots.slice()
-    debugWindow.oneTribeWordHotspotDebug = () => ({
+    debugWindow.tribeWordHotspots = activeWordHotspots.slice()
+    debugWindow.tribeWordHotspotDebug = () => ({
       enabled: true,
       mode: 'standalone',
       activeCount: activeWordHotspots.length,
@@ -8950,7 +5137,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       sourceRenderSize: lastSourceRenderSize,
       wordLookupDismissGuard: getWordLookupDismissGuardDebugState(),
     })
-    debugWindow.oneTribeClickWordHotspot = (word = '') => {
+    debugWindow.tribeClickWordHotspot = (word = '') => {
       const normalizedWord = word.trim().toLowerCase()
       const hotspot =
         activeWordHotspots.find((item) => item.word.toLowerCase() === normalizedWord) ||
@@ -8965,7 +5152,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
 
       return executeLookup(hotspot, 'standalone-console-helper')
     }
-    debugWindow.oneTribeForceWordHotspotPage = (page = 4) => {
+    debugWindow.tribeForceWordHotspotPage = (page = 4) => {
       const targetPage = Number(page)
       if (!Number.isFinite(targetPage)) return false
 
@@ -9263,7 +5450,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     }
     setStatus(`Word hotspots: ${activeWordHotspots.length} (${hotspotFile.file})`)
     syncDebugHelpers()
-    context.analytics.log('one_tribe_word_hotspots_rendered', {
+    context.analytics.log('1tribe_word_hotspots_rendered', {
       bookId: context.data.getBookId(),
       count: activeWordHotspots.length,
       file: hotspotFile.file,
@@ -9323,8 +5510,8 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
 
   startStandaloneCompletionSuppressionObserver()
   window.addEventListener('resize', onResize)
-  document.addEventListener('oneTribeCommandHarnessTurnStart', onCommandHarnessTurnStart)
-  document.addEventListener('oneTribeCommandHarnessTurnSettle', onCommandHarnessTurnSettle)
+  document.addEventListener('tribeCommandHarnessTurnStart', onCommandHarnessTurnStart)
+  document.addEventListener('tribeCommandHarnessTurnSettle', onCommandHarnessTurnSettle)
   positionHotspotFrame()
   void renderForPage('standalone initial load')
   syncDebugHelpers()
@@ -9340,15 +5527,15 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     if (completionSuppressionTimer !== null) window.clearTimeout(completionSuppressionTimer)
     completionSuppressionObserver?.disconnect()
     window.removeEventListener('resize', onResize)
-    document.removeEventListener('oneTribeCommandHarnessTurnStart', onCommandHarnessTurnStart)
-    document.removeEventListener('oneTribeCommandHarnessTurnSettle', onCommandHarnessTurnSettle)
+    document.removeEventListener('tribeCommandHarnessTurnStart', onCommandHarnessTurnStart)
+    document.removeEventListener('tribeCommandHarnessTurnSettle', onCommandHarnessTurnSettle)
     pageChangeCleanup()
     root.remove()
     activeWordHotspots = []
-    debugWindow.oneTribeWordHotspots = []
-    delete debugWindow.oneTribeClickWordHotspot
-    delete debugWindow.oneTribeForceWordHotspotPage
-    delete debugWindow.oneTribeWordHotspotDebug
+    debugWindow.tribeWordHotspots = []
+    delete debugWindow.tribeClickWordHotspot
+    delete debugWindow.tribeForceWordHotspotPage
+    delete debugWindow.tribeWordHotspotDebug
   }
 }
 
@@ -9400,7 +5587,7 @@ function renderDrawer(context: ExtensionContext, action: RiveAction | null): HTM
   closeButton.textContent = 'Close'
   closeButton.addEventListener('click', () => {
     context.commands.execute('closeDrawer')
-    context.analytics.log('one_tribe_drawer_closed', {
+    context.analytics.log('1tribe_drawer_closed', {
       bookId: context.data.getBookId(),
       page: context.data.getCurrentPage(),
     })
@@ -9494,8 +5681,8 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const replacementSelector = getStringParam('riveReplaceSelector')?.trim() || null
   const hideSelector = getStringParam('riveHideSelector')?.trim() || replacementSelector
   const frameSelector = getStringParam('riveFrameSelector')?.trim() || replacementSelector
-  const harnessAnimationEventName = 'oneTribeHarnessAnimation'
-  const harnessAvailableAnimationsEventName = 'oneTribeHarnessAvailableAnimations'
+  const harnessAnimationEventName = 'tribeHarnessAnimation'
+  const harnessAvailableAnimationsEventName = 'tribeHarnessAvailableAnimations'
   const shouldReplaceSelectedContent = Boolean(hideSelector || frameSelector)
   const navGutterParam = getStringParam('riveNavGutterPct')
   const navGutterValue = navGutterParam === null ? Number.NaN : Number(navGutterParam)
@@ -9811,11 +5998,11 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   )
   readingRoot.append(root)
   applyRivePointerCaptureStyles()
-  const debugWindow = window as OneTribeDebugWindow
-  debugWindow.oneTribeEpicNativePassthroughDebug = getEpicNativePassthroughDebug
+  const debugWindow = window as TribeDebugWindow
+  debugWindow.tribeEpicNativePassthroughDebug = getEpicNativePassthroughDebug
   cleanupCallbacks.push(() => {
-    if (debugWindow.oneTribeEpicNativePassthroughDebug === getEpicNativePassthroughDebug) {
-      delete debugWindow.oneTribeEpicNativePassthroughDebug
+    if (debugWindow.tribeEpicNativePassthroughDebug === getEpicNativePassthroughDebug) {
+      delete debugWindow.tribeEpicNativePassthroughDebug
     }
   })
 
@@ -9927,10 +6114,10 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   }
 
   function syncWordHotspotDebugHelpers() {
-    const debugWindow = window as OneTribeDebugWindow
-    debugWindow.oneTribeWordHotspots = activeWordHotspots.slice()
-    debugWindow.oneTribeReaderNavGutterDebug = getReaderNavGutterDebugState
-    debugWindow.oneTribeWordHotspotDebug = () => {
+    const debugWindow = window as TribeDebugWindow
+    debugWindow.tribeWordHotspots = activeWordHotspots.slice()
+    debugWindow.tribeReaderNavGutterDebug = getReaderNavGutterDebugState
+    debugWindow.tribeWordHotspotDebug = () => {
       const activeFile = getActiveSimpleRiveFile()
       const activeFileManifestUrl = activeFile ? getWordHotspotManifestUrl(activeFile) : null
       return {
@@ -9945,7 +6132,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         activeFileUrl,
         activeFileManifestUrl,
         requestedFolder: getStringParam('riveFolder'),
-        wordHotspotTest: getBooleanParam('oneTribeWordHotspotTest', false),
+        wordHotspotTest: getBooleanParam('tribeWordHotspotTest', false),
         mappedFiles: files.map((item) => ({
           name: item.name,
           folder: item.folder,
@@ -9958,7 +6145,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         last: lastWordHotspotDebug,
       }
     }
-    debugWindow.oneTribeClickWordHotspot = (word = '') => {
+    debugWindow.tribeClickWordHotspot = (word = '') => {
       const normalizedWord = word.trim().toLowerCase()
       const hotspot =
         activeWordHotspots.find((item) => item.word.toLowerCase() === normalizedWord) ||
@@ -9974,7 +6161,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       executeWordHotspotLookup(hotspot, 'console-helper')
       return true
     }
-    debugWindow.oneTribeForceWordHotspotPage = (page = 4) => {
+    debugWindow.tribeForceWordHotspotPage = (page = 4) => {
       const targetPage = Number(page)
       if (!Number.isFinite(targetPage)) return false
 
@@ -10034,7 +6221,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     })
     armWordLookupDismissGuard(hotspot.word, source, event)
     context.commands.execute('lookup_word', hotspot.word)
-    context.analytics.log('one_tribe_word_hotspot_lookup', {
+    context.analytics.log('1tribe_word_hotspot_lookup', {
       bookId: context.data.getBookId(),
       file: hotspot.fileName,
       page: hotspot.page,
@@ -10077,12 +6264,12 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   frame.addEventListener('pointerup', onWordHotspotFramePointerUp, true)
   cleanupCallbacks.push(() => frame.removeEventListener('pointerup', onWordHotspotFramePointerUp, true))
   cleanupCallbacks.push(() => {
-    const debugWindow = window as OneTribeDebugWindow
-    delete debugWindow.oneTribeWordHotspots
-    delete debugWindow.oneTribeClickWordHotspot
-    delete debugWindow.oneTribeForceWordHotspotPage
-    delete debugWindow.oneTribeReaderNavGutterDebug
-    delete debugWindow.oneTribeWordHotspotDebug
+    const debugWindow = window as TribeDebugWindow
+    delete debugWindow.tribeWordHotspots
+    delete debugWindow.tribeClickWordHotspot
+    delete debugWindow.tribeForceWordHotspotPage
+    delete debugWindow.tribeReaderNavGutterDebug
+    delete debugWindow.tribeWordHotspotDebug
   })
 
   const renderWordHotspotsForFile = async (file: SimpleRiveFile, page: number, reason: string) => {
@@ -10249,7 +6436,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     }
     syncWordHotspotDebugHelpers()
 
-    context.analytics.log('one_tribe_word_hotspots_rendered', {
+    context.analytics.log('1tribe_word_hotspots_rendered', {
       bookId: context.data.getBookId(),
       file: file.name,
       page,
@@ -10613,7 +6800,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const startAnimation = (instance: Rive, entry: SimpleRiveAnimationEntry, label: string) => {
     if (shouldDisableTimelineAnimations) {
       setStatus(`Loaded ${entry.artboard}; animation calls are disabled for this test.`)
-      context.analytics.log('one_tribe_simple_rive_animation_blocked', {
+      context.analytics.log('1tribe_simple_rive_animation_blocked', {
         animation: entry.animation,
         artboard: entry.artboard,
         label,
@@ -10633,7 +6820,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         ? `Fired ${entry.artboard} / ${entry.animation}${label ? ` (${label})` : ''} via ${fired.input}.`
         : `Did not find a state-machine input for ${entry.artboard} / ${entry.animation}${label ? ` (${label})` : ''}.`,
     )
-    context.analytics.log('one_tribe_simple_rive_animation_started', {
+    context.analytics.log('1tribe_simple_rive_animation_started', {
       animation: entry.animation,
       artboard: entry.artboard,
       label,
@@ -10849,7 +7036,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
 
     const livePage = context.data.getCurrentPage()
     const targetPage = livePage !== displayedPage ? livePage : queued.page
-    context.analytics.log('one_tribe_simple_rive_page_change_replayed', {
+    context.analytics.log('1tribe_simple_rive_page_change_replayed', {
       bookId: context.data.getBookId(),
       page: targetPage,
       queuedPage: queued.page,
@@ -10893,7 +7080,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       })
       releaseSimpleRivePageTurnBusy('rapid page-change catch-up timeout', { forcePendingOffload: true })
     }, transitionDurationMs + pageTurnStartDelayMs + 900)
-    context.analytics.log('one_tribe_simple_rive_page_change_queued', {
+    context.analytics.log('1tribe_simple_rive_page_change_queued', {
       bookId: context.data.getBookId(),
       page,
       displayedPage,
@@ -10911,7 +7098,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     requestedArtboard: string | null,
   ): SimpleRiveAnimationEntry | null => {
     if (shouldDisableTimelineAnimations) {
-      context.analytics.log('one_tribe_simple_rive_animation_blocked', {
+      context.analytics.log('1tribe_simple_rive_animation_blocked', {
         animation: animationName,
         artboard: requestedArtboard,
         label,
@@ -10934,7 +7121,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
 
     startAnimation(instance, entry, label)
     markSimpleRivePageTurnBusy(label)
-    context.analytics.log('one_tribe_simple_rive_page_turn_animation', {
+    context.analytics.log('1tribe_simple_rive_page_turn_animation', {
       animation: entry.animation,
       requestedAnimation: animationName,
       artboard: entry.artboard,
@@ -10978,7 +7165,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     pendingPageOutOffloadReleaseAttempts = 0
     try {
       offload()
-      context.analytics.log('one_tribe_simple_rive_artboard_offloaded', {
+      context.analytics.log('1tribe_simple_rive_artboard_offloaded', {
         animation: pending.animation,
         artboard: pending.artboard,
         activeFile: pending.activeFile,
@@ -11022,7 +7209,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       pending.didStop = true
       pending.cleanup()
       pending.cleanup = () => {}
-      context.analytics.log('one_tribe_simple_rive_animation_completed', {
+      context.analytics.log('1tribe_simple_rive_animation_completed', {
         animation: entry.animation,
         artboard: entry.artboard,
         activeFile: pending.activeFile,
@@ -11331,7 +7518,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     const activeFile = getActiveSimpleRiveFile()
     if (!rive || !activeFile) {
       setStatus(`Cannot run ${requestedAnimation}: no active Rive file is loaded yet.`)
-      context.analytics.log('one_tribe_simple_rive_manual_animation', {
+      context.analytics.log('1tribe_simple_rive_manual_animation', {
         animation: requestedAnimation,
         source,
         success: false,
@@ -11351,7 +7538,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         availableAnimations: listSimpleRiveAnimations(rive.contents || {}),
       })
       setStatus(`Animation ${requestedAnimation} was not found on ${activeFile.name}.`)
-      context.analytics.log('one_tribe_simple_rive_manual_animation', {
+      context.analytics.log('1tribe_simple_rive_manual_animation', {
         animation: requestedAnimation,
         source,
         success: false,
@@ -11364,7 +7551,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     }
 
     startAnimation(rive, entry, `harness ${source}`)
-    context.analytics.log('one_tribe_simple_rive_manual_animation', {
+    context.analytics.log('1tribe_simple_rive_manual_animation', {
       animation: entry.animation,
       requestedAnimation,
       artboard: entry.artboard,
@@ -11405,7 +7592,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const startStateMachine = (instance: Rive, entry: SimpleRiveStateMachineEntry, label: string) => {
     if (shouldDisableRiveAnimations) {
       setStatus(`Loaded ${entry.artboard}; state-machine playback is disabled for this test.`)
-      context.analytics.log('one_tribe_simple_rive_animation_blocked', {
+      context.analytics.log('1tribe_simple_rive_animation_blocked', {
         stateMachine: entry.stateMachine,
         artboard: entry.artboard,
         label,
@@ -12303,7 +8490,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         page: displayedPage,
         properties: action.properties,
       })
-      context.analytics.log('one_tribe_rive_reader_navigation', {
+      context.analytics.log('1tribe_rive_reader_navigation', {
         action: action.name,
         source: action.source,
         command,
@@ -12317,7 +8504,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       return true
     }
 
-    context.analytics.log('one_tribe_simple_rive_action', {
+    context.analytics.log('1tribe_simple_rive_action', {
       action: action.name,
       source: action.source,
       command,
@@ -12436,7 +8623,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     const propertyName = direction < 0 ? 'Prev' : 'Next'
     const activeFile = getActiveSimpleRiveFile()
     const didPulse = pulseVisibleRiveBooleanBinding(propertyName, `${reason} page action`)
-    context.analytics.log('one_tribe_simple_rive_state_machine_page_action', {
+    context.analytics.log('1tribe_simple_rive_state_machine_page_action', {
       bookId: context.data.getBookId(),
       page: context.data.getCurrentPage(),
       displayedPage,
@@ -13018,7 +9205,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
               ? 'Previous spread is loaded underneath in idle and waiting for Page_prev to reveal it.'
               : 'Next spread is loaded underneath and waiting for the spread-boundary Page_out.',
         })
-        context.analytics.log('one_tribe_simple_rive_loaded', {
+        context.analytics.log('1tribe_simple_rive_loaded', {
           bookId: context.data.getBookId(),
           mappedBookId: activeBookId,
           riveBookId: file.bookId,
@@ -13176,7 +9363,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
           underlay.canvas.style.zIndex = '2'
         }
         if (previousFile) {
-          context.analytics.log('one_tribe_simple_rive_artboard_offloaded', {
+          context.analytics.log('1tribe_simple_rive_artboard_offloaded', {
             animation: pageTurnForwardOutAnimation,
             artboard: previousFile.artboard || null,
             activeFile: previousFile.name,
@@ -13237,7 +9424,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       pending.didStop = true
       pending.cleanup()
       pending.cleanup = () => {}
-      context.analytics.log('one_tribe_simple_rive_animation_completed', {
+      context.analytics.log('1tribe_simple_rive_animation_completed', {
         animation: pending.animation,
         requestedAnimation: pageTurnBackOutAnimation,
         artboard: pending.artboard,
@@ -13307,7 +9494,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     const label = prepareOnly ? 'page back reveal prepare' : 'page back reveal'
     startAnimation(underlay.rive, revealEntry, label)
     scheduleBackPageIdle(underlay.rive, revealEntry, underlay.requestedArtboard)
-    context.analytics.log('one_tribe_simple_rive_page_turn_animation', {
+    context.analytics.log('1tribe_simple_rive_page_turn_animation', {
       animation: revealEntry.animation,
       requestedAnimation: pageTurnBackOutAnimation,
       artboard: revealEntry.artboard,
@@ -13474,7 +9661,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     frame.hidden = false
     completionPage.hidden = false
     setStatus(`Showing Epic completion page after Rive page ${lastRivePage}.`)
-    context.analytics.log('one_tribe_simple_completion_page_shown', {
+    context.analytics.log('1tribe_simple_completion_page_shown', {
       bookId: context.data.getBookId(),
       page,
       lastRivePage,
@@ -14163,7 +10350,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
           startAnimation(previousRive, pagePrevEntry, pagePrevLabel)
           markSimpleRivePageTurnBusy(pagePrevLabel)
           pendingOutgoingPageTurnAnimation = null
-          context.analytics.log('one_tribe_simple_rive_page_turn_animation', {
+          context.analytics.log('1tribe_simple_rive_page_turn_animation', {
             animation: pagePrevEntry.animation,
             requestedAnimation: requestedPagePrevAnimation,
             artboard: pagePrevEntry.artboard,
@@ -14316,7 +10503,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
           if (pendingIncomingPageTurnAtLoad) {
             hideManualStart()
             setStatus(`Running ${startedIncomingPageTurnEntry.artboard} / ${startedIncomingPageTurnEntry.animation} (page in).`)
-            context.analytics.log('one_tribe_simple_rive_page_turn_animation', {
+            context.analytics.log('1tribe_simple_rive_page_turn_animation', {
               animation: startedIncomingPageTurnEntry.animation,
               requestedAnimation: pendingIncomingPageTurnAtLoad.animation,
               artboard: startedIncomingPageTurnEntry.artboard,
@@ -14505,7 +10692,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
           clearStateMachineControls()
         }
         emitHarnessAvailableAnimations(instance, file, page, reason)
-        context.analytics.log('one_tribe_simple_rive_loaded', {
+        context.analytics.log('1tribe_simple_rive_loaded', {
           bookId: context.data.getBookId(),
           mappedBookId: activeBookId,
           riveBookId: file.bookId,
@@ -14753,7 +10940,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       if (shouldUseSequentialFiles) {
         displayedFileIndex = 0
         displayedPage = getSequentialPageForIndex(0)
-      } else if (getBooleanParam('oneTribeWordHotspotTest', false) && !getSimpleRiveFileForPage(files, displayedPage)) {
+      } else if (getBooleanParam('tribeWordHotspotTest', false) && !getSimpleRiveFileForPage(files, displayedPage)) {
         const firstMappedPage = getFirstSimpleRivePage(files)
         if (firstMappedPage !== null) {
           console.info('[1Tribe word hotspots] Epic test page did not match the focused Rive folder; loading first mapped test page.', {
@@ -14949,7 +11136,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     }),
   )
 
-  context.analytics.log('one_tribe_simple_overlay_activated', {
+  context.analytics.log('1tribe_simple_overlay_activated', {
     bookId: context.data.getBookId(),
     mappedBookId: activeBookId,
     page: context.data.getCurrentPage(),
@@ -15051,7 +11238,7 @@ extension = {
 
     const runAction = (action: RiveAction) => {
       activeAction = action
-      context.analytics.log('one_tribe_rive_action', {
+      context.analytics.log('1tribe_rive_action', {
         action: action.name,
         source: action.source,
         bookId: context.data.getBookId(),
@@ -15203,7 +11390,7 @@ extension = {
           status.textContent = `${spread.label} loaded${activeStateMachine ? `: ${activeStateMachine}` : ''}${
             runtimeConfig.autoplay ? '' : ' (paused)'
           }`
-          context.analytics.log('one_tribe_rive_loaded', {
+          context.analytics.log('1tribe_rive_loaded', {
             bookId: context.data.getBookId(),
             page: context.data.getCurrentPage(),
             spread: spread.label,
@@ -15287,7 +11474,7 @@ extension = {
       }),
     )
 
-    context.analytics.log('one_tribe_extension_activated', {
+    context.analytics.log('1tribe_extension_activated', {
       bookId: context.data.getBookId(),
       page: context.data.getCurrentPage(),
       apiVersion: context.version,
@@ -15305,7 +11492,9 @@ extension = {
 }
 }
 
-window[__EXTENSION_GLOBAL_NAME__ as keyof Window] = extension as never
+const extensionWindow = window as Window & Record<string, Extension>
+extensionWindow[__EXTENSION_GLOBAL_NAME__] = extension
+extensionWindow[EPIC_EXTENSION_REGISTRATION_NAME] = extension
 
 export default extension
 

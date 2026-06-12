@@ -6,7 +6,7 @@ Production-oriented Epic Reader extension for 1Tribe Ventures interactive book c
 
 - Active Epic book ID: `83936`
 - Active book assets: `public/rive/ICanFindIt_83936`
-- Extension entry: `OneTribeInteractiveExtension-main.js`
+- Extension entry: `1TribeInteractiveExtension-main.js`
 
 The extension is structured as a reusable reader integration engine plus book-specific configuration. This milestone ships the first configured book, `83936`.
 
@@ -31,7 +31,7 @@ The build writes:
 
 ```text
 dist-extension/manifest.json
-dist-extension/OneTribeInteractiveExtension-main.js
+dist-extension/1TribeInteractiveExtension-main.js
 ```
 
 Runtime assets under `public/rive` must be served beside the built extension bundle.
@@ -50,7 +50,7 @@ Then open the Epic QA reader for book `83936` and load the local extension:
 localStorage.setItem('epic_debug_skip_page_render', '1')
 localStorage.setItem(
   'epic_debug_plugin',
-  'http://localhost:8080/OneTribeInteractiveExtension-main.js?cache=local-review'
+  'http://localhost:8080/1TribeInteractiveExtension-main.js?cache=local-review'
 )
 location.reload()
 ```

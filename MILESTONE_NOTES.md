@@ -33,7 +33,7 @@ Use Epic's local debug extension flow:
 localStorage.setItem('epic_debug_skip_page_render', '1')
 localStorage.setItem(
   'epic_debug_plugin',
-  'http://localhost:8080/OneTribeInteractiveExtension-main.js?cache=local-review'
+  'http://localhost:8080/1TribeInteractiveExtension-main.js?cache=local-review'
 )
 location.reload()
 ```
@@ -41,7 +41,7 @@ location.reload()
 The visible prototype controls are hidden by default. To show diagnostics during development, add this parameter to the extension URL:
 
 ```text
-&oneTribeCommandHarnessShowControls=1
+&tribeCommandHarnessShowControls=1
 ```
 
 ## Open Epic Questions
