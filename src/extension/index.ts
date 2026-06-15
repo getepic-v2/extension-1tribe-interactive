@@ -1184,7 +1184,11 @@ function injectDocumentStyle(css: string, id: string): HTMLStyleElement {
 
 function activateCommandHarness(context: ExtensionContext): () => void {
   const readingRoot = context.slots.get('reading-area')
-  const activeBookConfig = getEpicTribeBookConfig(context.data.getBookId()) || getEpicTribeBookConfig()
+  const requestedBookId = Number(getStringParam('tribeCommandHarnessBookId'))
+  const activeBookConfig =
+    getEpicTribeBookConfig(Number.isFinite(requestedBookId) ? requestedBookId : null) ||
+    getEpicTribeBookConfig(context.data.getBookId()) ||
+    getEpicTribeBookConfig()
   if (!activeBookConfig) {
     console.warn('[1Tribe reader integration] No configured book integration is available for this Epic book.', {
       bookId: context.data.getBookId(),
@@ -1267,6 +1271,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const lastPreviewFile = previewFiles[previewFiles.length - 1] || null
   const lastPreviewReaderStart = lastPreviewFile?.readerStart ?? 24
   const lastPreviewReaderEnd = lastPreviewFile?.readerEnd ?? 25
+  const nativePassthroughLeftPages = activeBookConfig.nativePassthroughLeftPages || [0]
+  const nativePassthroughRightPages = activeBookConfig.nativePassthroughRightPages || [lastPreviewReaderEnd]
   let commandHarnessCompletionHandoff = false
   let commandHarnessCompletionReason: string | null = null
   let commandHarnessCompletionSince: number | null = null
@@ -1331,8 +1337,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
 
     const sides = new Set<CommandHarnessNativePassthroughSide>()
-    if (visiblePages.has(0)) sides.add('left')
-    if (visiblePages.has(25)) sides.add('right')
+    if (nativePassthroughLeftPages.some((page) => visiblePages.has(page))) sides.add('left')
+    if (nativePassthroughRightPages.some((page) => visiblePages.has(page))) sides.add('right')
     return sides
   }
 
@@ -2162,7 +2168,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   root.classList.toggle('is-epic-book-frame-fit', shouldFitToEpicBookFrame)
   root.setAttribute('data-reader-navigation-ignore', 'true')
   title.className = 'tribe-command-harness__title'
-  title.textContent = 'Command harness'
+  title.textContent = `Command harness: ${activeBookConfig.title}`
   controls.className = 'tribe-command-harness__controls'
   backButton.className = 'tribe-command-harness__button'
   backButton.type = 'button'
@@ -3667,6 +3673,9 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         'PageBack',
         'Page_prev',
         'Page_Prev',
+        'Page_Prev02',
+        'Page_Prev_02',
+        'PagePrev02',
       ],
       `back outgoing ${outgoingLayer.file.label}`,
     )
@@ -4179,11 +4188,19 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   })
 
   context.analytics.log('1tribe_command_harness_activated', {
+    activeBookId: activeBookConfig.bookId,
+    activeBookTitle: activeBookConfig.title,
     bookId: context.data.getBookId(),
     page: context.data.getCurrentPage(),
+    previewFileCount: previewFiles.length,
   })
   console.info(
     '[1Tribe command harness] Ready. Run tribeCommandHarnessNextPage(), tribeCommandHarnessPreviousPage(), or click a button.',
+    {
+      activeBookId: activeBookConfig.bookId,
+      activeBookTitle: activeBookConfig.title,
+      previewFileCount: previewFiles.length,
+    },
   )
 
   return () => {

@@ -200,8 +200,8 @@ export function getRiveAnimationNameMatchKeys(name: string | null): string[] {
     add('Page_Next', 'Page_next', 'Next', 'Page_out')
   }
 
-  if (['pageprev', 'prev', 'pageprevious', 'previous', 'pageback', 'back', 'pagegoback', 'goback'].includes(normalizedName)) {
-    add('Page_Prev', 'Page_prev', 'Prev', 'Page_go back')
+  if (['pageprev', 'pageprev02', 'prev', 'pageprevious', 'previous', 'pageback', 'back', 'pagegoback', 'goback'].includes(normalizedName)) {
+    add('Page_Prev', 'Page_prev', 'Page_Prev02', 'Page_Prev_02', 'PagePrev02', 'Prev', 'Page_go back')
   }
 
   if (['pagein', 'in'].includes(normalizedName)) {
@@ -238,8 +238,8 @@ export function getRiveAnimationInputNameCandidates(name: string | null): string
     add('Page_in', 'Page_In', 'In')
   }
 
-  if (['pageprev', 'prev', 'pageprevious', 'previous', 'pageback', 'back', 'pagegoback', 'goback'].includes(normalizedName)) {
-    add('Back', 'Prev', 'Page_go back', 'Page_Go_Back', 'Page_back', 'Page_Back')
+  if (['pageprev', 'pageprev02', 'prev', 'pageprevious', 'previous', 'pageback', 'back', 'pagegoback', 'goback'].includes(normalizedName)) {
+    add('Back', 'Prev', 'Page_Prev', 'Page_Prev02', 'Page_Prev_02', 'PagePrev02', 'Page_go back', 'Page_Go_Back', 'Page_back', 'Page_Back')
   }
 
   if (['pageidle', 'idle'].includes(normalizedName)) {
