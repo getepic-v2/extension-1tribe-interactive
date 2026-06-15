@@ -8,10 +8,11 @@ Active configured books:
 
 - `83936` using `public/rive/ICanFindIt_83936`
 - `83230` using `public/rive/TheWildLifeHummingbirdforaDay_83230`
+- `74774` using `public/rive/CreepyCafetorium_74774`
 
 Future integration candidates:
 
-- `74774` after its Rive assets, page mapping, and reader behavior have been reviewed and tested
+- Add future books after their Rive assets, page mapping, and reader behavior have been reviewed and tested.
 
 Future books should be added by extending the book config map in `src/extension/bookConfig.ts`, adding that book's assets under `public/rive`, updating `public/rive-page-map.json`, and verifying the spread/page/state-machine mapping before enabling the book ID.
 

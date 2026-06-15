@@ -75,6 +75,7 @@ const EPIC_1TRIBE_READER_DEFAULTS: Record<string, string> = {
 }
 const ICAN_FIND_IT_BOOK_ID = 83936
 const HUMMINGBIRD_BOOK_ID = 83230
+const CREEPY_CAFETORIUM_BOOK_ID = 74774
 
 const HUMMINGBIRD_READER_DEFAULTS: Record<string, string> = {
   ...EPIC_1TRIBE_READER_DEFAULTS,
@@ -97,6 +98,27 @@ const HUMMINGBIRD_READER_DEFAULTS: Record<string, string> = {
   rivePageTurnInAnimation: 'Page_in',
   rivePageTurnIdleAnimation: 'idle',
   riveStackPageFiles: '0',
+  riveStackTransitionPages: '0',
+  rivePreloadAdjacentUnderlay: '0',
+  riveDpr: '0.5',
+  riveMaxPixels: '700000',
+}
+
+const CREEPY_CAFETORIUM_READER_DEFAULTS: Record<string, string> = {
+  ...EPIC_1TRIBE_READER_DEFAULTS,
+  tribeCommandHarnessWordFinder: '0',
+  tribeCommandHarnessForwardPreload: '0',
+  tribeCommandHarnessPageInAnimation: 'Page_In',
+  tribeCommandHarnessPageOutAnimation: 'Page_next',
+  tribeCommandHarnessPageBackAnimation: 'Page_Prev',
+  tribeCommandHarnessBackIdleAnimation: 'idle',
+  tribeReadAlong: '0',
+  simpleRiveOverlay: '1',
+  riveFolder: 'CreepyCafetorium_74774',
+  rivePageTurnForwardOutAnimation: 'Page_next',
+  rivePageTurnBackOutAnimation: 'Page_Prev',
+  rivePageTurnInAnimation: 'Page_In',
+  rivePageTurnIdleAnimation: 'idle',
   riveStackTransitionPages: '0',
   rivePreloadAdjacentUnderlay: '0',
   riveDpr: '0.5',
@@ -143,6 +165,42 @@ function createHummingbirdPreviewFiles(): CommandHarnessPreviewFile[] {
   )
 }
 
+function createCreepyCafetoriumPreviewFiles(): CommandHarnessPreviewFile[] {
+  return [
+    '00-01',
+    '02-03',
+    '04-05',
+    '06-07',
+    '08-09',
+    '10-11',
+    '12-13',
+    '14-15',
+    '16-17',
+    '20-21',
+    '22-23',
+    '24-25',
+    '26-27',
+    '28-29',
+    '30',
+  ].map((spread) => {
+    const [startText, endText] = spread.split('-')
+    const readerStart = Number(startText)
+    const readerEnd = endText === undefined ? readerStart : Number(endText)
+    const stateMachine =
+      endText === undefined
+        ? `Creepy_Cafetorium_spread_${startText}`
+        : `Creepy_Cafetorium_spread_${startText}&${endText}`
+
+    return {
+      file: `rive/CreepyCafetorium_74774/creepy_cafetorium_spread_${spread}.riv`,
+      label: `spread ${spread}`,
+      readerEnd,
+      readerStart,
+      stateMachine,
+    }
+  })
+}
+
 const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
   [ICAN_FIND_IT_BOOK_ID]: {
     bookId: ICAN_FIND_IT_BOOK_ID,
@@ -162,6 +220,16 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     previewFiles: createHummingbirdPreviewFiles(),
     riveFolder: 'TheWildLifeHummingbirdforaDay_83230',
     title: 'Hummingbird For A Day',
+    wordHotspotFolder: '',
+  },
+  [CREEPY_CAFETORIUM_BOOK_ID]: {
+    bookId: CREEPY_CAFETORIUM_BOOK_ID,
+    defaultParams: CREEPY_CAFETORIUM_READER_DEFAULTS,
+    nativePassthroughLeftPages: [0],
+    nativePassthroughRightPages: [30],
+    previewFiles: createCreepyCafetoriumPreviewFiles(),
+    riveFolder: 'CreepyCafetorium_74774',
+    title: 'Creepy Cafetorium',
     wordHotspotFolder: '',
   },
 }

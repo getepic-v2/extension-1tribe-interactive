@@ -4,15 +4,15 @@ Production-oriented Epic Reader extension for 1Tribe Ventures interactive book c
 
 ## Current Milestone
 
-- Active Epic book IDs: `83936`, `83230`
-- Active book assets: `public/rive/ICanFindIt_83936`, `public/rive/TheWildLifeHummingbirdforaDay_83230`
+- Active Epic book IDs: `83936`, `83230`, `74774`
+- Active book assets: `public/rive/ICanFindIt_83936`, `public/rive/TheWildLifeHummingbirdforaDay_83230`, `public/rive/CreepyCafetorium_74774`
 - Extension entry: `TribeInteractiveExtension-main.js`
 
-The extension is structured as a reusable reader integration engine plus book-specific configuration. This milestone ships configured support for `83936` and `83230`.
+The extension is structured as a reusable reader integration engine plus book-specific configuration. This milestone ships configured support for `83936`, `83230`, and `74774`.
 
 Future integration candidates:
 
-- `74774`: not included or enabled in this milestone. Add only after the assets, page mapping, and reader behavior are ready for review.
+- Add future books only after the assets, page mapping, and reader behavior are ready for review.
 
 ## Install
 

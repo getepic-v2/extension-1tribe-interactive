@@ -1,5 +1,100 @@
 {
   "books": {
+    "74774": {
+      "folder": "CreepyCafetorium_74774",
+      "pages": {
+        "0": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_00-01.riv",
+          "pages": [0, 1],
+          "readerPages": [0, 1],
+          "stateMachine": "auto"
+        },
+        "2": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_02-03.riv",
+          "pages": [2, 3],
+          "readerPages": [2, 3],
+          "stateMachine": "auto"
+        },
+        "4": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_04-05.riv",
+          "pages": [4, 5],
+          "readerPages": [4, 5],
+          "stateMachine": "auto"
+        },
+        "6": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_06-07.riv",
+          "pages": [6, 7],
+          "readerPages": [6, 7],
+          "stateMachine": "auto"
+        },
+        "8": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_08-09.riv",
+          "pages": [8, 9],
+          "readerPages": [8, 9],
+          "stateMachine": "auto"
+        },
+        "10": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_10-11.riv",
+          "pages": [10, 11],
+          "readerPages": [10, 11],
+          "stateMachine": "auto"
+        },
+        "12": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_12-13.riv",
+          "pages": [12, 13],
+          "readerPages": [12, 13],
+          "stateMachine": "auto"
+        },
+        "14": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_14-15.riv",
+          "pages": [14, 15],
+          "readerPages": [14, 15],
+          "stateMachine": "auto"
+        },
+        "16": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_16-17.riv",
+          "pages": [16, 17],
+          "readerPages": [16, 17],
+          "stateMachine": "auto"
+        },
+        "20": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_20-21.riv",
+          "pages": [20, 21],
+          "readerPages": [20, 21],
+          "stateMachine": "auto"
+        },
+        "22": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_22-23.riv",
+          "pages": [22, 23],
+          "readerPages": [22, 23],
+          "stateMachine": "auto"
+        },
+        "24": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_24-25.riv",
+          "pages": [24, 25],
+          "readerPages": [24, 25],
+          "stateMachine": "auto"
+        },
+        "26": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_26-27.riv",
+          "pages": [26, 27],
+          "readerPages": [26, 27],
+          "stateMachine": "auto"
+        },
+        "28": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_28-29.riv",
+          "pages": [28, 29],
+          "readerPages": [28, 29],
+          "stateMachine": "auto"
+        },
+        "30": {
+          "file": "/rive/CreepyCafetorium_74774/creepy_cafetorium_spread_30.riv",
+          "pages": [30, 30],
+          "readerPages": [30],
+          "stateMachine": "auto"
+        }
+      }
+    },
     "83230": {
       "folder": "TheWildLifeHummingbirdforaDay_83230",
       "pages": {
