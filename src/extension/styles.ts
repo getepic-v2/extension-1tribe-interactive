@@ -146,7 +146,7 @@ export const commandHarnessStyles = `
     border: var(--tribe-command-harness-book-frame-border, 3px solid #111111);
     border-radius: 0;
     background: #ffffff;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.88);
+    box-shadow: var(--tribe-command-harness-book-frame-shadow, 0 0 0 1px rgba(255, 255, 255, 0.88));
   }
 
   .tribe-command-harness__stage.is-reader-overlay.is-takeover.is-native-passthrough-suspended {

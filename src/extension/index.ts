@@ -206,6 +206,8 @@ type TribeDebugWindow = Window &
     tribeCommandHarnessCompletionDebug?: () => Record<string, unknown>
     tribeCommandHarnessReleaseForCompletion?: (reason?: string) => Record<string, unknown>
     tribeCommandHarnessRestoreOverlay?: (reason?: string) => Record<string, unknown>
+    tribeCommandHarnessSetCanvasBleed?: (xPct?: number, yPct?: number) => Record<string, unknown>
+    tribeCommandHarnessSetPreviewFit?: (fit?: string) => Record<string, unknown>
     tribeDebugStatus?: () => Record<string, unknown>
     tribeLookupWord?: (word: string) => boolean
     tribeClickWordHotspot?: (word?: string) => boolean
@@ -1063,11 +1065,15 @@ function installDebugCommands(context: ExtensionContext): () => void {
   }
 }
 
-function getCssBackgroundParam(name: string, fallback: string): string {
+function getCssPropertyParam(name: string, property: string): string | null {
   const value = getStringParam(name)?.trim()
-  if (!value) return fallback
+  if (!value) return null
 
-  return window.CSS?.supports?.('background', value) ? value : fallback
+  return window.CSS?.supports?.(property, value) ? value : null
+}
+
+function getCssBackgroundParam(name: string, fallback: string): string {
+  return getCssPropertyParam(name, 'background') || fallback
 }
 
 const disableRiveRuntime = getBooleanParam('disableRive', false)
@@ -1223,6 +1229,10 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     isPreviewEnabled && getBooleanParam('tribeCommandHarnessUseOwnBookFrame', false)
   const shouldFitToEpicBookFrame =
     isPreviewEnabled && !shouldUseOwnBookFrame && getBooleanParam('tribeCommandHarnessUseEpicBookFrame', false)
+  const shouldUsePageEdgeFrame =
+    isPreviewEnabled && getBooleanParam('tribeCommandHarnessUsePageEdgeFrame', false)
+  const ownBookFrameBorder = getCssPropertyParam('tribeCommandHarnessBookFrameBorder', 'border')
+  const ownBookFrameShadow = getCssPropertyParam('tribeCommandHarnessBookFrameShadow', 'box-shadow')
   const ownBookFrameAspectParam = getStringParam('tribeCommandHarnessOwnBookFrameAspect')
   const ownBookFrameAspect = ownBookFrameAspectParam === null ? null : getNumberParam('tribeCommandHarnessOwnBookFrameAspect', 1216 / 837)
   const requestedEpicBookFrameInsetPx = Number(getStringParam('tribeCommandHarnessEpicBookFrameInsetPx'))
@@ -1242,6 +1252,32 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const shouldPlayPreviewPageBack = getBooleanParam('tribeCommandHarnessPageBack', isPreviewEnabled)
   const previewPageBackAnimation = getStringParam('tribeCommandHarnessPageBackAnimation') || 'Page_go back'
   const previewBackIdleAnimation = getStringParam('tribeCommandHarnessBackIdleAnimation') || 'Page_idle'
+  const getCommandHarnessPreviewFit = (value: string | null): Fit => {
+    switch ((value || '').trim().toLowerCase()) {
+      case 'cover':
+        return Fit.Cover
+      case 'fill':
+        return Fit.Fill
+      case 'fitheight':
+      case 'fit-height':
+      case 'fit_height':
+        return Fit.FitHeight
+      case 'fitwidth':
+      case 'fit-width':
+      case 'fit_width':
+        return Fit.FitWidth
+      case 'none':
+        return Fit.None
+      case 'scaledown':
+      case 'scale-down':
+      case 'scale_down':
+        return Fit.ScaleDown
+      case 'contain':
+      default:
+        return Fit.Contain
+    }
+  }
+  let previewFit = getCommandHarnessPreviewFit(getStringParam('tribeCommandHarnessPreviewFit'))
   const shouldKeepSpread02OnPageIn = getBooleanParam('tribeCommandHarnessSpread02StayOnPageIn', false)
   const shouldRunPreviewIdleAfterPageInAllSpreads = getBooleanParam('tribeCommandHarnessIdleAfterPageIn', false)
   const shouldResumeStateMachineAfterPageIdle = getBooleanParam(
@@ -1263,6 +1299,17 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   )
   const previewInputResetMs = getNumberParam('tribeCommandHarnessInputResetMs', previewAnimationHoldMs)
   const edgeNavRatio = Math.max(0, Math.min(24, getNumberParam('tribeCommandHarnessEdgeNavPct', 5))) / 100
+  const clampCommandHarnessCanvasBleedPct = (value: number, fallback = 0) =>
+    Number.isFinite(value) ? Math.max(0, Math.min(40, value)) : fallback
+  const initialCanvasBleedXPct = clampCommandHarnessCanvasBleedPct(
+    getNumberParam('tribeCommandHarnessCanvasBleedXPct', 0),
+  )
+  const initialCanvasBleedYPct =
+    getStringParam('tribeCommandHarnessCanvasBleedYPct') === null
+      ? initialCanvasBleedXPct
+      : clampCommandHarnessCanvasBleedPct(getNumberParam('tribeCommandHarnessCanvasBleedYPct', 0))
+  let canvasBleedXPct = initialCanvasBleedXPct
+  let canvasBleedYPct = initialCanvasBleedYPct
   const shouldShowCommandHarnessControls = getBooleanParam('tribeCommandHarnessShowControls', false)
   let armedEdgeGutterDirection: CommandHarnessEdgeDirection | null = null
   let lastEdgeGutterNavigationAt = 0
@@ -1406,6 +1453,65 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     return activeSides
   }
 
+  const applyCommandHarnessCanvasBleed = (canvas: HTMLCanvasElement) => {
+    canvas.style.left = `${-canvasBleedXPct}%`
+    canvas.style.top = `${-canvasBleedYPct}%`
+    canvas.style.right = 'auto'
+    canvas.style.bottom = 'auto'
+    canvas.style.width = `${100 + canvasBleedXPct * 2}%`
+    canvas.style.height = `${100 + canvasBleedYPct * 2}%`
+    canvas.dataset.commandHarnessCanvasBleedX = String(canvasBleedXPct)
+    canvas.dataset.commandHarnessCanvasBleedY = String(canvasBleedYPct)
+  }
+
+  const getCommandHarnessCanvasBleedDebug = () => ({
+    canvasBleedXPct,
+    canvasBleedYPct,
+    canvases: [previewCanvas, previewCanvasAlt, previewCanvasPreload].map((canvas) => {
+      const rect = canvas.getBoundingClientRect()
+      return {
+        ariaLabel: canvas.getAttribute('aria-label'),
+        height: rect.height,
+        left: canvas.style.left,
+        top: canvas.style.top,
+        width: rect.width,
+        x: rect.x,
+        y: rect.y,
+      }
+    }),
+  })
+
+  const setCommandHarnessCanvasBleed = (xPct = canvasBleedXPct, yPct = xPct) => {
+    canvasBleedXPct = clampCommandHarnessCanvasBleedPct(Number(xPct), canvasBleedXPct)
+    canvasBleedYPct = clampCommandHarnessCanvasBleedPct(Number(yPct), canvasBleedYPct)
+    for (const canvas of [previewCanvas, previewCanvasAlt, previewCanvasPreload]) {
+      applyCommandHarnessCanvasBleed(canvas)
+    }
+    resizePreview()
+    return getCommandHarnessCanvasBleedDebug()
+  }
+
+  const createCommandHarnessPreviewLayout = () =>
+    new Layout({
+      fit: previewFit,
+      alignment: Alignment.Center,
+    })
+
+  const setCommandHarnessPreviewFit = (fit = String(previewFit)) => {
+    previewFit = getCommandHarnessPreviewFit(fit)
+    for (const layer of [previewActiveLayer, previewNextLayer, previewPreloadLayer]) {
+      if (!layer?.rive) continue
+      layer.rive.layout = createCommandHarnessPreviewLayout()
+      layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+    }
+    if (previewRive) {
+      previewRive.layout = createCommandHarnessPreviewLayout()
+      previewRive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+    }
+    resizePreview()
+    return getCommandHarnessNativePassthroughDebug()
+  }
+
   const getCommandHarnessNavigationState = () => {
     const activeIndex = previewActiveLayer?.index ?? previewIndex
     const activeLoaded = !isPreviewEnabled || Boolean(previewActiveLayer?.loaded)
@@ -1474,13 +1580,74 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
   }
 
+  const serializeCommandHarnessRect = (rect: DOMRect | null) =>
+    rect
+      ? {
+          height: rect.height,
+          width: rect.width,
+          x: rect.x,
+          y: rect.y,
+        }
+      : null
+
+  const getCommandHarnessPageEdgeFrameRect = (sourceRect: DOMRect): DOMRect | null => {
+    const edgeElements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '#read-flip-book > .page-edge, #read-flip-book .page-edge',
+      ),
+    )
+    const edgeRects = edgeElements
+      .map((element) => ({
+        element,
+        rect: getCommandHarnessVisibleElementRect(element),
+      }))
+      .filter((item): item is { element: HTMLElement; rect: DOMRect } => {
+        if (!item.rect) return false
+        const verticalOverlap =
+          Math.min(item.rect.bottom, sourceRect.bottom) - Math.max(item.rect.top, sourceRect.top)
+        return verticalOverlap > Math.min(sourceRect.height, item.rect.height) * 0.4
+      })
+
+    if (edgeRects.length < 2) return null
+
+    const leftEdges = edgeRects.filter(({ element }) => element.classList.contains('left'))
+    const rightEdges = edgeRects.filter(({ element }) => element.classList.contains('right'))
+    const sourceCenterX = sourceRect.left + sourceRect.width / 2
+    const leftEdge =
+      leftEdges
+        .filter(({ rect }) => rect.left < sourceCenterX)
+        .sort((a, b) => b.rect.right - a.rect.right)[0] ||
+      edgeRects.filter(({ rect }) => rect.left < sourceCenterX).sort((a, b) => b.rect.right - a.rect.right)[0]
+    const rightEdge =
+      rightEdges
+        .filter(({ rect }) => rect.right > sourceCenterX)
+        .sort((a, b) => a.rect.left - b.rect.left)[0] ||
+      edgeRects.filter(({ rect }) => rect.right > sourceCenterX).sort((a, b) => a.rect.left - b.rect.left)[0]
+
+    if (!leftEdge || !rightEdge) return null
+
+    const left = Math.max(sourceRect.left, leftEdge.rect.right)
+    const right = Math.min(sourceRect.right, rightEdge.rect.left)
+    const top = Math.max(sourceRect.top, Math.min(leftEdge.rect.top, rightEdge.rect.top))
+    const bottom = Math.min(sourceRect.bottom, Math.max(leftEdge.rect.bottom, rightEdge.rect.bottom))
+    if (right - left <= sourceRect.width * 0.4 || bottom - top <= sourceRect.height * 0.4) return null
+
+    return new DOMRect(left, top, right - left, bottom - top)
+  }
+
   const getCommandHarnessEpicPageEdgesDebug = () => {
     const edges = Array.from(document.querySelectorAll<HTMLElement>('#read-flip-book > .page-edge')).map(
       describeCommandHarnessPageEdgeElement,
     )
+    const flipBookRect = context.data.getFlipBookRect()
+    const sourceRect = flipBookRect
+      ? new DOMRect(flipBookRect.x, flipBookRect.y, flipBookRect.width, flipBookRect.height)
+      : null
     return {
       count: edges.length,
       edges,
+      pageEdgeFrameEnabled: shouldUsePageEdgeFrame,
+      pageEdgeFrameRect: sourceRect ? serializeCommandHarnessRect(getCommandHarnessPageEdgeFrameRect(sourceRect)) : null,
       nativeShellEnabled: shouldUseEpicNativeShell,
       skipPageRenderEnabled: isEpicDebugSkipPageRenderEnabled,
     }
@@ -1568,14 +1735,32 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (!sourceRect || sourceRect.width <= 1 || sourceRect.height <= 1) return null
 
     const rect = new DOMRect(sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height)
+    const pageEdgeFrameRect = shouldUsePageEdgeFrame ? getCommandHarnessPageEdgeFrameRect(rect) : null
+    if (pageEdgeFrameRect) return pageEdgeFrameRect
+
     return ownBookFrameAspect ? getCommandHarnessContainedRectForAspect(rect, ownBookFrameAspect) : rect
+  }
+
+  const getCommandHarnessOwnBookFrameSource = () => {
+    if (!shouldUseOwnBookFrame) return null
+
+    const flipBookRect = context.data.getFlipBookRect()
+    const host = readingRoot.host
+    const hostRect = host instanceof HTMLElement ? host.getBoundingClientRect() : null
+    const sourceRect = flipBookRect || hostRect
+    if (!sourceRect || sourceRect.width <= 1 || sourceRect.height <= 1) return null
+
+    const rect = new DOMRect(sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height)
+    if (shouldUsePageEdgeFrame && getCommandHarnessPageEdgeFrameRect(rect)) return 'page-edge-frame'
+    return ownBookFrameAspect ? 'own-book-frame-aspect' : 'own-book-frame'
   }
 
   const getCommandHarnessReaderFrameRect = () =>
     getCommandHarnessOwnBookFrameRect() || getCommandHarnessEpicBookFrameRect() || context.data.getFlipBookRect()
 
   const getCommandHarnessReaderFrameSource = () => {
-    if (getCommandHarnessOwnBookFrameRect()) return ownBookFrameAspect ? 'own-book-frame-aspect' : 'own-book-frame'
+    const ownBookFrameSource = getCommandHarnessOwnBookFrameSource()
+    if (ownBookFrameSource) return ownBookFrameSource
     if (getCommandHarnessEpicBookFrameRect()) return 'epic-book-frame'
     return context.data.getFlipBookRect() ? 'flip-book-rect' : null
   }
@@ -2118,6 +2303,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       mode: shouldUseTakeover ? 'command-harness-takeover' : 'command-harness',
       nativePassthroughSuspended: shouldSuspendCommandHarnessNativePassthrough(),
       previewIndex,
+      previewFit,
       root: {
         className: root.className,
         dataset: {
@@ -2125,6 +2311,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         },
       },
       stage: {
+        canvasBleed: getCommandHarnessCanvasBleedDebug(),
         className: previewStage.className,
         clipPath: window.getComputedStyle(previewStage).clipPath,
         dataset: {
@@ -2133,9 +2320,13 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         frameFit: {
           enabled: shouldUseOwnBookFrame || shouldFitToEpicBookFrame,
           mode: shouldUseOwnBookFrame ? 'own-book-frame' : shouldFitToEpicBookFrame ? 'epic-book-frame' : 'off',
+          border: ownBookFrameBorder,
+          canvasBleedXPct,
+          canvasBleedYPct,
           epicFrameInsetPx: shouldFitToEpicBookFrame ? epicBookFrameInsetPx : null,
           epicNativeShell: shouldUseEpicNativeShell,
           ownFrameAspect: ownBookFrameAspect,
+          shadow: ownBookFrameShadow,
           resolvedRect: frameRect
             ? {
                 height: frameRect.height,
@@ -2185,10 +2376,19 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   previewStage.dataset.ownBookFrame = shouldUseOwnBookFrame ? 'true' : 'false'
   previewStage.dataset.epicBookFrameFit = shouldFitToEpicBookFrame ? 'true' : 'false'
   previewStage.dataset.epicNativeShell = shouldUseEpicNativeShell ? 'true' : 'false'
+  if (ownBookFrameBorder !== null) {
+    previewStage.style.setProperty('--tribe-command-harness-book-frame-border', ownBookFrameBorder)
+  }
+  if (ownBookFrameShadow !== null) {
+    previewStage.style.setProperty('--tribe-command-harness-book-frame-shadow', ownBookFrameShadow)
+  }
   previewStage.setAttribute('data-reader-navigation-ignore', 'true')
   previewCanvas.className = 'tribe-command-harness__canvas'
   previewCanvasAlt.className = 'tribe-command-harness__canvas'
   previewCanvasPreload.className = 'tribe-command-harness__canvas'
+  applyCommandHarnessCanvasBleed(previewCanvas)
+  applyCommandHarnessCanvasBleed(previewCanvasAlt)
+  applyCommandHarnessCanvasBleed(previewCanvasPreload)
   previewCanvas.setAttribute('aria-label', 'Rive preview layer A')
   previewCanvasAlt.setAttribute('aria-label', 'Rive preview layer B')
   previewCanvasPreload.setAttribute('aria-label', 'Rive preview preload layer')
@@ -3067,10 +3267,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         autoBind: true,
         automaticallyHandleEvents: true,
         enableRiveAssetCDN: false,
-        layout: new Layout({
-          fit: Fit.Contain,
-          alignment: Alignment.Center,
-        }),
+        layout: createCommandHarnessPreviewLayout(),
         onLoad() {
           markPreviewLayerLoaded(layer, `${role} ${file.label}`, serial)
         },
@@ -4029,10 +4226,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         automaticallyHandleEvents: false,
         enableRiveAssetCDN: false,
         stateMachines: previewFile.stateMachine,
-        layout: new Layout({
-          fit: Fit.Contain,
-          alignment: Alignment.Center,
-        }),
+        layout: createCommandHarnessPreviewLayout(),
         onLoad() {
           if (serial !== previewLoadSerial) return
           previewRive = instance
@@ -4174,6 +4368,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const debugWindow = window as TribeDebugWindow
   debugWindow.tribeCommandHarnessNextPage = runNextPage
   debugWindow.tribeCommandHarnessPreviousPage = runPreviousPage
+  debugWindow.tribeCommandHarnessSetCanvasBleed = setCommandHarnessCanvasBleed
+  debugWindow.tribeCommandHarnessSetPreviewFit = setCommandHarnessPreviewFit
   debugWindow.tribeEpicNativePassthroughDebug = getCommandHarnessNativePassthroughDebug
   debugWindow.tribeCommandHarnessCompletionDebug = getCommandHarnessCompletionDebug
   debugWindow.tribeCommandHarnessReleaseForCompletion = (reason = 'manual completion handoff') =>
@@ -4209,6 +4405,12 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
     if (debugWindow.tribeCommandHarnessPreviousPage === runPreviousPage) {
       delete debugWindow.tribeCommandHarnessPreviousPage
+    }
+    if (debugWindow.tribeCommandHarnessSetCanvasBleed === setCommandHarnessCanvasBleed) {
+      delete debugWindow.tribeCommandHarnessSetCanvasBleed
+    }
+    if (debugWindow.tribeCommandHarnessSetPreviewFit === setCommandHarnessPreviewFit) {
+      delete debugWindow.tribeCommandHarnessSetPreviewFit
     }
     if (debugWindow.tribeEpicNativePassthroughDebug === getCommandHarnessNativePassthroughDebug) {
       delete debugWindow.tribeEpicNativePassthroughDebug
