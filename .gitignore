@@ -3,3 +3,7 @@ dist
 dist-extension
 .env
 *.local
+*.log
+.vs/
+review-packages/
+production-version

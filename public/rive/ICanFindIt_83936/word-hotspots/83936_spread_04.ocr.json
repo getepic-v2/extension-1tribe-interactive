@@ -1,0 +1,224 @@
+{
+  "text": "Jake and Aunt Hazel are going on a walk. They will take pictures of all the springtime things they see. The pictures are for a special surprise. Come along and help!",
+  "width": 1216,
+  "height": 837,
+  "words": [
+    {
+      "text": "Jake",
+      "x": 98,
+      "y": 69,
+      "width": 54,
+      "height": 19
+    },
+    {
+      "text": "and",
+      "x": 159,
+      "y": 69,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "Aunt",
+      "x": 208,
+      "y": 69,
+      "width": 51,
+      "height": 18
+    },
+    {
+      "text": "Hazel",
+      "x": 267,
+      "y": 69,
+      "width": 60,
+      "height": 19
+    },
+    {
+      "text": "are",
+      "x": 335,
+      "y": 74,
+      "width": 36,
+      "height": 14
+    },
+    {
+      "text": "going",
+      "x": 379,
+      "y": 69,
+      "width": 61,
+      "height": 24
+    },
+    {
+      "text": "on",
+      "x": 99,
+      "y": 109,
+      "width": 27,
+      "height": 16
+    },
+    {
+      "text": "a",
+      "x": 134,
+      "y": 109,
+      "width": 14,
+      "height": 16
+    },
+    {
+      "text": "walk.",
+      "x": 154,
+      "y": 104,
+      "width": 59,
+      "height": 21
+    },
+    {
+      "text": "They",
+      "x": 676,
+      "y": 69,
+      "width": 53,
+      "height": 24
+    },
+    {
+      "text": "will",
+      "x": 735,
+      "y": 69,
+      "width": 36,
+      "height": 18
+    },
+    {
+      "text": "take",
+      "x": 779,
+      "y": 69,
+      "width": 48,
+      "height": 19
+    },
+    {
+      "text": "pictures",
+      "x": 835,
+      "y": 69,
+      "width": 90,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 933,
+      "y": 67,
+      "width": 24,
+      "height": 21
+    },
+    {
+      "text": "all",
+      "x": 963,
+      "y": 69,
+      "width": 24,
+      "height": 19
+    },
+    {
+      "text": "the",
+      "x": 995,
+      "y": 69,
+      "width": 34,
+      "height": 19
+    },
+    {
+      "text": "springtime",
+      "x": 676,
+      "y": 104,
+      "width": 118,
+      "height": 24
+    },
+    {
+      "text": "things",
+      "x": 801,
+      "y": 104,
+      "width": 67,
+      "height": 24
+    },
+    {
+      "text": "they",
+      "x": 875,
+      "y": 104,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "see.",
+      "x": 929,
+      "y": 109,
+      "width": 45,
+      "height": 14
+    },
+    {
+      "text": "The",
+      "x": 676,
+      "y": 138,
+      "width": 40,
+      "height": 20
+    },
+    {
+      "text": "pictures",
+      "x": 724,
+      "y": 139,
+      "width": 90,
+      "height": 24
+    },
+    {
+      "text": "are",
+      "x": 822,
+      "y": 144,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "text": "for",
+      "x": 866,
+      "y": 137,
+      "width": 34,
+      "height": 21
+    },
+    {
+      "text": "a",
+      "x": 907,
+      "y": 144,
+      "width": 13,
+      "height": 14
+    },
+    {
+      "text": "special",
+      "x": 928,
+      "y": 139,
+      "width": 76,
+      "height": 24
+    },
+    {
+      "text": "surprise.",
+      "x": 1013,
+      "y": 139,
+      "width": 98,
+      "height": 24
+    },
+    {
+      "text": "Come",
+      "x": 676,
+      "y": 210,
+      "width": 73,
+      "height": 22
+    },
+    {
+      "text": "along",
+      "x": 758,
+      "y": 208,
+      "width": 73,
+      "height": 30
+    },
+    {
+      "text": "and",
+      "x": 839,
+      "y": 209,
+      "width": 51,
+      "height": 22
+    },
+    {
+      "text": "help!",
+      "x": 897,
+      "y": 208,
+      "width": 64,
+      "height": 29
+    }
+  ]
+}

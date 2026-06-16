@@ -1,0 +1,350 @@
+{
+  "text": "As they turn the corner, they see a deer family in the woods! The fawn has rusty-brown fur with bright white spots. Jake and Aunt Hazel make sure not to get too close as they snap a picture. Can you find the fawn with brown fur and white spots?",
+  "width": 1216,
+  "height": 837,
+  "words": [
+    {
+      "text": "As",
+      "x": 94,
+      "y": 64,
+      "width": 30,
+      "height": 20
+    },
+    {
+      "text": "they",
+      "x": 131,
+      "y": 64,
+      "width": 47,
+      "height": 25
+    },
+    {
+      "text": "turn",
+      "x": 185,
+      "y": 64,
+      "width": 47,
+      "height": 20
+    },
+    {
+      "text": "the",
+      "x": 239,
+      "y": 64,
+      "width": 34,
+      "height": 20
+    },
+    {
+      "text": "corner,",
+      "x": 281,
+      "y": 70,
+      "width": 79,
+      "height": 17
+    },
+    {
+      "text": "they",
+      "x": 94,
+      "y": 100,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "see",
+      "x": 150,
+      "y": 105,
+      "width": 39,
+      "height": 14
+    },
+    {
+      "text": "a",
+      "x": 196,
+      "y": 105,
+      "width": 14,
+      "height": 14
+    },
+    {
+      "text": "deer",
+      "x": 217,
+      "y": 100,
+      "width": 52,
+      "height": 19
+    },
+    {
+      "text": "family",
+      "x": 275,
+      "y": 99,
+      "width": 66,
+      "height": 25
+    },
+    {
+      "text": "in",
+      "x": 350,
+      "y": 100,
+      "width": 18,
+      "height": 19
+    },
+    {
+      "text": "the",
+      "x": 375,
+      "y": 100,
+      "width": 35,
+      "height": 19
+    },
+    {
+      "text": "woods!",
+      "x": 417,
+      "y": 100,
+      "width": 80,
+      "height": 19
+    },
+    {
+      "text": "The",
+      "x": 94,
+      "y": 135,
+      "width": 42,
+      "height": 19
+    },
+    {
+      "text": "fawn",
+      "x": 143,
+      "y": 134,
+      "width": 56,
+      "height": 20
+    },
+    {
+      "text": "has",
+      "x": 208,
+      "y": 135,
+      "width": 38,
+      "height": 19
+    },
+    {
+      "text": "rusty-brown",
+      "x": 254,
+      "y": 135,
+      "width": 138,
+      "height": 24
+    },
+    {
+      "text": "fur",
+      "x": 400,
+      "y": 133,
+      "width": 34,
+      "height": 21
+    },
+    {
+      "text": "with",
+      "x": 94,
+      "y": 170,
+      "width": 48,
+      "height": 19
+    },
+    {
+      "text": "bright",
+      "x": 150,
+      "y": 170,
+      "width": 65,
+      "height": 25
+    },
+    {
+      "text": "white",
+      "x": 221,
+      "y": 170,
+      "width": 60,
+      "height": 19
+    },
+    {
+      "text": "spots.",
+      "x": 289,
+      "y": 170,
+      "width": 68,
+      "height": 24
+    },
+    {
+      "text": "Jake",
+      "x": 94,
+      "y": 205,
+      "width": 55,
+      "height": 20
+    },
+    {
+      "text": "and",
+      "x": 156,
+      "y": 205,
+      "width": 42,
+      "height": 20
+    },
+    {
+      "text": "Aunt",
+      "x": 206,
+      "y": 205,
+      "width": 51,
+      "height": 19
+    },
+    {
+      "text": "Hazel",
+      "x": 265,
+      "y": 205,
+      "width": 60,
+      "height": 19
+    },
+    {
+      "text": "make",
+      "x": 335,
+      "y": 205,
+      "width": 58,
+      "height": 20
+    },
+    {
+      "text": "sure",
+      "x": 401,
+      "y": 211,
+      "width": 49,
+      "height": 14
+    },
+    {
+      "text": "not",
+      "x": 97,
+      "y": 240,
+      "width": 35,
+      "height": 19
+    },
+    {
+      "text": "to",
+      "x": 139,
+      "y": 240,
+      "width": 23,
+      "height": 19
+    },
+    {
+      "text": "get",
+      "x": 170,
+      "y": 240,
+      "width": 35,
+      "height": 25
+    },
+    {
+      "text": "too",
+      "x": 211,
+      "y": 240,
+      "width": 38,
+      "height": 19
+    },
+    {
+      "text": "close",
+      "x": 256,
+      "y": 240,
+      "width": 59,
+      "height": 19
+    },
+    {
+      "text": "as",
+      "x": 96,
+      "y": 281,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "text": "they",
+      "x": 130,
+      "y": 276,
+      "width": 47,
+      "height": 24
+    },
+    {
+      "text": "snap",
+      "x": 184,
+      "y": 281,
+      "width": 54,
+      "height": 20
+    },
+    {
+      "text": "a",
+      "x": 246,
+      "y": 281,
+      "width": 13,
+      "height": 14
+    },
+    {
+      "text": "picture.",
+      "x": 267,
+      "y": 276,
+      "width": 83,
+      "height": 25
+    },
+    {
+      "text": "Can",
+      "x": 678,
+      "y": 520,
+      "width": 50,
+      "height": 22
+    },
+    {
+      "text": "you",
+      "x": 737,
+      "y": 525,
+      "width": 46,
+      "height": 21
+    },
+    {
+      "text": "find",
+      "x": 791,
+      "y": 518,
+      "width": 51,
+      "height": 23
+    },
+    {
+      "text": "the",
+      "x": 849,
+      "y": 520,
+      "width": 42,
+      "height": 22
+    },
+    {
+      "text": "fawn",
+      "x": 900,
+      "y": 519,
+      "width": 63,
+      "height": 22
+    },
+    {
+      "text": "with",
+      "x": 677,
+      "y": 557,
+      "width": 56,
+      "height": 23
+    },
+    {
+      "text": "brown",
+      "x": 740,
+      "y": 558,
+      "width": 81,
+      "height": 22
+    },
+    {
+      "text": "fur",
+      "x": 829,
+      "y": 558,
+      "width": 36,
+      "height": 22
+    },
+    {
+      "text": "and",
+      "x": 873,
+      "y": 557,
+      "width": 51,
+      "height": 23
+    },
+    {
+      "text": "white",
+      "x": 933,
+      "y": 557,
+      "width": 70,
+      "height": 23
+    },
+    {
+      "text": "spots?",
+      "x": 1011,
+      "y": 557,
+      "width": 88,
+      "height": 29
+    }
+  ]
+}

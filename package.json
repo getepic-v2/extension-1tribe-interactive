@@ -1,0 +1,19 @@
+{
+  "name": "1tribe-interactive-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:extension": "vite build --mode extension --watch",
+    "dev:serve": "node scripts/dev-server.mjs",
+    "build:extension": "vite build --mode extension"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "@rive-app/canvas": "^2.37.7"
+  }
+}

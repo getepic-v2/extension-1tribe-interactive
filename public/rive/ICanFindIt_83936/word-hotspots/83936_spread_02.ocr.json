@@ -1,0 +1,147 @@
+{
+  "text": "Jake hears the doorbell ring. He skips to the front door and swings it wide open. It is Aunt Hazel!",
+  "width": 1216,
+  "height": 837,
+  "words": [
+    {
+      "text": "Jake",
+      "x": 779,
+      "y": 65,
+      "width": 53,
+      "height": 19
+    },
+    {
+      "text": "hears",
+      "x": 841,
+      "y": 65,
+      "width": 61,
+      "height": 19
+    },
+    {
+      "text": "the",
+      "x": 910,
+      "y": 65,
+      "width": 35,
+      "height": 19
+    },
+    {
+      "text": "doorbell",
+      "x": 952,
+      "y": 65,
+      "width": 91,
+      "height": 19
+    },
+    {
+      "text": "ring.",
+      "x": 1051,
+      "y": 65,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "He",
+      "x": 781,
+      "y": 99,
+      "width": 27,
+      "height": 20
+    },
+    {
+      "text": "skips",
+      "x": 817,
+      "y": 99,
+      "width": 57,
+      "height": 25
+    },
+    {
+      "text": "to",
+      "x": 881,
+      "y": 99,
+      "width": 23,
+      "height": 20
+    },
+    {
+      "text": "the",
+      "x": 911,
+      "y": 99,
+      "width": 34,
+      "height": 20
+    },
+    {
+      "text": "front",
+      "x": 951,
+      "y": 98,
+      "width": 57,
+      "height": 21
+    },
+    {
+      "text": "door",
+      "x": 1014,
+      "y": 99,
+      "width": 54,
+      "height": 20
+    },
+    {
+      "text": "and",
+      "x": 780,
+      "y": 134,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "swings",
+      "x": 829,
+      "y": 135,
+      "width": 77,
+      "height": 24
+    },
+    {
+      "text": "it",
+      "x": 915,
+      "y": 134,
+      "width": 13,
+      "height": 19
+    },
+    {
+      "text": "wide",
+      "x": 934,
+      "y": 135,
+      "width": 53,
+      "height": 18
+    },
+    {
+      "text": "open.",
+      "x": 995,
+      "y": 140,
+      "width": 60,
+      "height": 19
+    },
+    {
+      "text": "It",
+      "x": 779,
+      "y": 204,
+      "width": 17,
+      "height": 20
+    },
+    {
+      "text": "is",
+      "x": 804,
+      "y": 204,
+      "width": 17,
+      "height": 20
+    },
+    {
+      "text": "Aunt",
+      "x": 828,
+      "y": 204,
+      "width": 52,
+      "height": 19
+    },
+    {
+      "text": "Hazel!",
+      "x": 887,
+      "y": 204,
+      "width": 67,
+      "height": 20
+    }
+  ]
+}

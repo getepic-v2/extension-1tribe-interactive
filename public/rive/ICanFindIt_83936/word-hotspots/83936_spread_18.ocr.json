@@ -1,0 +1,406 @@
+{
+  "text": "At the edge of the lake, Jake spots a spring peeper frog and her eggs! the frog is orange and has a mark like an X on her back. Her eggs are clear with black dots in the middle. Do you see an orange frog with an X on her back and clear eggs with black dots?",
+  "width": 1216,
+  "height": 837,
+  "words": [
+    {
+      "text": "At",
+      "x": 133,
+      "y": 544,
+      "width": 25,
+      "height": 19
+    },
+    {
+      "text": "the",
+      "x": 165,
+      "y": 544,
+      "width": 34,
+      "height": 19
+    },
+    {
+      "text": "edge",
+      "x": 206,
+      "y": 544,
+      "width": 54,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 268,
+      "y": 542,
+      "width": 23,
+      "height": 21
+    },
+    {
+      "text": "the",
+      "x": 297,
+      "y": 544,
+      "width": 34,
+      "height": 19
+    },
+    {
+      "text": "lake,",
+      "x": 339,
+      "y": 544,
+      "width": 51,
+      "height": 22
+    },
+    {
+      "text": "Jake",
+      "x": 133,
+      "y": 579,
+      "width": 54,
+      "height": 19
+    },
+    {
+      "text": "spots",
+      "x": 195,
+      "y": 579,
+      "width": 61,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 264,
+      "y": 585,
+      "width": 13,
+      "height": 13
+    },
+    {
+      "text": "spring",
+      "x": 285,
+      "y": 579,
+      "width": 69,
+      "height": 24
+    },
+    {
+      "text": "peeper",
+      "x": 363,
+      "y": 584,
+      "width": 77,
+      "height": 19
+    },
+    {
+      "text": "frog",
+      "x": 446,
+      "y": 578,
+      "width": 47,
+      "height": 25
+    },
+    {
+      "text": "and",
+      "x": 134,
+      "y": 614,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "her",
+      "x": 183,
+      "y": 614,
+      "width": 36,
+      "height": 19
+    },
+    {
+      "text": "eggs!",
+      "x": 226,
+      "y": 614,
+      "width": 59,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 133,
+      "y": 649,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "frog",
+      "x": 182,
+      "y": 648,
+      "width": 46,
+      "height": 25
+    },
+    {
+      "text": "is",
+      "x": 237,
+      "y": 649,
+      "width": 16,
+      "height": 19
+    },
+    {
+      "text": "orange",
+      "x": 262,
+      "y": 654,
+      "width": 78,
+      "height": 19
+    },
+    {
+      "text": "and",
+      "x": 348,
+      "y": 649,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "has",
+      "x": 135,
+      "y": 684,
+      "width": 38,
+      "height": 19
+    },
+    {
+      "text": "a",
+      "x": 181,
+      "y": 689,
+      "width": 13,
+      "height": 14
+    },
+    {
+      "text": "mark",
+      "x": 203,
+      "y": 684,
+      "width": 56,
+      "height": 19
+    },
+    {
+      "text": "like",
+      "x": 266,
+      "y": 684,
+      "width": 37,
+      "height": 19
+    },
+    {
+      "text": "an",
+      "x": 310,
+      "y": 689,
+      "width": 28,
+      "height": 14
+    },
+    {
+      "text": "X",
+      "x": 345,
+      "y": 684,
+      "width": 15,
+      "height": 18
+    },
+    {
+      "text": "on",
+      "x": 369,
+      "y": 689,
+      "width": 27,
+      "height": 14
+    },
+    {
+      "text": "her",
+      "x": 404,
+      "y": 684,
+      "width": 36,
+      "height": 19
+    },
+    {
+      "text": "back.",
+      "x": 448,
+      "y": 684,
+      "width": 59,
+      "height": 19
+    },
+    {
+      "text": "Her",
+      "x": 135,
+      "y": 719,
+      "width": 38,
+      "height": 19
+    },
+    {
+      "text": "eggs",
+      "x": 181,
+      "y": 724,
+      "width": 53,
+      "height": 19
+    },
+    {
+      "text": "are",
+      "x": 241,
+      "y": 724,
+      "width": 38,
+      "height": 14
+    },
+    {
+      "text": "clear",
+      "x": 286,
+      "y": 719,
+      "width": 57,
+      "height": 19
+    },
+    {
+      "text": "with",
+      "x": 349,
+      "y": 719,
+      "width": 46,
+      "height": 19
+    },
+    {
+      "text": "black",
+      "x": 135,
+      "y": 754,
+      "width": 58,
+      "height": 19
+    },
+    {
+      "text": "dots",
+      "x": 200,
+      "y": 754,
+      "width": 49,
+      "height": 19
+    },
+    {
+      "text": "in",
+      "x": 258,
+      "y": 754,
+      "width": 18,
+      "height": 19
+    },
+    {
+      "text": "the",
+      "x": 283,
+      "y": 754,
+      "width": 34,
+      "height": 19
+    },
+    {
+      "text": "middle.",
+      "x": 326,
+      "y": 754,
+      "width": 76,
+      "height": 19
+    },
+    {
+      "text": "Do",
+      "x": 700,
+      "y": 63,
+      "width": 38,
+      "height": 22
+    },
+    {
+      "text": "you",
+      "x": 746,
+      "y": 68,
+      "width": 47,
+      "height": 22
+    },
+    {
+      "text": "see",
+      "x": 801,
+      "y": 69,
+      "width": 44,
+      "height": 16
+    },
+    {
+      "text": "an",
+      "x": 853,
+      "y": 69,
+      "width": 32,
+      "height": 16
+    },
+    {
+      "text": "orange",
+      "x": 894,
+      "y": 68,
+      "width": 91,
+      "height": 23
+    },
+    {
+      "text": "frog",
+      "x": 995,
+      "y": 63,
+      "width": 53,
+      "height": 28
+    },
+    {
+      "text": "with",
+      "x": 700,
+      "y": 100,
+      "width": 57,
+      "height": 23
+    },
+    {
+      "text": "an",
+      "x": 764,
+      "y": 107,
+      "width": 33,
+      "height": 16
+    },
+    {
+      "text": "X",
+      "x": 805,
+      "y": 100,
+      "width": 19,
+      "height": 23
+    },
+    {
+      "text": "on",
+      "x": 832,
+      "y": 107,
+      "width": 32,
+      "height": 17
+    },
+    {
+      "text": "her",
+      "x": 872,
+      "y": 102,
+      "width": 41,
+      "height": 22
+    },
+    {
+      "text": "back",
+      "x": 921,
+      "y": 101,
+      "width": 65,
+      "height": 22
+    },
+    {
+      "text": "and",
+      "x": 993,
+      "y": 101,
+      "width": 51,
+      "height": 22
+    },
+    {
+      "text": "clear",
+      "x": 700,
+      "y": 138,
+      "width": 66,
+      "height": 24
+    },
+    {
+      "text": "eggs",
+      "x": 774,
+      "y": 145,
+      "width": 63,
+      "height": 23
+    },
+    {
+      "text": "with",
+      "x": 846,
+      "y": 138,
+      "width": 54,
+      "height": 24
+    },
+    {
+      "text": "black",
+      "x": 908,
+      "y": 139,
+      "width": 72,
+      "height": 23
+    },
+    {
+      "text": "dots?",
+      "x": 987,
+      "y": 138,
+      "width": 72,
+      "height": 24
+    }
+  ]
+}

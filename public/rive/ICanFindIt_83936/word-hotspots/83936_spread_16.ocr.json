@@ -1,0 +1,238 @@
+{
+  "text": "Jake finds the perfect mud puddle for splashing! It is big and round, but not too deep, and has some grass growing out of it. Can you find a big, round mud puddle?",
+  "width": 1216,
+  "height": 837,
+  "words": [
+    {
+      "text": "Jake",
+      "x": 177,
+      "y": 65,
+      "width": 53,
+      "height": 19
+    },
+    {
+      "text": "finds",
+      "x": 238,
+      "y": 63,
+      "width": 55,
+      "height": 21
+    },
+    {
+      "text": "the",
+      "x": 300,
+      "y": 65,
+      "width": 34,
+      "height": 19
+    },
+    {
+      "text": "perfect",
+      "x": 342,
+      "y": 63,
+      "width": 81,
+      "height": 26
+    },
+    {
+      "text": "mud",
+      "x": 430,
+      "y": 65,
+      "width": 46,
+      "height": 19
+    },
+    {
+      "text": "puddle",
+      "x": 485,
+      "y": 65,
+      "width": 73,
+      "height": 24
+    },
+    {
+      "text": "for",
+      "x": 177,
+      "y": 98,
+      "width": 34,
+      "height": 20
+    },
+    {
+      "text": "splashing!",
+      "x": 218,
+      "y": 99,
+      "width": 110,
+      "height": 25
+    },
+    {
+      "text": "It",
+      "x": 177,
+      "y": 135,
+      "width": 18,
+      "height": 18
+    },
+    {
+      "text": "is",
+      "x": 202,
+      "y": 135,
+      "width": 17,
+      "height": 19
+    },
+    {
+      "text": "big",
+      "x": 228,
+      "y": 135,
+      "width": 32,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 267,
+      "y": 135,
+      "width": 41,
+      "height": 18
+    },
+    {
+      "text": "round,",
+      "x": 316,
+      "y": 135,
+      "width": 71,
+      "height": 22
+    },
+    {
+      "text": "but",
+      "x": 178,
+      "y": 169,
+      "width": 35,
+      "height": 19
+    },
+    {
+      "text": "not",
+      "x": 221,
+      "y": 169,
+      "width": 36,
+      "height": 19
+    },
+    {
+      "text": "too",
+      "x": 263,
+      "y": 169,
+      "width": 37,
+      "height": 19
+    },
+    {
+      "text": "deep,",
+      "x": 307,
+      "y": 169,
+      "width": 60,
+      "height": 25
+    },
+    {
+      "text": "and",
+      "x": 177,
+      "y": 204,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "has",
+      "x": 228,
+      "y": 204,
+      "width": 37,
+      "height": 19
+    },
+    {
+      "text": "some",
+      "x": 274,
+      "y": 209,
+      "width": 59,
+      "height": 14
+    },
+    {
+      "text": "grass",
+      "x": 340,
+      "y": 209,
+      "width": 63,
+      "height": 19
+    },
+    {
+      "text": "growing",
+      "x": 177,
+      "y": 239,
+      "width": 91,
+      "height": 25
+    },
+    {
+      "text": "out",
+      "x": 276,
+      "y": 239,
+      "width": 37,
+      "height": 19
+    },
+    {
+      "text": "of",
+      "x": 319,
+      "y": 238,
+      "width": 24,
+      "height": 20
+    },
+    {
+      "text": "it.",
+      "x": 350,
+      "y": 239,
+      "width": 17,
+      "height": 19
+    },
+    {
+      "text": "Can",
+      "x": 762,
+      "y": 65,
+      "width": 50,
+      "height": 22
+    },
+    {
+      "text": "you",
+      "x": 820,
+      "y": 70,
+      "width": 47,
+      "height": 21
+    },
+    {
+      "text": "find",
+      "x": 875,
+      "y": 62,
+      "width": 50,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 932,
+      "y": 70,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "text": "big,",
+      "x": 957,
+      "y": 62,
+      "width": 48,
+      "height": 31
+    },
+    {
+      "text": "round",
+      "x": 1014,
+      "y": 63,
+      "width": 74,
+      "height": 23
+    },
+    {
+      "text": "mud",
+      "x": 762,
+      "y": 102,
+      "width": 55,
+      "height": 23
+    },
+    {
+      "text": "puddle?",
+      "x": 825,
+      "y": 101,
+      "width": 103,
+      "height": 29
+    }
+  ]
+}

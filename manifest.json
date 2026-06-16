@@ -1,7 +1,7 @@
 {
     "id": "1tribe-interactive-extension",
-    "name": "1tribe Interactive Extension",
+    "name": "1Tribe Interactive Extension",
     "version": "1.0.0",
-    "globalName": "OneTribeInteractiveExtension",
-    "entry": "OneTribeInteractiveExtension-main.js"
+    "globalName": "TribeInteractiveExtension",
+    "entry": "TribeInteractiveExtension-main.js"
   }
