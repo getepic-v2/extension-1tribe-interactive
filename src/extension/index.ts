@@ -44,6 +44,7 @@ import {
   type RiveAction,
 } from './readerCommands'
 import {
+  auditReadAlongWords,
   cleanupReadAlongDebugState,
   clearReadAlongButtonHighlight,
   configureReadAlong,
@@ -224,7 +225,9 @@ type TribeDebugWindow = Window &
     tribeProbeReadAlongAudioAlignment?: (page?: number) => Promise<Record<string, unknown>>
     tribeProbeReadAlongAudioUrl?: (page?: number) => Promise<Record<string, unknown>>
     tribeProbeReadAlongTimings?: (page?: number) => Promise<Record<string, unknown>>
+    tribeAuditReadAlongWords?: (startPage?: number, endPage?: number) => Promise<Record<string, unknown>>
     tribeExportReadAlongTranscript?: (startPage?: number, endPage?: number) => Promise<Record<string, unknown>>
+    tribeExportFullReadAlongTranscript?: (startPage?: number, endPage?: number) => Promise<Record<string, unknown>>
     tribePreviewReadAlongAtTime?: (time?: number, page?: number) => Promise<Record<string, unknown>>
     tribeStartReadAlongAudio?: (page?: number) => Promise<Record<string, unknown>>
     tribePauseReadAlongAudio?: () => Record<string, unknown>
@@ -1295,6 +1298,8 @@ function isLocalDebugExtensionScript(): boolean {
 }
 
 function shouldExposeDebugGlobals(): boolean {
+  // Production builds only expose console helpers when an explicit debug flag is present.
+  // The localhost exception keeps QA/dev bundles usable without shipping globals by default.
   return getBooleanParam('tribeDebugCommands', false) || getBooleanParam('tribeDebug', false) || isLocalDebugExtensionScript()
 }
 
@@ -1357,6 +1362,17 @@ function installDebugCommands(context: ExtensionContext): () => void {
   const readAlongAudioAlignmentProbe = (page?: number) => probeReadAlongAudioAlignment(context, page)
   const readAlongTranscriptExport = (startPage?: number, endPage?: number) =>
     exportReadAlongTranscript(context, startPage, endPage)
+  const readAlongWordAudit = async (startPage?: number, endPage?: number) => {
+    const result = await auditReadAlongWords(context, startPage, endPage)
+    const audit = result.audit && typeof result.audit === 'object' ? (result.audit as Record<string, unknown>) : null
+    const summaryRowsValue = audit?.summaryRows
+    const summaryRows = Array.isArray(summaryRowsValue) ? summaryRowsValue : []
+
+    console.info('[1Tribe read-along] Native transcript and callable word audit.', result)
+    if (summaryRows.length) console.table(summaryRows)
+
+    return result
+  }
   const readAlongTimePreview = (time?: number, page?: number) => previewReadAlongAtTime(context, time, page)
   const readAlongPlaybackStart = (page?: number) => startReadAlongPlayback(context, page)
   const readAlongPlaybackPause = () => pauseReadAlongPlayback()
@@ -1415,8 +1431,12 @@ function installDebugCommands(context: ExtensionContext): () => void {
   debugWindow.tribeProbeReadAlongAudioUrl =
     debugWindow.tribeProbeReadAlongAudioUrl || readAlongAudioUrlProbe
   debugWindow.tribeProbeReadAlongTimings = debugWindow.tribeProbeReadAlongTimings || readAlongTimingProbe
+  debugWindow.tribeAuditReadAlongWords =
+    debugWindow.tribeAuditReadAlongWords || readAlongWordAudit
   debugWindow.tribeExportReadAlongTranscript =
     debugWindow.tribeExportReadAlongTranscript || readAlongTranscriptExport
+  debugWindow.tribeExportFullReadAlongTranscript =
+    debugWindow.tribeExportFullReadAlongTranscript || readAlongTranscriptExport
   debugWindow.tribePreviewReadAlongAtTime =
     debugWindow.tribePreviewReadAlongAtTime || readAlongTimePreview
   debugWindow.tribeStartReadAlongAudio = debugWindow.tribeStartReadAlongAudio || readAlongPlaybackStart
@@ -1444,7 +1464,7 @@ function installDebugCommands(context: ExtensionContext): () => void {
     wordLookupDismissGuard: getWordLookupDismissGuardDebugState(),
   })
   console.info(
-    '[1Tribe debug] Console helpers enabled: tribeLookupWord("doorbell"), tribeNextPage(), tribePreviousPage(), tribeWordHotspotDebug(), tribeActiveHotspotPageAudit(), tribeCheckEpicPageLayout(), tribeProbeReadAlongTimings(), tribeExportReadAlongTranscript(), tribeProbeEpicPlayback(), tribeStartEpicPlaybackFollow(), tribeStopEpicPlaybackFollow(), tribeReadAlongStatus(), tribeDebugStatus()',
+    '[1Tribe debug] Console helpers enabled: tribeLookupWord("doorbell"), tribeNextPage(), tribePreviousPage(), tribeWordHotspotDebug(), tribeActiveHotspotPageAudit(), tribeCheckEpicPageLayout(), tribeProbeReadAlongTimings(), tribeExportFullReadAlongTranscript(), tribeAuditReadAlongWords(), tribeProbeEpicPlayback(), tribeStartEpicPlaybackFollow(), tribeStopEpicPlaybackFollow(), tribeReadAlongStatus(), tribeDebugStatus()',
   )
   const epicPlaybackPageChangeCleanup = context.events.on('pageChange', () => {
     if (shouldUseReadAlong()) {
@@ -1490,8 +1510,14 @@ function installDebugCommands(context: ExtensionContext): () => void {
     if (debugWindow.tribeProbeReadAlongTimings === readAlongTimingProbe) {
       delete debugWindow.tribeProbeReadAlongTimings
     }
+    if (debugWindow.tribeAuditReadAlongWords === readAlongWordAudit) {
+      delete debugWindow.tribeAuditReadAlongWords
+    }
     if (debugWindow.tribeExportReadAlongTranscript === readAlongTranscriptExport) {
       delete debugWindow.tribeExportReadAlongTranscript
+    }
+    if (debugWindow.tribeExportFullReadAlongTranscript === readAlongTranscriptExport) {
+      delete debugWindow.tribeExportFullReadAlongTranscript
     }
     if (debugWindow.tribePreviewReadAlongAtTime === readAlongTimePreview) {
       delete debugWindow.tribePreviewReadAlongAtTime
@@ -1634,10 +1660,6 @@ function injectStyle(root: ShadowRoot, css: string, id: string): HTMLStyleElemen
   style.textContent = css
   root.prepend(style)
   return style
-}
-
-function injectDocumentStyle(root: ShadowRoot, css: string, id: string): HTMLStyleElement {
-  return injectStyle(root, css, id)
 }
 
 function activateCommandHarness(context: ExtensionContext): () => void {
@@ -2891,7 +2913,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       return
     }
 
-    setCommandHarnessLoadingIndicator(!previewActiveLayer?.loaded && !previewRive)
+    const activeLayerReady = Boolean(previewActiveLayer?.loaded && previewActiveLayer.initialStateMachineStarted)
+    setCommandHarnessLoadingIndicator(!activeLayerReady && !previewRive)
   }
 
   const setCommandHarnessDebugBadge = (message: string) => {
@@ -3801,6 +3824,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       syncCommandHarnessLayerRenderSize(layer)
 
       if (layer.role === 'active') {
+        syncCommandHarnessLoadingIndicator()
         setCommandHarnessDebugBadge(`started ${layer.file.label} ${entry?.stateMachine || 'state-machine'}`)
       }
       console.info('[1Tribe command harness] Initial Rive start after stable canvas.', {
@@ -6073,7 +6097,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   }
   const shouldExposeStandaloneDebugGlobals = shouldExposeDebugGlobals()
 
-  injectDocumentStyle(readingRoot, standaloneWordHotspotStyles, 'tribe-standalone-word-hotspot-styles')
+  injectStyle(readingRoot, standaloneWordHotspotStyles, 'tribe-standalone-word-hotspot-styles')
 
   root.className = 'tribe-standalone-word-hotspot-root'
   root.setAttribute('data-reader-navigation-ignore', 'true')

@@ -79,6 +79,7 @@ let tribeReadAlongLastTranscriptExport: Record<string, unknown> | null = null
 let tribeReadAlongPlaybackAudio: HTMLAudioElement | null = null
 let tribeReadAlongPlaybackCleanup: (() => void) | null = null
 let tribeReadAlongLastPlaybackStatus: Record<string, unknown> | null = null
+let tribeReadAlongLastTranscriptAudit: Record<string, unknown> | null = null
 let tribeEpicPlaybackFollowing = false
 let tribeEpicMediaProbeCleanup: (() => void) | null = null
 let tribeEpicMediaProbeInstalled = false
@@ -110,7 +111,11 @@ export function getTribeReadAlongSnapshot() {
 interface ReadAlongWordTiming {
   duration: number
   endTime: number
+  nativeIndex: number
+  nativeText: string
   raw: WordTimingEntry
+  splitCount: number
+  splitIndex: number
   text: string
   time: number
   word: string
@@ -132,20 +137,98 @@ interface ReadAlongHyphenSegment {
   totalSpokenUnits: number
 }
 
+interface ReadAlongBounds {
+  height: number
+  width: number
+  x: number
+  y: number
+}
+
 interface ReadAlongTranscriptWord {
   bbox: WordTimingEntry['bbox'] | null
   coords: WordTimingEntry['coords'] | null
   duration: number
   endTime: number
+  lookupPayload: string
+  nativeIndex: number
+  nativeText: string
+  splitCount: number
+  splitIndex: number
   text: string
   time: number
   word: string
 }
 
+interface ReadAlongNativeTranscriptWord {
+  bbox: WordTimingEntry['bbox'] | null
+  coords: WordTimingEntry['coords'] | null
+  duration: number | null
+  durationFallbackUsed: boolean
+  endTime: number | null
+  issue: string | null
+  nativeIndex: number
+  raw: WordTimingEntry
+  text: string
+  time: number | null
+  usable: boolean
+  word: string
+}
+
+interface ReadAlongLookupCommand {
+  command: 'lookup_word'
+  duration: number
+  endTime: number
+  lookupAlias: string
+  nativeIndex: number
+  nativeText: string
+  page: number
+  payload: string
+  splitCount: number
+  splitIndex: number
+  time: number
+}
+
+interface ReadAlongTranscriptNativeRowSummary {
+  issue: string | null
+  nativeIndex: number
+  text: string
+  time: number | null
+  word: string
+}
+
+interface ReadAlongTranscriptSplitRowSummary {
+  callableWords: string[]
+  nativeIndex: number
+  text: string
+  word: string
+}
+
+interface ReadAlongTranscriptPageAudit {
+  callableRows: number
+  coverageOk: boolean
+  firstMissingCallableNativeRows: ReadAlongTranscriptNativeRowSummary[]
+  firstNonCallableNativeRows: ReadAlongTranscriptNativeRowSummary[]
+  firstSplitNativeRows: ReadAlongTranscriptSplitRowSummary[]
+  missingCallableNativeRows: ReadAlongTranscriptNativeRowSummary[]
+  missingCallableNativeRowsCount: number
+  nativeCallableRows: number
+  nativeRows: number
+  nonCallableNativeRows: ReadAlongTranscriptNativeRowSummary[]
+  nonCallableNativeRowsCount: number
+  page: number
+  rawCount: number
+  splitNativeRows: ReadAlongTranscriptSplitRowSummary[]
+  splitNativeRowsCount: number
+}
+
 interface ReadAlongTranscriptPage {
+  audit: ReadAlongTranscriptPageAudit
   audioUrl: string | null
   error?: string
   found: boolean
+  lookupCommands: ReadAlongLookupCommand[]
+  nativeText: string
+  nativeWords: ReadAlongNativeTranscriptWord[]
   page: number
   rawCount: number
   text: string
@@ -169,10 +252,44 @@ function parseReadAlongSeconds(value: unknown): number {
   return parts.reduce((total, part) => total * 60 + part, 0)
 }
 
+function getReadAlongNativeTranscriptWords(wordData: WordTimingData | null | undefined): ReadAlongNativeTranscriptWord[] {
+  const entries = Array.isArray(wordData?.word_data) ? wordData.word_data : []
+  return entries.map((entry, nativeIndex): ReadAlongNativeTranscriptWord => {
+    const text = String(entry.text || '').trim()
+    const word = normalizeReadAlongWordAlias(text)
+    const time = parseReadAlongSeconds(entry.time)
+    const duration = parseReadAlongSeconds(entry.duration)
+    const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0.18
+    const hasUsableTime = Number.isFinite(time) && time >= 0
+    const issue = !text
+      ? 'empty-text'
+      : !word
+        ? 'empty-lookup-word'
+        : !hasUsableTime
+          ? 'invalid-time'
+          : null
+
+    return {
+      bbox: entry.bbox || null,
+      coords: entry.coords || null,
+      duration: Number.isFinite(duration) && duration > 0 ? duration : null,
+      durationFallbackUsed: hasUsableTime && !(Number.isFinite(duration) && duration > 0),
+      endTime: hasUsableTime ? time + safeDuration : null,
+      issue,
+      nativeIndex,
+      raw: entry,
+      text,
+      time: hasUsableTime ? time : null,
+      usable: issue === null,
+      word,
+    }
+  })
+}
+
 function normalizeReadAlongWordTiming(wordData: WordTimingData | null | undefined): ReadAlongWordTiming[] {
   const entries = Array.isArray(wordData?.word_data) ? wordData.word_data : []
   return entries
-    .flatMap((entry): ReadAlongWordTiming[] => {
+    .flatMap((entry, nativeIndex): ReadAlongWordTiming[] => {
       const text = String(entry.text || '').trim()
       const word = normalizeReadAlongWordAlias(text)
       const time = parseReadAlongSeconds(entry.time)
@@ -186,7 +303,11 @@ function normalizeReadAlongWordTiming(wordData: WordTimingData | null | undefine
           {
             duration: safeDuration,
             endTime: time + safeDuration,
+            nativeIndex,
+            nativeText: text,
             raw: entry,
+            splitCount: 1,
+            splitIndex: 0,
             text,
             time,
             word,
@@ -194,7 +315,7 @@ function normalizeReadAlongWordTiming(wordData: WordTimingData | null | undefine
         ]
       }
 
-      return hyphenSegments.map((segment): ReadAlongWordTiming => {
+      return hyphenSegments.map((segment, splitIndex): ReadAlongWordTiming => {
         const segmentDuration = safeDuration * (segment.spokenUnits / segment.totalSpokenUnits)
         const segmentTime = time + safeDuration * (segment.spokenOffsetUnits / segment.totalSpokenUnits)
         const segmentRaw: WordTimingEntry = {
@@ -209,7 +330,11 @@ function normalizeReadAlongWordTiming(wordData: WordTimingData | null | undefine
         return {
           duration: segmentDuration,
           endTime: segmentTime + segmentDuration,
+          nativeIndex,
+          nativeText: text,
           raw: segmentRaw,
+          splitCount: hyphenSegments.length,
+          splitIndex,
           text: segment.text,
           time: segmentTime,
           word: normalizeReadAlongWordAlias(segment.text),
@@ -217,6 +342,155 @@ function normalizeReadAlongWordTiming(wordData: WordTimingData | null | undefine
       })
     })
     .sort((first, second) => first.time - second.time)
+}
+
+function summarizeReadAlongNativeTranscriptWord(
+  word: ReadAlongNativeTranscriptWord,
+): ReadAlongTranscriptNativeRowSummary {
+  return {
+    issue: word.issue,
+    nativeIndex: word.nativeIndex,
+    text: word.text,
+    time: word.time,
+    word: word.word,
+  }
+}
+
+function createReadAlongLookupCommands(page: number, timings: ReadAlongWordTiming[]): ReadAlongLookupCommand[] {
+  return timings.map(
+    (timing): ReadAlongLookupCommand => ({
+      command: 'lookup_word',
+      duration: timing.duration,
+      endTime: timing.endTime,
+      lookupAlias: timing.word,
+      nativeIndex: timing.nativeIndex,
+      nativeText: timing.nativeText,
+      page,
+      payload: timing.text,
+      splitCount: timing.splitCount,
+      splitIndex: timing.splitIndex,
+      time: timing.time,
+    }),
+  )
+}
+
+function auditReadAlongTranscriptPage(
+  page: number,
+  nativeWords: ReadAlongNativeTranscriptWord[],
+  timings: ReadAlongWordTiming[],
+  rawCount: number,
+): ReadAlongTranscriptPageAudit {
+  const timingsByNativeIndex = new Map<number, ReadAlongWordTiming[]>()
+  for (const timing of timings) {
+    const items = timingsByNativeIndex.get(timing.nativeIndex) || []
+    items.push(timing)
+    timingsByNativeIndex.set(timing.nativeIndex, items)
+  }
+
+  const missingCallableNativeRows = nativeWords
+    .filter((word) => word.usable && !timingsByNativeIndex.has(word.nativeIndex))
+    .map(summarizeReadAlongNativeTranscriptWord)
+  const nonCallableNativeRows = nativeWords
+    .filter((word) => !word.usable)
+    .map(summarizeReadAlongNativeTranscriptWord)
+  const splitNativeRows = nativeWords.flatMap((word): ReadAlongTranscriptSplitRowSummary[] => {
+    const splitTimings = timingsByNativeIndex.get(word.nativeIndex) || []
+    if (splitTimings.length <= 1) return []
+
+    return [
+      {
+        callableWords: splitTimings.map((timing) => timing.text),
+        nativeIndex: word.nativeIndex,
+        text: word.text,
+        word: word.word,
+      },
+    ]
+  })
+
+  return {
+    callableRows: timings.length,
+    coverageOk: missingCallableNativeRows.length === 0,
+    firstMissingCallableNativeRows: missingCallableNativeRows.slice(0, 20),
+    firstNonCallableNativeRows: nonCallableNativeRows.slice(0, 20),
+    firstSplitNativeRows: splitNativeRows.slice(0, 20),
+    missingCallableNativeRows,
+    missingCallableNativeRowsCount: missingCallableNativeRows.length,
+    nativeCallableRows: nativeWords.filter((word) => word.usable).length,
+    nativeRows: nativeWords.length,
+    nonCallableNativeRows,
+    nonCallableNativeRowsCount: nonCallableNativeRows.length,
+    page,
+    rawCount,
+    splitNativeRows,
+    splitNativeRowsCount: splitNativeRows.length,
+  }
+}
+
+function getReadAlongTranscriptAudit(pages: ReadAlongTranscriptPage[]): Record<string, unknown> {
+  const pageAudits = pages.map((page) => page.audit)
+  const missingCallableNativeRows = pageAudits.flatMap((audit) =>
+    audit.missingCallableNativeRows.map((row) => ({ page: audit.page, ...row })),
+  )
+  const nonCallableNativeRows = pageAudits.flatMap((audit) =>
+    audit.nonCallableNativeRows.map((row) => ({ page: audit.page, ...row })),
+  )
+  const splitNativeRows = pageAudits.flatMap((audit) =>
+    audit.splitNativeRows.map((row) => ({ page: audit.page, ...row })),
+  )
+  const totalNativeRows = pageAudits.reduce((total, audit) => total + audit.nativeRows, 0)
+  const totalNativeCallableRows = pageAudits.reduce((total, audit) => total + audit.nativeCallableRows, 0)
+  const totalCallableRows = pageAudits.reduce((total, audit) => total + audit.callableRows, 0)
+  const pagesWithMissingCallableRows = pageAudits
+    .filter((audit) => audit.missingCallableNativeRowsCount > 0)
+    .map((audit) => audit.page)
+  const pagesWithNonCallableRows = pageAudits
+    .filter((audit) => audit.nonCallableNativeRowsCount > 0)
+    .map((audit) => audit.page)
+  const pagesWithSplitRows = pageAudits
+    .filter((audit) => audit.splitNativeRowsCount > 0)
+    .map((audit) => audit.page)
+  const summaryRows = pageAudits.map((audit) => ({
+    callableRows: audit.callableRows,
+    coverageOk: audit.coverageOk,
+    missing: audit.missingCallableNativeRowsCount,
+    nativeCallableRows: audit.nativeCallableRows,
+    nativeRows: audit.nativeRows,
+    nonCallable: audit.nonCallableNativeRowsCount,
+    page: audit.page,
+    split: audit.splitNativeRowsCount,
+  }))
+  const summaryText = [
+    `readAlongCoverage=${missingCallableNativeRows.length === 0 ? 'ok' : 'missing'}`,
+    `nativeRows=${totalNativeRows}`,
+    `nativeCallableRows=${totalNativeCallableRows}`,
+    `callableRows=${totalCallableRows}`,
+    `missingCallableNativeRows=${missingCallableNativeRows.length}`,
+    `nonCallableNativeRows=${nonCallableNativeRows.length}`,
+    `splitNativeRows=${splitNativeRows.length}`,
+    `pagesWithMissingCallableRows=${pagesWithMissingCallableRows.length ? pagesWithMissingCallableRows.join(',') : 'none'}`,
+  ].join('\n')
+
+  return {
+    coverageOk: missingCallableNativeRows.length === 0,
+    firstMissingCallableNativeRows: missingCallableNativeRows.slice(0, 50),
+    firstNonCallableNativeRows: nonCallableNativeRows.slice(0, 50),
+    firstSplitNativeRows: splitNativeRows.slice(0, 50),
+    missingCallableNativeRows,
+    missingCallableNativeRowsCount: missingCallableNativeRows.length,
+    nonCallableNativeRows,
+    nonCallableNativeRowsCount: nonCallableNativeRows.length,
+    pageAudits,
+    pagesWithMissingCallableRows,
+    pagesWithNonCallableRows,
+    pagesWithSplitRows,
+    splitNativeRows,
+    splitNativeRowsCount: splitNativeRows.length,
+    summaryRows,
+    summaryText,
+    totalCallableRows,
+    totalNativeCallableRows,
+    totalNativeRows,
+  }
 }
 
 function getOrderedReadAlongTimingPageCandidates(
@@ -404,6 +678,120 @@ function getReadAlongButtonPage(button: HTMLButtonElement): number | null {
   return Number.isFinite(page) ? Math.trunc(page) : null
 }
 
+function getReadAlongButtonPages(button: HTMLButtonElement): number[] {
+  return String(button.dataset.hotspotPages || '')
+    .split(',')
+    .map((page) => Number(page.trim()))
+    .filter((page) => Number.isFinite(page))
+    .map((page) => Math.trunc(page))
+}
+
+function getReadAlongButtonSourceBounds(button: HTMLButtonElement): ReadAlongBounds | null {
+  const x = Number(button.dataset.sourceX)
+  const y = Number(button.dataset.sourceY)
+  const width = Number(button.dataset.sourceWidth)
+  const height = Number(button.dataset.sourceHeight)
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null
+  }
+
+  return { height, width, x, y }
+}
+
+function getReadAlongHotspotButtons(): HTMLButtonElement[] {
+  return getReadAlongHotspotSearchRoots().flatMap((root) =>
+    Array.from(
+      root.querySelectorAll<HTMLButtonElement>('.tribe-word-hotspot-button, .tribe-standalone-word-hotspot-button'),
+    ),
+  )
+}
+
+function normalizeReadAlongBoundsUnit(value: number, scale: number): number {
+  if (!Number.isFinite(value)) return Number.NaN
+  return Math.max(0, Math.min(1, value / scale))
+}
+
+function getReadAlongTimingPageBounds(timing: ReadAlongWordTiming): ReadAlongBounds | null {
+  const bbox = timing.raw.bbox
+  const x1 = Number(bbox?.x1)
+  const y1 = Number(bbox?.y1)
+  const x2 = Number(bbox?.x2)
+  const y2 = Number(bbox?.y2)
+  if (!bbox || !Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) {
+    return null
+  }
+
+  const scale = Math.max(Math.abs(x1), Math.abs(y1), Math.abs(x2), Math.abs(y2)) > 1 ? 100 : 1
+  const left = normalizeReadAlongBoundsUnit(Math.min(x1, x2), scale)
+  const rawTop = normalizeReadAlongBoundsUnit(Math.min(y1, y2), scale)
+  const right = normalizeReadAlongBoundsUnit(Math.max(x1, x2), scale)
+  const rawBottom = normalizeReadAlongBoundsUnit(Math.max(y1, y2), scale)
+  const top = 1 - rawBottom
+  const bottom = 1 - rawTop
+  const width = right - left
+  const height = bottom - top
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null
+
+  return {
+    height,
+    width,
+    x: left,
+    y: top,
+  }
+}
+
+function projectReadAlongTimingBoundsForButton(
+  timing: ReadAlongWordTiming,
+  button: HTMLButtonElement,
+): ReadAlongBounds | null {
+  const timingBounds = getReadAlongTimingPageBounds(timing)
+  if (!timingBounds) return null
+
+  const buttonPage = getReadAlongButtonPage(button)
+  const pages = getReadAlongButtonPages(button)
+  const pageIndex = buttonPage === null ? -1 : pages.indexOf(buttonPage)
+  if (pages.length > 1 && pageIndex >= 0) {
+    const pageCount = pages.length
+    return {
+      height: timingBounds.height,
+      width: timingBounds.width / pageCount,
+      x: (pageIndex + timingBounds.x) / pageCount,
+      y: timingBounds.y,
+    }
+  }
+
+  return timingBounds
+}
+
+function getReadAlongBoundsCenter(bounds: ReadAlongBounds): { x: number; y: number } {
+  return {
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y + bounds.height / 2,
+  }
+}
+
+function getReadAlongButtonGeometryScore(timing: ReadAlongWordTiming, button: HTMLButtonElement): number | null {
+  const timingBounds = projectReadAlongTimingBoundsForButton(timing, button)
+  const buttonBounds = getReadAlongButtonSourceBounds(button)
+  if (!timingBounds || !buttonBounds) return null
+
+  const timingCenter = getReadAlongBoundsCenter(timingBounds)
+  const buttonCenter = getReadAlongBoundsCenter(buttonBounds)
+  const centerDistance =
+    Math.abs(timingCenter.x - buttonCenter.x) + Math.abs(timingCenter.y - buttonCenter.y)
+  const sizeDistance =
+    Math.abs(timingBounds.width - buttonBounds.width) + Math.abs(timingBounds.height - buttonBounds.height)
+
+  return centerDistance + sizeDistance * 0.15
+}
+
 type WordHotspotMagnifierButton = HTMLButtonElement & {
   tribeRefreshMagnifier?: () => void
 }
@@ -420,14 +808,9 @@ function findReadAlongButtonForTiming(timingSet: ReadAlongTimingSet, timingIndex
   const timing = timingSet.timings[timingIndex]
   if (!timing) return null
 
-  const buttons = getReadAlongHotspotSearchRoots().flatMap((root) =>
-    Array.from(
-      root.querySelectorAll<HTMLButtonElement>('.tribe-word-hotspot-button, .tribe-standalone-word-hotspot-button'),
-    ),
-  )
+  const buttons = getReadAlongHotspotButtons()
   if (!buttons.length) return null
 
-  const occurrenceIndex = getReadAlongTimingOccurrenceIndex(timingSet.timings, timingIndex)
   const exactMatchingButtons = buttons.filter((button) => getReadAlongButtonWord(button) === timing.word)
   const matchingButtons = exactMatchingButtons.length
     ? exactMatchingButtons
@@ -437,8 +820,26 @@ function findReadAlongButtonForTiming(timingSet: ReadAlongTimingSet, timingIndex
   if (hasPagedButtons && !pageMatchingButtons.length) return null
 
   const preferredButtons = pageMatchingButtons.length ? pageMatchingButtons : matchingButtons
+  const geometryMatches = preferredButtons
+    .map((button, index) => ({
+      button,
+      index,
+      score: getReadAlongButtonGeometryScore(timing, button),
+    }))
+    .filter((item): item is { button: HTMLButtonElement; index: number; score: number } => item.score !== null)
+    .sort((first, second) => first.score - second.score || first.index - second.index)
 
-  return preferredButtons[occurrenceIndex] || preferredButtons[0] || null
+  if (geometryMatches.length) {
+    const maxGeometryScore = Math.max(0.01, getNumberParam('tribeReadAlongGeometryMaxScore', 0.08))
+    const minScoreGap = Math.max(0, getNumberParam('tribeReadAlongGeometryMinScoreGap', 0.018))
+    const [bestMatch, nextBestMatch] = geometryMatches
+    if (bestMatch.score > maxGeometryScore) return null
+    if (nextBestMatch && nextBestMatch.score - bestMatch.score < minScoreGap) return null
+
+    return bestMatch.button
+  }
+
+  return null
 }
 
 function applyReadAlongButtonHighlight(timingSet: ReadAlongTimingSet | null, timingIndex: number): HTMLButtonElement | null {
@@ -661,16 +1062,21 @@ export async function exportReadAlongTranscript(
   }
 
   if (!context.data.getWordTimingData) {
+    const audit = getReadAlongTranscriptAudit([])
     const result: Record<string, unknown> = {
       ...resultBase,
+      audit,
       errorPages: [],
       found: false,
       fullText: '',
       message: 'Epic did not expose getWordTimingData() on this page.',
       missingPages: [],
+      nativeFullText: '',
       pages: [],
       pagesChecked: 0,
       pagesWithTiming: 0,
+      totalCallableWords: 0,
+      totalNativeWords: 0,
       totalWords: 0,
     }
     tribeReadAlongLastTranscriptExport = result
@@ -688,19 +1094,31 @@ export async function exportReadAlongTranscript(
     try {
       const wordData = await context.data.getWordTimingData(page)
       const rawCount = Array.isArray(wordData?.word_data) ? wordData.word_data.length : 0
+      const nativeWords = getReadAlongNativeTranscriptWords(wordData)
       const timings = normalizeReadAlongWordTiming(wordData)
+      const lookupCommands = createReadAlongLookupCommands(page, timings)
+      const audit = auditReadAlongTranscriptPage(page, nativeWords, timings, rawCount)
       const words = timings.map(
         (timing): ReadAlongTranscriptWord => ({
           bbox: timing.raw.bbox || null,
           coords: timing.raw.coords || null,
           duration: timing.duration,
           endTime: timing.endTime,
+          lookupPayload: timing.text,
+          nativeIndex: timing.nativeIndex,
+          nativeText: timing.nativeText,
+          splitCount: timing.splitCount,
+          splitIndex: timing.splitIndex,
           text: timing.text,
           time: timing.time,
           word: timing.word,
         }),
       )
       const text = words.map((word) => word.text).join(' ')
+      const nativeText = nativeWords
+        .map((word) => word.text)
+        .filter(Boolean)
+        .join(' ')
 
       if (timings.length) {
         tribeReadAlongTimingSetsByPage.set(page, {
@@ -713,8 +1131,12 @@ export async function exportReadAlongTranscript(
       }
 
       pages.push({
+        audit,
         audioUrl,
         found: timings.length > 0,
+        lookupCommands,
+        nativeText,
+        nativeWords,
         page,
         rawCount,
         text,
@@ -725,10 +1147,15 @@ export async function exportReadAlongTranscript(
       const errorMessage = String(error)
       missingPages.push(page)
       errorPages.push({ error: errorMessage, page })
+      const audit = auditReadAlongTranscriptPage(page, [], [], 0)
       pages.push({
+        audit,
         audioUrl,
         error: errorMessage,
         found: false,
+        lookupCommands: [],
+        nativeText: '',
+        nativeWords: [],
         page,
         rawCount: 0,
         text: '',
@@ -740,24 +1167,34 @@ export async function exportReadAlongTranscript(
 
   const pagesWithTiming = pages.filter((page) => page.usableCount > 0)
   const totalWords = pagesWithTiming.reduce((total, page) => total + page.usableCount, 0)
+  const totalNativeWords = pages.reduce((total, page) => total + page.nativeWords.length, 0)
   const fullText = pages
     .filter((page) => page.text)
     .map((page) => page.text)
     .join('\n\n')
+  const nativeFullText = pages
+    .filter((page) => page.nativeText)
+    .map((page) => page.nativeText)
+    .join('\n\n')
+  const audit = getReadAlongTranscriptAudit(pages)
   const message = pagesWithTiming.length
     ? `Read-along transcript export found ${totalWords} words across ${pagesWithTiming.length} page${pagesWithTiming.length === 1 ? '' : 's'}.`
     : 'Read-along transcript export did not find usable word timing rows.'
   const result: Record<string, unknown> = {
     ...resultBase,
+    audit,
     errorPages,
     found: pagesWithTiming.length > 0,
     fullText,
     message,
     missingPages,
+    nativeFullText,
     pages,
     pagesChecked: pages.length,
     pagesWithTiming: pagesWithTiming.length,
     timingPages: pagesWithTiming.map((page) => page.page),
+    totalCallableWords: totalWords,
+    totalNativeWords,
     totalWords,
   }
 
@@ -767,6 +1204,51 @@ export async function exportReadAlongTranscript(
     message,
     page: pagesWithTiming[0]?.page ?? start,
     timingCount: totalWords,
+    timingIndex: -1,
+    word: null,
+  })
+
+  return result
+}
+
+export async function auditReadAlongWords(
+  context: ExtensionContext,
+  startPage?: number,
+  endPage?: number,
+): Promise<Record<string, unknown>> {
+  const transcript = await exportReadAlongTranscript(context, startPage, endPage)
+  const audit = transcript.audit && typeof transcript.audit === 'object' ? transcript.audit : null
+  const found = Boolean(transcript.found)
+  const coverageOk = found && Boolean((audit as Record<string, unknown> | null)?.coverageOk)
+  const result: Record<string, unknown> = {
+    audit,
+    bookId: transcript.bookId,
+    coverageOk,
+    currentPage: transcript.currentPage,
+    endPage: transcript.endPage,
+    exportedAt: transcript.exportedAt,
+    found,
+    message: !found
+      ? 'Read-along word audit did not find native Epic timing rows to audit.'
+      : coverageOk
+        ? 'Read-along word audit found a callable lookup_word payload for every native Epic timing row.'
+        : 'Read-along word audit found native Epic timing rows without callable lookup_word payloads.',
+    mode: 'read-along-word-audit',
+    pageUrl: transcript.pageUrl,
+    pagesChecked: transcript.pagesChecked,
+    scriptUrl: transcript.scriptUrl,
+    startPage: transcript.startPage,
+    totalCallableWords: transcript.totalCallableWords,
+    totalNativeWords: transcript.totalNativeWords,
+    transcript,
+  }
+
+  tribeReadAlongLastTranscriptAudit = result
+  updateTribeReadAlongSnapshot({
+    hasMatch: Boolean(transcript.found),
+    message: String(result.message),
+    page: Number(transcript.startPage),
+    timingCount: Number(transcript.totalCallableWords) || 0,
     timingIndex: -1,
     word: null,
   })
@@ -1550,6 +2032,7 @@ function probeReadAlongAudioUrlMetadata(
       urlPresent: false,
     })
   }
+  const url = entry.url
 
   return new Promise((resolve) => {
     const audio = new Audio()
@@ -1627,7 +2110,7 @@ function probeReadAlongAudioUrlMetadata(
     }, timeoutMs)
 
     try {
-      audio.src = entry.url
+      audio.src = url
       audio.load()
     } catch (error) {
       finish({
@@ -1650,6 +2133,12 @@ export async function probeReadAlongAudioUrl(context: ExtensionContext, page?: n
   }
 
   const selected = attempts.find((attempt) => attempt.metadataLoaded === true) || null
+  const selectedPage = Number(selected?.page)
+  const resolvedPage = Number.isFinite(selectedPage)
+    ? selectedPage
+    : Number.isFinite(timingPage)
+      ? timingPage
+      : requestedPage
   const message = selected
     ? `Read-along audio URL metadata loaded for page ${selected.page}.`
     : attempts.some((attempt) => attempt.urlPresent)
@@ -1662,7 +2151,7 @@ export async function probeReadAlongAudioUrl(context: ExtensionContext, page?: n
     message,
     metadataLoaded: Boolean(selected),
     mode: 'audio-url-probe',
-    page: selected?.page ?? (Number.isFinite(timingPage) ? timingPage : requestedPage),
+    page: resolvedPage,
     pageAudioUrls,
     pageUrl: window.location.href,
     requestedPage,
@@ -1677,7 +2166,7 @@ export async function probeReadAlongAudioUrl(context: ExtensionContext, page?: n
     audioPaused: selected ? true : null,
     currentTime: selected ? 0 : null,
     message,
-    page: selected?.page ?? (Number.isFinite(timingPage) ? timingPage : requestedPage),
+    page: resolvedPage,
   })
 
   return result
@@ -1902,7 +2391,7 @@ export async function startReadAlongPlayback(context: ExtensionContext, page?: n
   const cachedAlignmentMatches =
     Number(cachedAlignment?.requestedPage) === requestedPage &&
     Number(cachedAlignment?.timingPage) === (timingSet?.page ?? Number.NaN)
-  const alignment = cachedAlignmentMatches
+  const alignment = cachedAlignmentMatches && cachedAlignment
     ? cachedAlignment
     : await resolveReadAlongAudioForTiming(context, requestedPage, timingSet)
   const pageAudioUrls = Array.isArray(alignment.pageAudioUrls) ? alignment.pageAudioUrls : []
@@ -2023,6 +2512,7 @@ export function resetReadAlongDebugState(context: ExtensionContext): void {
   tribeReadAlongLastAudioAlignmentProbe = null
   tribeReadAlongLastTimePreview = null
   tribeReadAlongLastTranscriptExport = null
+  tribeReadAlongLastTranscriptAudit = null
   tribeReadAlongLastPlaybackStatus = null
   tribeEpicLastPlaybackStatus = null
   tribeEpicPlaybackFollowing = false
@@ -2054,14 +2544,34 @@ export function getReadAlongDebugStatus(
 ): Record<string, unknown> {
   const lastTranscriptExportSummary = tribeReadAlongLastTranscriptExport
     ? {
+        audit: tribeReadAlongLastTranscriptExport.audit,
         endPage: tribeReadAlongLastTranscriptExport.endPage,
         exportedAt: tribeReadAlongLastTranscriptExport.exportedAt,
         found: tribeReadAlongLastTranscriptExport.found,
         missingPages: tribeReadAlongLastTranscriptExport.missingPages,
+        nativeFullTextLength:
+          typeof tribeReadAlongLastTranscriptExport.nativeFullText === 'string'
+            ? tribeReadAlongLastTranscriptExport.nativeFullText.length
+            : 0,
         pagesChecked: tribeReadAlongLastTranscriptExport.pagesChecked,
         pagesWithTiming: tribeReadAlongLastTranscriptExport.pagesWithTiming,
         startPage: tribeReadAlongLastTranscriptExport.startPage,
+        totalCallableWords: tribeReadAlongLastTranscriptExport.totalCallableWords,
+        totalNativeWords: tribeReadAlongLastTranscriptExport.totalNativeWords,
         totalWords: tribeReadAlongLastTranscriptExport.totalWords,
+      }
+    : null
+  const lastTranscriptAuditSummary = tribeReadAlongLastTranscriptAudit
+    ? {
+        audit: tribeReadAlongLastTranscriptAudit.audit,
+        coverageOk: tribeReadAlongLastTranscriptAudit.coverageOk,
+        endPage: tribeReadAlongLastTranscriptAudit.endPage,
+        exportedAt: tribeReadAlongLastTranscriptAudit.exportedAt,
+        message: tribeReadAlongLastTranscriptAudit.message,
+        pagesChecked: tribeReadAlongLastTranscriptAudit.pagesChecked,
+        startPage: tribeReadAlongLastTranscriptAudit.startPage,
+        totalCallableWords: tribeReadAlongLastTranscriptAudit.totalCallableWords,
+        totalNativeWords: tribeReadAlongLastTranscriptAudit.totalNativeWords,
       }
     : null
 
@@ -2081,9 +2591,12 @@ export function getReadAlongDebugStatus(
     lastPlaybackStatus: tribeReadAlongLastPlaybackStatus,
     lastProbe: tribeReadAlongLastProbe,
     lastTimePreview: tribeReadAlongLastTimePreview,
+    lastTranscriptAudit: lastTranscriptAuditSummary,
     lastTranscriptExport: lastTranscriptExportSummary,
     mode: tribeEpicLastPlaybackStatus
       ? 'epic-playback-follow'
+      : tribeReadAlongLastTranscriptAudit
+        ? 'read-along-word-audit'
       : tribeReadAlongLastPlaybackStatus
         ? 'playback-status'
         : tribeReadAlongLastTimePreview
