@@ -116,6 +116,7 @@ interface CommandHarnessPreviewLayer {
   canvas: HTMLCanvasElement
   file: CommandHarnessPreviewFile
   index: number
+  initialStateMachineStarted: boolean
   loaded: boolean
   renderSize: WordHotspotRenderSize | null
   rive: Rive | null
@@ -455,6 +456,7 @@ const RIVE_WASM_FALLBACK_SOURCE = new URL('rive/rive_fallback.wasm', extensionSc
 const urlParams = new URL(extensionScriptUrl).searchParams
 const pageUrlParams = new URLSearchParams(window.location.search)
 const STATIC_PREVIEW_ANIMATION = '__1tribe_static_preview__'
+const COMMAND_HARNESS_DEBUG_BUILD_LABEL = 'left-load-guard-20260619-02'
 function getStableEpicDefaultParam(name: string): string | null {
   const isDisabled =
     urlParams.get('tribeStablePreset') === '0' ||
@@ -1669,6 +1671,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const previewLoading = document.createElement('div')
   const previewLoadingSpinner = document.createElement('span')
   const previewLoadingText = document.createElement('span')
+  const previewDebugBadge = document.createElement('div')
   const previewStatus = document.createElement('p')
   const status = document.createElement('p')
   let previewRive: Rive | null = null
@@ -1752,6 +1755,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   )
   const previewInputResetMs = getNumberParam('tribeCommandHarnessInputResetMs', previewAnimationHoldMs)
   const edgeNavRatio = Math.max(0, Math.min(24, getNumberParam('tribeCommandHarnessEdgeNavPct', 5))) / 100
+  const shouldShowCommandHarnessDebugBadge =
+    isPreviewEnabled && getBooleanParam('tribeCommandHarnessDebugBadge', shouldExposeDebugGlobals())
   const clampCommandHarnessCanvasBleedPct = (value: number, fallback = 0) =>
     Number.isFinite(value) ? Math.max(0, Math.min(40, value)) : fallback
   const initialCanvasBleedXPct = clampCommandHarnessCanvasBleedPct(
@@ -2855,6 +2860,10 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   previewLoadingText.className = 'tribe-command-harness__loading-text'
   previewLoadingText.textContent = 'Loading interactive pages...'
   previewLoading.append(previewLoadingSpinner, previewLoadingText)
+  previewDebugBadge.className = 'tribe-command-harness__debug-badge'
+  previewDebugBadge.hidden = !shouldShowCommandHarnessDebugBadge
+  previewDebugBadge.textContent = `1Tribe ${COMMAND_HARNESS_DEBUG_BUILD_LABEL}`
+  previewDebugBadge.setAttribute('data-reader-navigation-ignore', 'true')
   edgeBackGutter.className = 'tribe-command-harness__edge-gutter tribe-command-harness__edge-gutter--back'
   edgeBackGutter.type = 'button'
   edgeBackGutter.hidden = true
@@ -2883,6 +2892,12 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
 
     setCommandHarnessLoadingIndicator(!previewActiveLayer?.loaded && !previewRive)
+  }
+
+  const setCommandHarnessDebugBadge = (message: string) => {
+    if (!shouldShowCommandHarnessDebugBadge) return
+    previewDebugBadge.hidden = false
+    previewDebugBadge.textContent = `1Tribe ${COMMAND_HARNESS_DEBUG_BUILD_LABEL} - ${message}`
   }
 
   const setStatusForPageChange = (payload: unknown, source: string) => {
@@ -3187,7 +3202,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (shouldPreloadForwardNeighbor) {
       previewStage.append(previewCanvasPreload)
     }
-    previewStage.append(previewCanvasAlt, previewCanvas, previewLoading)
+    previewStage.append(previewCanvasAlt, previewCanvas, previewLoading, previewDebugBadge)
+    setCommandHarnessDebugBadge(`boot p${context.data.getCurrentPage()}`)
     previewStatus.textContent = 'Rive overlay is loading.'
     setCommandHarnessLoadingIndicator(true)
     if (shouldShowCommandHarnessControls) {
@@ -3345,6 +3361,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     clearPreviewStateMachineAfterIdle(layer)
     layer.rive?.cleanup()
     layer.rive = null
+    layer.initialStateMachineStarted = false
     layer.loaded = false
     layer.renderSize = null
     layer.canvas.getContext('2d')?.clearRect(0, 0, layer.canvas.width, layer.canvas.height)
@@ -3524,6 +3541,10 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (!layer.rive) return null
 
     try {
+      if (layer.role === 'active') {
+        return startCommandHarnessStateMachine(layer, label)
+      }
+
       return startCommandHarnessStateMachineWithoutReset(layer, label)
     } catch (error) {
       console.warn('[1Tribe command harness] Could not start initial state machine after file load.', {
@@ -3736,6 +3757,74 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     return renderSize
   }
 
+  const isCommandHarnessLayerCurrent = (layer: CommandHarnessPreviewLayer) =>
+    layer === previewActiveLayer || layer === previewNextLayer || layer === previewPreloadLayer
+
+  const scheduleCommandHarnessInitialStateMachineStart = (
+    layer: CommandHarnessPreviewLayer,
+    label: string,
+  ) => {
+    if (!isPreviewEnabled || !layer.rive || layer.initialStateMachineStarted) return
+
+    const rive = layer.rive
+    const delays = [0, 32, 80, 160, 320, 640]
+    const run = (attempt: number) => {
+      if (layer.rive !== rive || !isCommandHarnessLayerCurrent(layer) || layer.initialStateMachineStarted) return
+
+      positionCommandHarnessPreviewStage()
+      const ratio = getEffectivePixelRatio(previewStage)
+      resizeCanvasToOwnBounds(layer.canvas, ratio)
+
+      const stageRect = previewStage.getBoundingClientRect()
+      const canvasRect = layer.canvas.getBoundingClientRect()
+      const hasStableFrame =
+        stageRect.width >= 32 &&
+        stageRect.height >= 32 &&
+        canvasRect.width >= 32 &&
+        canvasRect.height >= 32 &&
+        layer.canvas.width >= 32 &&
+        layer.canvas.height >= 32
+
+      if (!hasStableFrame && attempt < delays.length - 1) {
+        if (layer.role === 'active') {
+          setCommandHarnessDebugBadge(`waiting for canvas ${layer.file.label} ${attempt + 1}`)
+        }
+        window.setTimeout(() => run(attempt + 1), delays[attempt + 1])
+        return
+      }
+
+      layer.initialStateMachineStarted = true
+      resizeTwoLayerPreview()
+      const entry = startCommandHarnessInitialStateMachine(layer, label)
+      rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+      rive.drawFrame()
+      syncCommandHarnessLayerRenderSize(layer)
+
+      if (layer.role === 'active') {
+        setCommandHarnessDebugBadge(`started ${layer.file.label} ${entry?.stateMachine || 'state-machine'}`)
+      }
+      console.info('[1Tribe command harness] Initial Rive start after stable canvas.', {
+        attempt,
+        canvas: {
+          cssHeight: canvasRect.height,
+          cssWidth: canvasRect.width,
+          height: layer.canvas.height,
+          width: layer.canvas.width,
+        },
+        file: layer.file.file,
+        label,
+        role: layer.role,
+        stage: {
+          height: stageRect.height,
+          width: stageRect.width,
+        },
+        stateMachine: entry?.stateMachine || null,
+      })
+    }
+
+    window.setTimeout(() => run(0), delays[0])
+  }
+
   const markPreviewLayerLoaded = (layer: CommandHarnessPreviewLayer, label: string, serial: number) => {
     if (
       serial !== previewLayerLoadSerial &&
@@ -3810,6 +3899,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       canvas,
       file,
       index,
+      initialStateMachineStarted: false,
       loaded: false,
       renderSize: null,
       rive: null,
@@ -3833,7 +3923,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         layout: createCommandHarnessPreviewLayout(),
         onLoad() {
           markPreviewLayerLoaded(layer, `${role} ${file.label}`, serial)
-          startCommandHarnessInitialStateMachine(layer, `${role} ${file.label} loaded`)
+          scheduleCommandHarnessInitialStateMachineStart(layer, `${role} ${file.label} loaded`)
         },
         onLoadError(event) {
           previewStatus.textContent = `Failed to load ${file.label}: ${String(event?.data || 'unknown error')}`
@@ -12410,20 +12500,15 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       clearPendingNavigation()
     },
     context.events.on('pageChange', (payload) => {
+      resizeRive()
+
       let page = getReaderPageFromPayload(payload, context.data.getCurrentPage())
       const payloadDirection = getNavigationDirectionFromPayload(payload)
-      const payloadSource = getNavigationSourceFromPayload(payload)
       const inferredDirection = page < displayedPage ? -1 : page > displayedPage ? 1 : null
-      const direction = pendingNavigationDirection ?? payloadDirection ?? inferredDirection
+      const direction = pendingNavigationDirection || payloadDirection || inferredDirection
       const reason =
         pendingNavigationReason ||
-        (payloadSource
-          ? `pageChange ${payloadSource}`
-          : direction && direction < 0
-            ? 'pageChange back'
-            : direction && direction > 0
-              ? 'pageChange next'
-              : 'pageChange same')
+        (direction && direction < 0 ? 'back page' : 'next page')
       const targetMatch = getSimpleRiveFileForPage(files, page)
       const activeFile = getActiveSimpleRiveFile()
       const canPromoteBusyPreloadedUnderlay = Boolean(
@@ -12485,7 +12570,6 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         bookId: context.data.getBookId(),
         contextCurrentPage: context.data.getCurrentPage(),
         payload,
-        source: payloadSource,
         resolvedReaderPage: page,
         displayedPage,
         direction,
@@ -12514,8 +12598,6 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       }
 
       displayedPage = page
-      resizeRive()
-      applyReplacementVisibility()
       const shouldLoadForwardUnderlay = Boolean(
         isForwardSpreadBoundaryPage && shouldStackPageFiles && didStartOutgoingSpreadTransition,
       )
@@ -12567,8 +12649,17 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         },
       )
     }),
-    context.events.on('pageTurnStart', () => {
-      setStatus('Epic page turn started.')
+    context.events.on('pageTurnStart', (payload) => {
+      const direction = getNavigationDirectionFromPayload(payload)
+      if (!direction) return
+
+      const reason = direction < 0 ? 'state machine page prev' : 'state machine page next'
+      const didPulsePageAction = pulseVisibleRivePageAction(direction, reason)
+      if (!didPulsePageAction) return
+
+      pendingNavigationDirection = direction
+      pendingNavigationReason = reason
+      pendingNavigationStartedSpreadTransition = false
     }),
   )
 

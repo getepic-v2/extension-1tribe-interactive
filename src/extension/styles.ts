@@ -227,6 +227,27 @@ export const commandHarnessStyles = `
     }
   }
 
+  .tribe-command-harness__debug-badge {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index: 2147483400;
+    max-width: min(420px, calc(100% - 20px));
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    background: rgba(16, 20, 18, 0.86);
+    color: #ffffff;
+    font: 700 11px/1.2 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    letter-spacing: 0;
+    pointer-events: none;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+  }
+
+  .tribe-command-harness__debug-badge[hidden] {
+    display: none;
+  }
+
   .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough-left.is-epic-native-passthrough-right
     .tribe-command-harness__canvas {
     pointer-events: none !important;
