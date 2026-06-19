@@ -77,6 +77,14 @@ const ICAN_FIND_IT_BOOK_ID = 83936
 const HUMMINGBIRD_BOOK_ID = 83230
 const CREEPY_CAFETORIUM_BOOK_ID = 74774
 
+const ICAN_FIND_IT_READER_DEFAULTS: Record<string, string> = {
+  ...EPIC_1TRIBE_READER_DEFAULTS,
+  riveWordHotspotMagnifierPixelScale: '2',
+  riveWordHotspotShadowXPx: '3',
+  riveWordHotspotShadowYPx: '3',
+  riveWordHotspotStrokePx: '2',
+}
+
 const HUMMINGBIRD_READER_DEFAULTS: Record<string, string> = {
   ...EPIC_1TRIBE_READER_DEFAULTS,
   tribeCommandHarnessWordFinder: '1',
@@ -200,7 +208,7 @@ function createCreepyCafetoriumPreviewFiles(): CommandHarnessPreviewFile[] {
 const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
   [ICAN_FIND_IT_BOOK_ID]: {
     bookId: ICAN_FIND_IT_BOOK_ID,
-    defaultParams: EPIC_1TRIBE_READER_DEFAULTS,
+    defaultParams: ICAN_FIND_IT_READER_DEFAULTS,
     nativePassthroughLeftPages: [0],
     nativePassthroughRightPages: [25],
     previewFiles: createIcanFindItPreviewFiles(),
