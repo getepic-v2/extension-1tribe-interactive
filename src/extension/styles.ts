@@ -189,10 +189,11 @@ export const commandHarnessStyles = `
   }
 
   .tribe-command-harness__loading {
-    position: absolute;
+    box-sizing: border-box;
+    position: fixed;
     left: 50%;
     top: 50%;
-    z-index: 2147483300;
+    z-index: 2147483500;
     display: flex;
     align-items: center;
     gap: 10px;

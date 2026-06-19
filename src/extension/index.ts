@@ -3225,14 +3225,14 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (shouldPreloadForwardNeighbor) {
       previewStage.append(previewCanvasPreload)
     }
-    previewStage.append(previewCanvasAlt, previewCanvas, previewLoading, previewDebugBadge)
+    previewStage.append(previewCanvasAlt, previewCanvas, previewDebugBadge)
     setCommandHarnessDebugBadge(`boot p${context.data.getCurrentPage()}`)
     previewStatus.textContent = 'Rive overlay is loading.'
     setCommandHarnessLoadingIndicator(true)
     if (shouldShowCommandHarnessControls) {
       root.append(previewStatus)
     }
-    readingRoot.append(previewStage)
+    readingRoot.append(previewStage, previewLoading)
     readingRoot.append(edgeBackGutter, edgeNextGutter)
   }
   if (shouldShowCommandHarnessControls) {
@@ -5152,6 +5152,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     cleanupPageChange()
     edgeBackGutter.remove()
     edgeNextGutter.remove()
+    previewLoading.remove()
     previewStage.remove()
     root.remove()
   }
