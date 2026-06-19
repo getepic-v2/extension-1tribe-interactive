@@ -34,7 +34,7 @@
       "file": "creepy_cafetorium_spread_00.riv",
       "pages": [
         0,
-        0
+        1
       ],
       "screenshot": "creepy_cafetorium_spread_00.png",
       "ocr": "creepy_cafetorium_spread_00.ocr.json",
@@ -46,8 +46,8 @@
     {
       "file": "creepy_cafetorium_spread_02.riv",
       "pages": [
-        1,
-        1
+        2,
+        3
       ],
       "screenshot": "creepy_cafetorium_spread_02.png",
       "ocr": "creepy_cafetorium_spread_02.ocr.json",
@@ -59,8 +59,8 @@
     {
       "file": "creepy_cafetorium_spread_04.riv",
       "pages": [
-        2,
-        3
+        4,
+        5
       ],
       "screenshot": "creepy_cafetorium_spread_04.png",
       "ocr": "creepy_cafetorium_spread_04.ocr.json",
@@ -72,8 +72,8 @@
     {
       "file": "creepy_cafetorium_spread_06.riv",
       "pages": [
-        4,
-        5
+        6,
+        7
       ],
       "screenshot": "creepy_cafetorium_spread_06.png",
       "ocr": "creepy_cafetorium_spread_06.ocr.json",
@@ -85,8 +85,8 @@
     {
       "file": "creepy_cafetorium_spread_08.riv",
       "pages": [
-        6,
-        7
+        8,
+        9
       ],
       "screenshot": "creepy_cafetorium_spread_08.png",
       "ocr": "creepy_cafetorium_spread_08.ocr.json",
@@ -98,8 +98,8 @@
     {
       "file": "creepy_cafetorium_spread_10.riv",
       "pages": [
-        8,
-        9
+        10,
+        11
       ],
       "screenshot": "creepy_cafetorium_spread_10.png",
       "ocr": "creepy_cafetorium_spread_10.ocr.json",
@@ -111,8 +111,8 @@
     {
       "file": "creepy_cafetorium_spread_12.riv",
       "pages": [
-        10,
-        11
+        12,
+        13
       ],
       "screenshot": "creepy_cafetorium_spread_12.png",
       "ocr": "creepy_cafetorium_spread_12.ocr.json",
@@ -124,8 +124,8 @@
     {
       "file": "creepy_cafetorium_spread_14.riv",
       "pages": [
-        12,
-        13
+        14,
+        15
       ],
       "screenshot": "creepy_cafetorium_spread_14.png",
       "ocr": "creepy_cafetorium_spread_14.ocr.json",
@@ -137,8 +137,8 @@
     {
       "file": "creepy_cafetorium_spread_16.riv",
       "pages": [
-        14,
-        15
+        16,
+        17
       ],
       "screenshot": "creepy_cafetorium_spread_16.png",
       "ocr": "creepy_cafetorium_spread_16.ocr.json",
@@ -150,8 +150,8 @@
     {
       "file": "creepy_cafetorium_spread_18.riv",
       "pages": [
-        16,
-        17
+        18,
+        19
       ],
       "screenshot": "creepy_cafetorium_spread_18.png",
       "ocr": "creepy_cafetorium_spread_18.ocr.json",
@@ -163,8 +163,8 @@
     {
       "file": "creepy_cafetorium_spread_20.riv",
       "pages": [
-        18,
-        19
+        20,
+        21
       ],
       "screenshot": "creepy_cafetorium_spread_20.png",
       "ocr": "creepy_cafetorium_spread_20.ocr.json",
@@ -176,8 +176,8 @@
     {
       "file": "creepy_cafetorium_spread_22.riv",
       "pages": [
-        20,
-        21
+        22,
+        23
       ],
       "screenshot": "creepy_cafetorium_spread_22.png",
       "ocr": "creepy_cafetorium_spread_22.ocr.json",
@@ -189,8 +189,8 @@
     {
       "file": "creepy_cafetorium_spread_24.riv",
       "pages": [
-        22,
-        23
+        24,
+        25
       ],
       "screenshot": "creepy_cafetorium_spread_24.png",
       "ocr": "creepy_cafetorium_spread_24.ocr.json",
@@ -202,8 +202,8 @@
     {
       "file": "creepy_cafetorium_spread_26.riv",
       "pages": [
-        24,
-        25
+        26,
+        27
       ],
       "screenshot": "creepy_cafetorium_spread_26.png",
       "ocr": "creepy_cafetorium_spread_26.ocr.json",
@@ -215,8 +215,8 @@
     {
       "file": "creepy_cafetorium_spread_28.riv",
       "pages": [
-        26,
-        27
+        28,
+        29
       ],
       "screenshot": "creepy_cafetorium_spread_28.png",
       "ocr": "creepy_cafetorium_spread_28.ocr.json",
@@ -228,8 +228,8 @@
     {
       "file": "creepy_cafetorium_spread_30.riv",
       "pages": [
-        28,
-        29
+        30,
+        31
       ],
       "screenshot": "creepy_cafetorium_spread_30.png",
       "ocr": "creepy_cafetorium_spread_30.ocr.json",
@@ -241,7 +241,7 @@
     {
       "file": "creepy_cafetorium_spread_32.riv",
       "pages": [
-        30,
+        32,
         32
       ],
       "screenshot": "creepy_cafetorium_spread_32.png",
