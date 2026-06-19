@@ -1,0 +1,148 @@
+{
+  "image": "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\CreepyCafetorium_74774\\word-hotspots\\creepy_cafetorium_spread_00.png",
+  "text": "BOOK 6 OUT, DARN SPOTLIGHT AMANDA McCANN COLLEEN AF VENABLE WITH ANNA-MARIA JUNG ILLUSTRATED BY epic! CREEPY CAFETORIUM",
+  "width": 2964,
+  "height": 2160,
+  "words": [
+    {
+      "text": "BOOK",
+      "x": 2047,
+      "y": 722,
+      "width": 201,
+      "height": 69
+    },
+    {
+      "text": "6",
+      "x": 2281,
+      "y": 723,
+      "width": 41,
+      "height": 68
+    },
+    {
+      "text": "OUT,",
+      "x": 1796,
+      "y": 836,
+      "width": 156,
+      "height": 83
+    },
+    {
+      "text": "DARN",
+      "x": 1984,
+      "y": 836,
+      "width": 183,
+      "height": 69
+    },
+    {
+      "text": "SPOTLIGHT",
+      "x": 2200,
+      "y": 835,
+      "width": 372,
+      "height": 71
+    },
+    {
+      "text": "AMANDA",
+      "x": 1999,
+      "y": 1638,
+      "width": 177,
+      "height": 42
+    },
+    {
+      "text": "McCANN",
+      "x": 2194,
+      "y": 1638,
+      "width": 169,
+      "height": 42
+    },
+    {
+      "text": "COLLEEN",
+      "x": 2015,
+      "y": 1705,
+      "width": 165,
+      "height": 42
+    },
+    {
+      "text": "AF",
+      "x": 2199,
+      "y": 1706,
+      "width": 46,
+      "height": 40
+    },
+    {
+      "text": "VENABLE",
+      "x": 2264,
+      "y": 1705,
+      "width": 178,
+      "height": 42
+    },
+    {
+      "text": "WITH",
+      "x": 1921,
+      "y": 1716,
+      "width": 77,
+      "height": 31
+    },
+    {
+      "text": "ANNA-MARIA",
+      "x": 2114,
+      "y": 1773,
+      "width": 259,
+      "height": 41
+    },
+    {
+      "text": "JUNG",
+      "x": 2391,
+      "y": 1773,
+      "width": 112,
+      "height": 42
+    },
+    {
+      "text": "ILLUSTRATED",
+      "x": 1860,
+      "y": 1783,
+      "width": 186,
+      "height": 32
+    },
+    {
+      "text": "BY",
+      "x": 2060,
+      "y": 1783,
+      "width": 37,
+      "height": 32
+    },
+    {
+      "text": "epic!",
+      "x": 2004,
+      "y": 1873,
+      "width": 349,
+      "height": 180
+    },
+    {
+      "text": "CREEPY",
+      "x": 1711,
+      "y": 165,
+      "width": 1030,
+      "height": 309,
+      "bbox": {
+        "x": 1711,
+        "y": 165,
+        "width": 1030,
+        "height": 309
+      },
+      "confidence": 1
+    },
+    {
+      "text": "CAFETORIUM",
+      "x": 1568,
+      "y": 454,
+      "width": 1298,
+      "height": 255,
+      "bbox": {
+        "x": 1568,
+        "y": 454,
+        "width": 1298,
+        "height": 255
+      },
+      "confidence": 1
+    }
+  ]
+}

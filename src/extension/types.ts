@@ -6,6 +6,23 @@ export type ExtensionEventName =
   | 'drawerStateChange'
   | 'modalStateChange'
 
+export type PageChangeSource = 'arrow' | 'slider' | 'rtm' | 'programmatic'
+
+export type PageChangeDirection = 1 | -1 | 0
+
+export interface PageChangePayload {
+  pageIndex: number
+  source?: PageChangeSource
+  direction?: PageChangeDirection
+}
+
+export interface ExtensionEventPayloadMap {
+  pageChange: PageChangePayload
+  pageTurnStart: undefined
+  drawerStateChange: { mounted: boolean }
+  modalStateChange: { mounted: boolean }
+}
+
 export interface BookData {
   id?: number
   title?: string
@@ -81,7 +98,10 @@ export interface ExtensionContext {
     ): void
   }
   events: {
-    on(eventName: ExtensionEventName, handler: (payload?: unknown) => void): () => void
+    on<TEventName extends ExtensionEventName>(
+      eventName: TEventName,
+      handler: (payload: ExtensionEventPayloadMap[TEventName]) => void,
+    ): () => void
   }
 }
 

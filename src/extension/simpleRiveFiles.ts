@@ -1,4 +1,4 @@
-import type { ExtensionContext, FlipBookRect } from './types'
+import type { ExtensionContext, FlipBookRect, PageChangeDirection, PageChangeSource } from './types'
 
 interface SimpleRiveFileRuntimeDeps {
   getBooleanParam(name: string, fallback: boolean): boolean
@@ -720,7 +720,7 @@ export function getNavigationDirectionFromText(value: string): number | null {
   return null
 }
 
-export function getNavigationDirectionFromPayload(payload: unknown): number | null {
+export function getNavigationDirectionFromPayload(payload: unknown): PageChangeDirection | null {
   if (!payload || typeof payload !== 'object') return null
 
   const data = payload as Record<string, unknown>
@@ -728,6 +728,7 @@ export function getNavigationDirectionFromPayload(payload: unknown): number | nu
     const value = Number(data[key])
     if (value > 0) return 1
     if (value < 0) return -1
+    if (value === 0) return 0
   }
 
   const values = Object.values(payload as Record<string, unknown>)
@@ -735,6 +736,16 @@ export function getNavigationDirectionFromPayload(payload: unknown): number | nu
     .join(' ')
 
   return getNavigationDirectionFromText(values)
+}
+
+export function getNavigationSourceFromPayload(payload: unknown): PageChangeSource | null {
+  if (!payload || typeof payload !== 'object') return null
+
+  const source = (payload as Record<string, unknown>).source
+  if (typeof source !== 'string') return null
+
+  const normalized = source.trim().toLowerCase()
+  return normalized === 'arrow' || normalized === 'slider' || normalized === 'rtm' || normalized === 'programmatic' ? normalized : null
 }
 
 export function getReaderPageFromPayload(payload: unknown, fallback: number): number {

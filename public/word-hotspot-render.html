@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rive Word Hotspot Render</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: #fff;
+      }
+
+      #status {
+        position: fixed;
+        right: 8px;
+        bottom: 8px;
+        z-index: 2;
+        padding: 6px 8px;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.68);
+        color: #fff;
+        font: 12px/1.3 system-ui, sans-serif;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="rive-canvas"></canvas>
+    <div id="status">Loading...</div>
+    <script src="/vendor/rive.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search)
+      const file = params.get('file') || '/rive/Test_June2_4-5/83936_spread_04%2605.riv'
+      const animation = params.get('animation') || 'idle'
+      const stateMachine = params.get('stateMachine') || ''
+      const artboard = params.get('artboard') || undefined
+      const width = Number(params.get('w') || innerWidth || 1600)
+      const height = Number(params.get('h') || innerHeight || 900)
+      const dpr = Number(params.get('dpr') || '1')
+      const fitParam = (params.get('fit') || 'contain').trim().toLowerCase()
+      const settleMs = Number(params.get('settleMs') || '1800')
+      const canvas = document.querySelector('#rive-canvas')
+      const status = document.querySelector('#status')
+
+      canvas.width = Math.max(1, Math.round(width * dpr))
+      canvas.height = Math.max(1, Math.round(height * dpr))
+
+      if (!window.rive) {
+        status.textContent = 'Rive runtime did not load.'
+        throw new Error(status.textContent)
+      }
+
+      const { Alignment, Fit, Layout, Rive, RuntimeLoader } = window.rive
+      const fit =
+        fitParam === 'cover'
+          ? Fit.Cover
+          : fitParam === 'fill'
+            ? Fit.Fill
+            : fitParam === 'fit-width'
+              ? Fit.FitWidth
+              : fitParam === 'fit-height'
+                ? Fit.FitHeight
+                : Fit.Contain
+      RuntimeLoader.setWasmUrl('/rive/rive.wasm')
+      RuntimeLoader.setWasmFallbackUrl('/rive/rive_fallback.wasm')
+
+      window.__WORD_HOTSPOT_READY = false
+      window.__WORD_HOTSPOT_ERROR = null
+
+      function normalizeRiveName(value) {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '')
+      }
+
+      function getFileBaseName(value) {
+        try {
+          const decoded = decodeURIComponent(String(value || ''))
+          return decoded.split(/[\\/]/).pop().replace(/\.riv$/i, '')
+        } catch {
+          return String(value || '').split(/[\\/]/).pop().replace(/\.riv$/i, '')
+        }
+      }
+
+      function getPageRangeFromFileName(value) {
+        const baseName = getFileBaseName(value)
+        const rangeMatch = baseName.match(/spread_(\d+)[&-](\d+)/i)
+        if (rangeMatch) return [Number(rangeMatch[1]), Number(rangeMatch[2])]
+
+        const singleMatch = baseName.match(/spread_(\d+)$/i)
+        if (!singleMatch) return []
+
+        const startPage = Number(singleMatch[1])
+        if (!Number.isFinite(startPage)) return []
+        if (startPage === 0) return [0, 1]
+        if (startPage === 32) return [startPage]
+        return [startPage, startPage + 1]
+      }
+
+      function getStateMachineNameCandidates(value, fileValue) {
+        const candidates = []
+        const add = (candidate) => {
+          const name = String(candidate || '').trim()
+          if (name && !candidates.includes(name)) candidates.push(name)
+        }
+        const requested = String(value || '').trim()
+        if (requested && requested.toLowerCase() !== 'auto') add(requested)
+
+        const baseName = getFileBaseName(fileValue)
+        const pages = getPageRangeFromFileName(fileValue)
+        add(baseName)
+        add(baseName.replace(/^creepy_cafetorium_/i, 'Creepy_Cafetorium_'))
+        add(baseName.replace(/^hummingbird_/i, 'HummingBird_'))
+        if (pages.length >= 2) {
+          const start = String(pages[0]).padStart(2, '0')
+          const end = String(pages[1]).padStart(2, '0')
+          add(`Creepy_Cafetorium_spread_${start}&${end}`)
+          add(`Creepy_Cafetorium_spread_${start}_${end}`)
+          add(`Creepy_Cafetorium_spread_${start}-${end}`)
+          add(`HummingBird_spread_${start}&${end}`)
+          add(`HummingBird_spread_${start}_${end}`)
+        }
+        if (pages.length === 1) {
+          const page = String(pages[0]).padStart(2, '0')
+          add(`Creepy_Cafetorium_spread_${page}`)
+          add(`HummingBird_spread_${page}`)
+        }
+
+        return candidates
+      }
+
+      function resolveStateMachineEntry(contents, value, fileValue, requestedArtboard) {
+        const entries = []
+        for (const artboardContents of contents?.artboards || []) {
+          if (requestedArtboard && requestedArtboard !== 'auto' && artboardContents.name !== requestedArtboard) continue
+          for (const machine of artboardContents.stateMachines || []) {
+            entries.push({
+              artboard: artboardContents.name,
+              stateMachine: machine.name,
+            })
+          }
+        }
+        if (!entries.length) return null
+
+        const candidateKeys = getStateMachineNameCandidates(value, fileValue).map(normalizeRiveName)
+        for (const key of candidateKeys) {
+          const exact = entries.find((entry) => normalizeRiveName(entry.stateMachine) === key)
+          if (exact) return exact
+        }
+
+        const pages = getPageRangeFromFileName(fileValue).map((page) => String(page).padStart(2, '0'))
+        if (pages.length) {
+          const pageMatch = entries.find((entry) => {
+            const key = normalizeRiveName(`${entry.artboard} ${entry.stateMachine}`)
+            return pages.every((page) => key.includes(page))
+          })
+          if (pageMatch) return pageMatch
+        }
+
+        return entries[0]
+      }
+
+      let didResolveStateMachine = false
+      const instance = new Rive({
+        src: file,
+        canvas,
+        artboard: stateMachine || artboard === 'auto' ? undefined : artboard,
+        animations: stateMachine ? undefined : animation || undefined,
+        autoplay: Boolean(!stateMachine && animation),
+        autoBind: true,
+        enableRiveAssetCDN: false,
+        layout: new Layout({
+          fit,
+          alignment: Alignment.Center,
+        }),
+        onLoad() {
+          window.__WORD_HOTSPOT_CONTENTS = instance.contents || null
+          if (stateMachine && !didResolveStateMachine) {
+            didResolveStateMachine = true
+            const entry = resolveStateMachineEntry(instance.contents || {}, stateMachine, file, artboard)
+            if (!entry) {
+              const message = `Unable to resolve state machine ${stateMachine} for ${file}`
+              status.textContent = message
+              window.__WORD_HOTSPOT_ERROR = message
+              document.documentElement.dataset.error = message
+              return
+            }
+            window.__WORD_HOTSPOT_STATE_MACHINE = entry
+            instance.reset({
+              artboard: entry.artboard,
+              stateMachines: entry.stateMachine,
+              autoplay: true,
+              autoBind: true,
+            })
+          }
+
+          instance.resizeDrawingSurfaceToCanvas(dpr)
+          const resolvedStateMachine = window.__WORD_HOTSPOT_STATE_MACHINE
+          status.textContent = `Loaded ${file}${
+            resolvedStateMachine
+              ? ` / ${resolvedStateMachine.artboard} / ${resolvedStateMachine.stateMachine}`
+              : stateMachine
+                ? ` / ${stateMachine}`
+                : animation
+                  ? ` / ${animation}`
+                  : ''
+          }`
+          window.setTimeout(() => {
+            status.hidden = params.get('status') !== '1'
+            window.__WORD_HOTSPOT_READY = true
+            document.documentElement.dataset.ready = '1'
+          }, settleMs)
+        },
+        onLoadError(event) {
+          const message = `Unable to load ${file}: ${String(event && event.data ? event.data : 'unknown error')}`
+          status.textContent = message
+          window.__WORD_HOTSPOT_ERROR = message
+          document.documentElement.dataset.error = message
+        },
+      })
+    </script>
+  </body>
+</html>

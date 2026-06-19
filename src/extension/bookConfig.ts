@@ -12,6 +12,7 @@ export interface EpicTribeBookConfig {
   nativePassthroughLeftPages?: number[]
   nativePassthroughRightPages?: number[]
   previewFiles: CommandHarnessPreviewFile[]
+  readAlongTranscriptFile?: string
   riveFolder: string
   title: string
   wordHotspotFolder: string
@@ -79,7 +80,7 @@ const CREEPY_CAFETORIUM_BOOK_ID = 74774
 
 const HUMMINGBIRD_READER_DEFAULTS: Record<string, string> = {
   ...EPIC_1TRIBE_READER_DEFAULTS,
-  tribeCommandHarnessWordFinder: '0',
+  tribeCommandHarnessWordFinder: '1',
   tribeCommandHarnessForwardPreload: '0',
   tribeCommandHarnessUseEpicBookFrame: '0',
   tribeCommandHarnessUseEpicNativeShell: '0',
@@ -94,7 +95,7 @@ const HUMMINGBIRD_READER_DEFAULTS: Record<string, string> = {
   tribeCommandHarnessPageOutAnimation: 'Page_Next',
   tribeCommandHarnessPageBackAnimation: 'Page_Prev02',
   tribeCommandHarnessBackIdleAnimation: 'idle',
-  tribeReadAlong: '0',
+  tribeReadAlong: '1',
   simpleRiveOverlay: '1',
   riveFolder: 'TheWildLifeHummingbirdforaDay_83230',
   rivePageTurnForwardOutAnimation: 'Page_Next',
@@ -104,19 +105,33 @@ const HUMMINGBIRD_READER_DEFAULTS: Record<string, string> = {
   riveStackPageFiles: '0',
   riveStackTransitionPages: '0',
   rivePreloadAdjacentUnderlay: '0',
-  riveDpr: '0.5',
-  riveMaxPixels: '700000',
+  riveDpr: '1',
+  riveMaxPixels: '2200000',
+  riveWordHotspotMagnifierPixelScale: '2',
+  riveWordHotspotShadowXPx: '3',
+  riveWordHotspotShadowYPx: '3',
+  riveWordHotspotStrokePx: '2',
+  riveWordHotspotUseTranscriptJson: '1',
 }
 
 const CREEPY_CAFETORIUM_READER_DEFAULTS: Record<string, string> = {
   ...EPIC_1TRIBE_READER_DEFAULTS,
-  tribeCommandHarnessWordFinder: '0',
+  tribeCommandHarnessWordFinder: '1',
   tribeCommandHarnessForwardPreload: '0',
+  tribeCommandHarnessUseEpicBookFrame: '0',
+  tribeCommandHarnessUseEpicNativeShell: '0',
+  tribeCommandHarnessUseOwnBookFrame: '1',
+  tribeCommandHarnessUsePageEdgeFrame: '1',
+  tribeCommandHarnessOwnBookFrameAspect: '1.3722222222',
+  tribeCommandHarnessBookFrameBorder: '0 solid transparent',
+  tribeCommandHarnessBookFrameShadow: 'none',
+  tribeCommandHarnessPreviewFit: 'cover',
+  tribeCommandHarnessEdgeNavPct: '8',
   tribeCommandHarnessPageInAnimation: 'Page_In',
   tribeCommandHarnessPageOutAnimation: 'Page_next',
   tribeCommandHarnessPageBackAnimation: 'Page_Prev',
   tribeCommandHarnessBackIdleAnimation: 'idle',
-  tribeReadAlong: '0',
+  tribeReadAlong: '1',
   simpleRiveOverlay: '1',
   riveFolder: 'CreepyCafetorium_74774',
   rivePageTurnForwardOutAnimation: 'Page_next',
@@ -125,8 +140,14 @@ const CREEPY_CAFETORIUM_READER_DEFAULTS: Record<string, string> = {
   rivePageTurnIdleAnimation: 'idle',
   riveStackTransitionPages: '0',
   rivePreloadAdjacentUnderlay: '0',
-  riveDpr: '0.5',
-  riveMaxPixels: '700000',
+  riveDpr: '1',
+  riveMaxPixels: '2200000',
+  riveWordHotspotMagnifierPixelScale: '2',
+  riveWordHotspotShadowXPx: '3',
+  riveWordHotspotShadowYPx: '3',
+  riveWordHotspotStrokePx: '2',
+  riveWordHotspotTranscriptFallbackBboxes: '0',
+  riveWordHotspotUseTranscriptJson: '1',
 }
 
 function createIcanFindItPreviewFiles(): CommandHarnessPreviewFile[] {
@@ -171,38 +192,33 @@ function createHummingbirdPreviewFiles(): CommandHarnessPreviewFile[] {
 
 function createCreepyCafetoriumPreviewFiles(): CommandHarnessPreviewFile[] {
   return [
-    '00-01',
-    '02-03',
-    '04-05',
-    '06-07',
-    '08-09',
-    '10-11',
-    '12-13',
-    '14-15',
-    '16-17',
-    '20-21',
-    '22-23',
-    '24-25',
-    '26-27',
-    '28-29',
-    '30',
-  ].map((spread) => {
-    const [startText, endText] = spread.split('-')
-    const readerStart = Number(startText)
-    const readerEnd = endText === undefined ? readerStart : Number(endText)
-    const stateMachine =
-      endText === undefined
-        ? `Creepy_Cafetorium_spread_${startText}`
-        : `Creepy_Cafetorium_spread_${startText}&${endText}`
-
-    return {
-      file: `rive/CreepyCafetorium_74774/creepy_cafetorium_spread_${spread}.riv`,
-      label: `spread ${spread}`,
-      readerEnd,
-      readerStart,
-      stateMachine,
-    }
-  })
+    { fileSpread: '00', readerStart: 0, readerEnd: 1, stateMachine: 'Creepy_Cafetorium_spread_00' },
+    { fileSpread: '02', readerStart: 2, readerEnd: 3, stateMachine: 'Creepy_Cafetorium_spread_01' },
+    { fileSpread: '04', readerStart: 4, readerEnd: 5, stateMachine: 'Creepy_Cafetorium_spread_02&03' },
+    { fileSpread: '06', readerStart: 6, readerEnd: 7, stateMachine: 'Creepy_Cafetorium_spread_04&05' },
+    { fileSpread: '08', readerStart: 8, readerEnd: 9, stateMachine: 'Creepy_Cafetorium_spread_06&07' },
+    { fileSpread: '10', readerStart: 10, readerEnd: 11, stateMachine: 'Creepy_Cafetorium_spread_08&09' },
+    { fileSpread: '12', readerStart: 12, readerEnd: 13, stateMachine: 'Creepy_Cafetorium_spread_10&11' },
+    { fileSpread: '14', readerStart: 14, readerEnd: 15, stateMachine: 'Creepy_Cafetorium_spread_12&13' },
+    { fileSpread: '16', readerStart: 16, readerEnd: 17, stateMachine: 'Creepy_Cafetorium_spread_14&15' },
+    { fileSpread: '18', readerStart: 18, readerEnd: 19, stateMachine: 'Creepy_Cafetorium_spread_16&17' },
+    { fileSpread: '20', readerStart: 20, readerEnd: 21, stateMachine: 'Creepy_Cafetorium_spread_18&19' },
+    { fileSpread: '22', readerStart: 22, readerEnd: 23, stateMachine: 'Creepy_Cafetorium_spread_20&21' },
+    { fileSpread: '24', readerStart: 24, readerEnd: 25, stateMachine: 'Creepy_Cafetorium_spread_22&23' },
+    { fileSpread: '26', readerStart: 26, readerEnd: 27, stateMachine: 'Creepy_Cafetorium_spread_24&25' },
+    { fileSpread: '28', readerStart: 28, readerEnd: 29, stateMachine: 'Creepy_Cafetorium_spread_26&27' },
+    { fileSpread: '30', readerStart: 30, readerEnd: 31, stateMachine: 'Creepy_Cafetorium_spread_28&29' },
+    { fileSpread: '32', readerStart: 32, readerEnd: 33, stateMachine: 'Creepy_Cafetorium_spread_30' },
+  ].map(({ fileSpread, readerEnd, readerStart, stateMachine }) => ({
+    file: `rive/CreepyCafetorium_74774/creepy_cafetorium_spread_${fileSpread}.riv`,
+    label:
+      readerStart === readerEnd || fileSpread.includes('-')
+        ? `spread ${fileSpread}`
+        : `spread ${fileSpread}-${String(readerEnd).padStart(2, '0')}`,
+    readerEnd,
+    readerStart,
+    stateMachine,
+  }))
 }
 
 const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
@@ -222,19 +238,21 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     nativePassthroughLeftPages: [0],
     nativePassthroughRightPages: [35],
     previewFiles: createHummingbirdPreviewFiles(),
+    readAlongTranscriptFile: 'hummingbird-83230-transcript.json',
     riveFolder: 'TheWildLifeHummingbirdforaDay_83230',
     title: 'Hummingbird For A Day',
-    wordHotspotFolder: '',
+    wordHotspotFolder: 'TheWildLifeHummingbirdforaDay_83230',
   },
   [CREEPY_CAFETORIUM_BOOK_ID]: {
     bookId: CREEPY_CAFETORIUM_BOOK_ID,
     defaultParams: CREEPY_CAFETORIUM_READER_DEFAULTS,
-    nativePassthroughLeftPages: [0],
-    nativePassthroughRightPages: [30],
+    nativePassthroughLeftPages: [],
+    nativePassthroughRightPages: [],
     previewFiles: createCreepyCafetoriumPreviewFiles(),
+    readAlongTranscriptFile: 'creepy-cafetorium-74774-transcript.json',
     riveFolder: 'CreepyCafetorium_74774',
     title: 'Creepy Cafetorium',
-    wordHotspotFolder: '',
+    wordHotspotFolder: 'CreepyCafetorium_74774',
   },
 }
 

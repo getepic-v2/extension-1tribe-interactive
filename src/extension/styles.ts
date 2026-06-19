@@ -188,6 +188,45 @@ export const commandHarnessStyles = `
     pointer-events: auto;
   }
 
+  .tribe-command-harness__loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2147483300;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: min(360px, calc(100% - 32px));
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(16, 20, 18, 0.86);
+    color: #ffffff;
+    font: 700 13px/1.25 Inter, ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .tribe-command-harness__loading[hidden] {
+    display: none;
+  }
+
+  .tribe-command-harness__loading-spinner {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border: 3px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 999px;
+    animation: tribe-command-harness-spin 0.85s linear infinite;
+  }
+
+  @keyframes tribe-command-harness-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough-left.is-epic-native-passthrough-right
     .tribe-command-harness__canvas {
     pointer-events: none !important;
@@ -794,6 +833,7 @@ export const simpleOverlayStyles = `
     position: absolute;
     inset: 0;
     z-index: 12;
+    overflow: hidden;
     pointer-events: none;
   }
 
@@ -823,6 +863,10 @@ export const simpleOverlayStyles = `
     isolation: isolate;
     overflow: visible;
     pointer-events: auto;
+  }
+
+  .tribe-word-hotspot-button.is-large-hotspot {
+    overflow: hidden;
   }
 
   .tribe-word-hotspot-button::before {
@@ -910,7 +954,7 @@ export const standaloneWordHotspotStyles = `
 
   .tribe-standalone-word-hotspot-frame {
     position: absolute;
-    overflow: visible;
+    overflow: hidden;
     pointer-events: none;
     outline: none;
   }
@@ -930,9 +974,9 @@ export const standaloneWordHotspotStyles = `
     pointer-events: none;
   }
 
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-root,
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-frame,
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-button {
+  :host-context(.tribe-word-lookup-passthrough) .tribe-standalone-word-hotspot-root,
+  :host-context(.tribe-word-lookup-passthrough) .tribe-standalone-word-hotspot-frame,
+  :host-context(.tribe-word-lookup-passthrough) .tribe-standalone-word-hotspot-button {
     pointer-events: none !important;
   }
 
@@ -953,6 +997,10 @@ export const standaloneWordHotspotStyles = `
     overflow: visible;
     box-shadow: none;
     pointer-events: auto;
+  }
+
+  .tribe-standalone-word-hotspot-button.is-large-hotspot {
+    overflow: hidden;
   }
 
   .tribe-standalone-word-hotspot-button::before {
