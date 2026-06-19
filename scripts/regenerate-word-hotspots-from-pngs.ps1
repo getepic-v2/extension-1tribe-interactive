@@ -199,17 +199,26 @@ function Repair-OcrWords {
   return @($Words)
 }
 
-function Get-ManifestWordsByFile {
+function Get-CleanWordsByFile {
   param([string]$ManifestPath)
 
   $wordsByFile = @{}
   if (-not $ManifestPath) { return $wordsByFile }
   if (-not (Test-Path -LiteralPath $ManifestPath)) { return $wordsByFile }
 
+  $manifestDir = Split-Path -Parent (Resolve-Path -LiteralPath $ManifestPath).Path
   $manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
   foreach ($file in @($manifest.files)) {
     if (-not $file.file) { continue }
-    $wordsByFile[[string]$file.file] = @($file.words)
+
+    $ocrName = [string]$file.ocr
+    if (-not $ocrName.Trim()) { continue }
+
+    $ocrPath = Join-Path $manifestDir $ocrName
+    if (-not (Test-Path -LiteralPath $ocrPath)) { continue }
+
+    $ocr = Get-Content -LiteralPath $ocrPath -Raw | ConvertFrom-Json
+    $wordsByFile[[string]$file.file] = @($ocr.words)
   }
 
   return $wordsByFile
@@ -297,7 +306,7 @@ if (-not $SourceFolder) {
   $SourceFolder = Split-Path -Parent $folderPath
 }
 $sourceFolderPath = (Resolve-Path -LiteralPath $SourceFolder).Path
-$cleanWordsByFile = Get-ManifestWordsByFile $CleanTextManifest
+$cleanWordsByFile = Get-CleanWordsByFile $CleanTextManifest
 
 $pngFiles = Get-ChildItem -LiteralPath $folderPath -Filter '*.png' | Sort-Object Name
 if ($OnlyBaseName.Trim()) {
@@ -335,40 +344,6 @@ foreach ($png in $pngFiles) {
     throw "OCR returned invalid image dimensions for $($png.FullName)"
   }
 
-  $words = @()
-  foreach ($word in @($ocr.words)) {
-    $text = [string]$word.text
-    if (-not $text.Trim()) { continue }
-
-    $x = [double]$word.x
-    $y = [double]$word.y
-    $wordWidth = [double]$word.width
-    $wordHeight = [double]$word.height
-    if ($wordWidth -le 0 -or $wordHeight -le 0) { continue }
-
-    $safeWord = Get-EventSafeWord $text
-    $words += [pscustomobject]@{
-      text = $text
-      bbox = [pscustomobject]@{
-        x = [math]::Round($x, 2)
-        y = [math]::Round($y, 2)
-        width = [math]::Round($wordWidth, 2)
-        height = [math]::Round($wordHeight, 2)
-      }
-      normalized = [pscustomobject]@{
-        x = [math]::Round($x / $imageWidth, 6)
-        y = [math]::Round($y / $imageHeight, 6)
-        width = [math]::Round($wordWidth / $imageWidth, 6)
-        height = [math]::Round($wordHeight / $imageHeight, 6)
-      }
-      rive = [pscustomobject]@{
-        eventName = 'lookup_word'
-        property = [pscustomobject]@{ word = $text }
-        encodedEventName = "lookup_word_$safeWord"
-      }
-    }
-  }
-
   $results += [pscustomobject]@{
     file = "$baseName.riv"
     pages = Get-JsonArray @(Get-PageRange $png.Name)
@@ -378,8 +353,6 @@ foreach ($png in $pngFiles) {
       width = [int]$imageWidth
       height = [int]$imageHeight
     }
-    text = [string]$ocr.text
-    words = $words
   }
 }
 

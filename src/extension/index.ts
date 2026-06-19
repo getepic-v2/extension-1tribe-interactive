@@ -310,56 +310,16 @@ interface WordHotspotOcrWord {
   y?: number
 }
 
-interface WordHotspotTranscript {
-  pages?: WordHotspotTranscriptPage[]
-}
-
-interface WordHotspotTranscriptPage {
-  page?: number
-  text?: string
-  words?: WordHotspotTranscriptWord[]
-}
-
-interface WordHotspotTranscriptWord {
-  bbox?: {
-    x1?: number
-    y1?: number
-    x2?: number
-    y2?: number
-    width?: number
-    height?: number
-  } | null
-  text?: string
-}
-
-interface WordHotspotTranscriptPageTransform {
-  matchCount: number
-  offsetX: number
-  offsetY: number
-  page: number
-  scaleX: number
-  scaleY: number
-  source: 'identity' | 'ocr-reference'
-}
-
-interface WordHotspotTranscriptConversionResult {
-  fallbackBoxCount: number
-  file: WordHotspotFile
-  referenceBoxCount: number
-  transforms: WordHotspotTranscriptPageTransform[]
-}
-
-interface WordHotspotTranscriptPageLayout {
-  referenceBoundsByPageWordIndex: Map<number, Map<number, Required<WordHotspotBounds>>>
-  transforms: Map<number, WordHotspotTranscriptPageTransform>
-}
-
 interface ActiveWordHotspot {
   fileName: string
   height: number
   page: number
   reason: string
+  sourceHeight?: number
   sourceWord: string
+  sourceWidth?: number
+  sourceX?: number
+  sourceY?: number
   width: number
   word: string
   x: number
@@ -375,7 +335,6 @@ interface WordLookupDismissGuard {
 let extension: Extension
 let sharedWordLookupDismissGuard: WordLookupDismissGuard | null = null
 let sharedWordLookupDismissGuardRefs = 0
-const wordHotspotTranscriptCache = new Map<string, Promise<WordHotspotTranscript | null>>()
 
 function getCurrentScriptUrl(): string | null {
   if (document.currentScript instanceof HTMLScriptElement && document.currentScript.src) {
@@ -606,6 +565,14 @@ function getNumberParam(name: string, fallback: number): number {
 function getNonNegativeNumberParam(name: string, fallback: number): number {
   const value = Number(getStringParam(name))
   return Number.isFinite(value) && value >= 0 ? value : fallback
+}
+
+function getSignedNumberParam(name: string, fallback: number): number {
+  const rawValue = getStringParam(name)
+  if (rawValue === null) return fallback
+
+  const value = Number(rawValue)
+  return Number.isFinite(value) ? value : fallback
 }
 
 const readAlongHotspotRoots = new Set<ShadowRoot>()
@@ -5336,11 +5303,9 @@ async function getWordHotspotFileWithOcrSidecar(
   manifest: WordHotspotManifest,
   manifestUrl: string,
   signal: AbortSignal,
-): Promise<WordHotspotFile> {
-  if (!getBooleanParam('riveWordHotspotUseOcrJson', false)) return hotspotFile
-
+): Promise<WordHotspotFile | null> {
   const ocrUrl = getWordHotspotOcrUrl(hotspotFile, manifestUrl)
-  if (!ocrUrl) return hotspotFile
+  if (!ocrUrl) return null
 
   try {
     const response = await fetch(`${ocrUrl}${ocrUrl.includes('?') ? '&' : '?'}ts=${Date.now()}`, {
@@ -5349,12 +5314,12 @@ async function getWordHotspotFileWithOcrSidecar(
     })
     if (!response.ok) {
       console.info(`[1Tribe word hotspots] OCR sidecar not available: ${ocrUrl} HTTP ${response.status}`)
-      return hotspotFile
+      return null
     }
 
     const ocr = (await response.json()) as WordHotspotOcrFile
     const ocrHotspotFile = convertOcrToWordHotspotFile(ocr, hotspotFile, manifest)
-    if (!ocrHotspotFile) return hotspotFile
+    if (!ocrHotspotFile) return null
 
     console.info('[1Tribe word hotspots] Using OCR sidecar for word hotspots.', {
       file: hotspotFile.file,
@@ -5366,7 +5331,7 @@ async function getWordHotspotFileWithOcrSidecar(
     if (!signal.aborted) {
       console.warn(`[1Tribe word hotspots] Unable to load OCR sidecar ${ocrUrl}: ${String(error)}`)
     }
-    return hotspotFile
+    return null
   }
 }
 
@@ -5407,15 +5372,6 @@ function getConfiguredWordHotspotFileForPage(
   }
 }
 
-function shouldUseWordHotspotTranscriptJson(context: ExtensionContext): boolean {
-  const bookConfig = getEpicTribeBookConfig(context.data.getBookId())
-  return getBooleanParam('riveWordHotspotUseTranscriptJson', Boolean(bookConfig?.readAlongTranscriptFile))
-}
-
-function getWordHotspotTranscriptToken(value: string): string {
-  return cleanWordHotspotText(value).toLowerCase()
-}
-
 function getFiniteWordHotspotBounds(bounds: WordHotspotBounds | undefined): Required<WordHotspotBounds> | null {
   const x = Number(bounds?.x)
   const y = Number(bounds?.y)
@@ -5433,480 +5389,6 @@ function getFiniteWordHotspotBounds(bounds: WordHotspotBounds | undefined): Requ
   }
 
   return { x, y, width, height }
-}
-
-function getTranscriptWordLocalBounds(word: WordHotspotTranscriptWord): Required<WordHotspotBounds> | null {
-  const bbox = word.bbox
-  const x1 = Number(bbox?.x1)
-  const y1 = Number(bbox?.y1)
-  const x2 = Number(bbox?.x2)
-  const y2 = Number(bbox?.y2)
-  if (
-    !Number.isFinite(x1) ||
-    !Number.isFinite(y1) ||
-    !Number.isFinite(x2) ||
-    !Number.isFinite(y2)
-  ) {
-    return null
-  }
-
-  const left = Math.max(0, Math.min(100, Math.min(x1, x2)))
-  const right = Math.max(0, Math.min(100, Math.max(x1, x2)))
-  const bottom = Math.max(0, Math.min(100, Math.min(y1, y2)))
-  const top = Math.max(0, Math.min(100, Math.max(y1, y2)))
-  if (right <= left || top <= bottom) return null
-
-  return {
-    x: left / 100,
-    y: (100 - top) / 100,
-    width: (right - left) / 100,
-    height: (top - bottom) / 100,
-  }
-}
-
-function getMedianNumber(values: number[]): number | null {
-  const finiteValues = values.filter((value) => Number.isFinite(value)).sort((first, second) => first - second)
-  if (!finiteValues.length) return null
-
-  const middle = Math.floor(finiteValues.length / 2)
-  if (finiteValues.length % 2) return finiteValues[middle]
-
-  return (finiteValues[middle - 1] + finiteValues[middle]) / 2
-}
-
-function getQuantileNumber(values: number[], quantile: number): number | null {
-  const finiteValues = values.filter((value) => Number.isFinite(value)).sort((first, second) => first - second)
-  if (!finiteValues.length) return null
-  if (finiteValues.length === 1) return finiteValues[0]
-
-  const safeQuantile = Math.max(0, Math.min(1, quantile))
-  const index = (finiteValues.length - 1) * safeQuantile
-  const lowerIndex = Math.floor(index)
-  const upperIndex = Math.ceil(index)
-  const lower = finiteValues[lowerIndex]
-  const upper = finiteValues[upperIndex]
-  const weight = index - lowerIndex
-  return lower + (upper - lower) * weight
-}
-
-function getRobustTranscriptAxisTransform(
-  pairs: Array<{ source: number; target: number }>,
-): { offset: number; scale: number } {
-  const validPairs = pairs.filter((pair) => Number.isFinite(pair.source) && Number.isFinite(pair.target))
-  if (validPairs.length < 4) return { offset: 0, scale: 1 }
-
-  const sourceLow = getQuantileNumber(validPairs.map((pair) => pair.source), 0.1)
-  const sourceHigh = getQuantileNumber(validPairs.map((pair) => pair.source), 0.9)
-  const targetLow = getQuantileNumber(validPairs.map((pair) => pair.target), 0.1)
-  const targetHigh = getQuantileNumber(validPairs.map((pair) => pair.target), 0.9)
-  const sourceSpan = Number(sourceHigh) - Number(sourceLow)
-  const targetSpan = Number(targetHigh) - Number(targetLow)
-  let scale = sourceSpan > 0.001 && targetSpan > 0.001 ? targetSpan / sourceSpan : 1
-  if (!Number.isFinite(scale)) scale = 1
-  scale = Math.max(0.35, Math.min(1.6, scale))
-
-  const offset = getMedianNumber(validPairs.map((pair) => pair.target - pair.source * scale)) ?? 0
-  return {
-    offset: Number.isFinite(offset) ? offset : 0,
-    scale,
-  }
-}
-
-function getIdentityWordHotspotTranscriptTransform(page: number): WordHotspotTranscriptPageTransform {
-  return {
-    matchCount: 0,
-    offsetX: 0,
-    offsetY: 0,
-    page,
-    scaleX: 1,
-    scaleY: 1,
-    source: 'identity',
-  }
-}
-
-function getWordHotspotTranscriptUrl(context: ExtensionContext, manifestUrl: string): string | null {
-  const explicitUrl = getStringParam('riveWordHotspotTranscriptJsonUrl') || getStringParam('riveWordHotspotTranscriptJson')
-  if (explicitUrl) {
-    try {
-      return new URL(explicitUrl, manifestUrl).href
-    } catch {
-      return null
-    }
-  }
-
-  const bookConfig = getEpicTribeBookConfig(context.data.getBookId())
-  if (!bookConfig?.readAlongTranscriptFile) return null
-
-  try {
-    return new URL(`../${bookConfig.readAlongTranscriptFile}`, manifestUrl).href
-  } catch {
-    return null
-  }
-}
-
-async function loadWordHotspotTranscript(
-  context: ExtensionContext,
-  manifestUrl: string,
-): Promise<WordHotspotTranscript | null> {
-  if (!shouldUseWordHotspotTranscriptJson(context)) return null
-
-  const transcriptUrl = getWordHotspotTranscriptUrl(context, manifestUrl)
-  if (!transcriptUrl) return null
-
-  let transcriptPromise = wordHotspotTranscriptCache.get(transcriptUrl)
-  if (!transcriptPromise) {
-    transcriptPromise = fetch(transcriptUrl, { cache: 'no-store' })
-      .then(async (response) => {
-        if (!response.ok) {
-          console.info(`[1Tribe word hotspots] Transcript sidecar not available: ${transcriptUrl} HTTP ${response.status}`)
-          return null
-        }
-        return (await response.json()) as WordHotspotTranscript
-      })
-      .catch((error) => {
-        console.warn(`[1Tribe word hotspots] Unable to load transcript sidecar ${transcriptUrl}: ${String(error)}`)
-        wordHotspotTranscriptCache.delete(transcriptUrl)
-        return null
-      })
-    wordHotspotTranscriptCache.set(transcriptUrl, transcriptPromise)
-  }
-
-  return transcriptPromise
-}
-
-function convertTranscriptBboxToWordHotspotBounds(
-  word: WordHotspotTranscriptWord,
-  pageSlot: number,
-  pageCount: number,
-  transform: WordHotspotTranscriptPageTransform,
-): Required<WordHotspotBounds> | null {
-  const localBounds = getTranscriptWordLocalBounds(word)
-  if (!localBounds) return null
-
-  const safePageCount = Math.max(1, pageCount)
-  const transformedX = transform.offsetX + localBounds.x * transform.scaleX
-  const transformedY = transform.offsetY + localBounds.y * transform.scaleY
-  const transformedWidth = localBounds.width * transform.scaleX
-  const transformedHeight = localBounds.height * transform.scaleY
-  const width = transformedWidth / safePageCount
-  const height = transformedHeight
-  if (width <= 0 || height <= 0) return null
-
-  return {
-    x: (Math.max(0, pageSlot) + transformedX) / safePageCount,
-    y: transformedY,
-    width,
-    height,
-  }
-}
-
-function convertLocalPageBoundsToWordHotspotBounds(
-  localBounds: Required<WordHotspotBounds>,
-  pageSlot: number,
-  pageCount: number,
-): Required<WordHotspotBounds> | null {
-  const safePageCount = Math.max(1, pageCount)
-  const x = Number(localBounds.x)
-  const y = Number(localBounds.y)
-  const width = Number(localBounds.width)
-  const height = Number(localBounds.height)
-  if (
-    !Number.isFinite(x) ||
-    !Number.isFinite(y) ||
-    !Number.isFinite(width) ||
-    !Number.isFinite(height) ||
-    width <= 0 ||
-    height <= 0
-  ) {
-    return null
-  }
-
-  return {
-    x: (Math.max(0, pageSlot) + x) / safePageCount,
-    y,
-    width: width / safePageCount,
-    height,
-  }
-}
-
-function getWordHotspotTranscriptPageLayout(
-  transcriptPages: Map<number, WordHotspotTranscriptPage>,
-  hotspotFile: WordHotspotFile,
-  pages: number[],
-): WordHotspotTranscriptPageLayout {
-  const transforms = new Map<number, WordHotspotTranscriptPageTransform>()
-  const referenceBoundsByPageWordIndex = new Map<number, Map<number, Required<WordHotspotBounds>>>()
-  const safePageCount = Math.max(1, pages.length)
-  const fallbackPage = pages[0] ?? 0
-  const referenceWordsByPage = new Map<
-    number,
-    Array<{ bounds: Required<WordHotspotBounds>; index: string; token: string; x: number; y: number }>
-  >()
-
-  pages.forEach((page) => {
-    transforms.set(page, getIdentityWordHotspotTranscriptTransform(page))
-  })
-
-  ;(hotspotFile.words || []).forEach((word, index) => {
-    const token = getWordHotspotTranscriptToken(String(word.text || ''))
-    if (token.length < 2) return
-
-    const bounds = getFiniteWordHotspotBounds(word.normalized)
-    if (!bounds) return
-
-    const page = getWordHotspotLogicalPage(fallbackPage, pages, bounds)
-    const pageSlot = pages.indexOf(page)
-    if (pageSlot < 0) return
-
-    const localBounds = {
-      x: bounds.x * safePageCount - pageSlot,
-      y: bounds.y,
-      width: bounds.width * safePageCount,
-      height: bounds.height,
-    }
-    if (
-      !Number.isFinite(localBounds.x) ||
-      !Number.isFinite(localBounds.y) ||
-      !Number.isFinite(localBounds.width) ||
-      !Number.isFinite(localBounds.height) ||
-      localBounds.width <= 0 ||
-      localBounds.height <= 0
-    ) {
-      return
-    }
-
-    const pageWords = referenceWordsByPage.get(page) || []
-    const sourceText = String(word.text || '')
-    const splitSegments = /[-\u2010-\u2015]/.test(sourceText)
-      ? getWordHotspotTextSegments(sourceText, localBounds).filter((segment) => segment.segmentCount > 1)
-      : []
-    const referenceSegments = [
-      {
-        bounds: localBounds,
-        key: `${index}:whole`,
-        token,
-      },
-      ...splitSegments.map((segment) => ({
-        bounds: segment.bounds,
-        key: `${index}:segment:${segment.segmentIndex}`,
-        token: getWordHotspotTranscriptToken(segment.lookupWord || segment.sourceWord),
-      })),
-    ]
-    for (const segment of referenceSegments) {
-      if (segment.token.length < 2) continue
-
-      const x = segment.bounds.x + segment.bounds.width / 2
-      const y = segment.bounds.y + segment.bounds.height / 2
-      if (!Number.isFinite(x) || !Number.isFinite(y)) continue
-
-      pageWords.push({
-        bounds: segment.bounds,
-        index: segment.key,
-        token: segment.token,
-        x,
-        y,
-      })
-    }
-    referenceWordsByPage.set(page, pageWords)
-  })
-
-  for (const page of pages) {
-    const referenceWords = referenceWordsByPage.get(page) || []
-    const transcriptWords = transcriptPages.get(page)?.words || []
-    if (!referenceWords.length || !transcriptWords.length) continue
-
-    const referenceWordsByToken = new Map<string, typeof referenceWords>()
-    for (const referenceWord of referenceWords) {
-      const tokenWords = referenceWordsByToken.get(referenceWord.token) || []
-      tokenWords.push(referenceWord)
-      referenceWordsByToken.set(referenceWord.token, tokenWords)
-    }
-
-    const usedReferenceIndexes = new Set<string>()
-    const matches: Array<{ sourceX: number; sourceY: number; targetX: number; targetY: number }> = []
-    transcriptWords.forEach((transcriptWord, transcriptWordIndex) => {
-      const token = getWordHotspotTranscriptToken(String(transcriptWord.text || ''))
-      if (token.length < 2) return
-
-      const localBounds = getTranscriptWordLocalBounds(transcriptWord)
-      const candidates = referenceWordsByToken.get(token) || []
-      if (!localBounds || !candidates.length) return
-
-      const sourceX = localBounds.x + localBounds.width / 2
-      const sourceY = localBounds.y + localBounds.height / 2
-      let bestCandidate: (typeof candidates)[number] | null = null
-      let bestScore = Number.POSITIVE_INFINITY
-      for (const candidate of candidates) {
-        if (usedReferenceIndexes.has(candidate.index)) continue
-
-        const score = Math.hypot(candidate.x - sourceX, candidate.y - sourceY)
-        if (score < bestScore) {
-          bestCandidate = candidate
-          bestScore = score
-        }
-      }
-
-      if (!bestCandidate || bestScore > 0.22) return
-
-      usedReferenceIndexes.add(bestCandidate.index)
-      const pageReferenceBounds = referenceBoundsByPageWordIndex.get(page) || new Map<number, Required<WordHotspotBounds>>()
-      pageReferenceBounds.set(transcriptWordIndex, bestCandidate.bounds)
-      referenceBoundsByPageWordIndex.set(page, pageReferenceBounds)
-      matches.push({
-        sourceX,
-        sourceY,
-        targetX: bestCandidate.x,
-        targetY: bestCandidate.y,
-      })
-    })
-
-    if (matches.length < 4) continue
-
-    const xTransform = getRobustTranscriptAxisTransform(
-      matches.map((match) => ({ source: match.sourceX, target: match.targetX })),
-    )
-    const yTransform = getRobustTranscriptAxisTransform(
-      matches.map((match) => ({ source: match.sourceY, target: match.targetY })),
-    )
-
-    transforms.set(page, {
-      matchCount: matches.length,
-      offsetX: xTransform.offset,
-      offsetY: yTransform.offset,
-      page,
-      scaleX: xTransform.scale,
-      scaleY: yTransform.scale,
-      source: 'ocr-reference',
-    })
-  }
-
-  return {
-    referenceBoundsByPageWordIndex,
-    transforms,
-  }
-}
-
-function convertTranscriptToWordHotspotFile(
-  transcript: WordHotspotTranscript,
-  hotspotFile: WordHotspotFile,
-  allowTranscriptFallbackBoxes: boolean,
-): WordHotspotTranscriptConversionResult | null {
-  const pages = normalizeWordHotspotPages(hotspotFile.pages)
-  if (!pages.length) return null
-
-  const transcriptPages = new Map<number, WordHotspotTranscriptPage>()
-  for (const page of transcript.pages || []) {
-    const pageNumber = Number(page.page)
-    if (!Number.isFinite(pageNumber)) continue
-    transcriptPages.set(Math.trunc(pageNumber), page)
-  }
-
-  const transcriptLayout = getWordHotspotTranscriptPageLayout(transcriptPages, hotspotFile, pages)
-  const words: WordHotspotWord[] = []
-  const textParts: string[] = []
-  const pagesWithTranscriptWords = new Set<number>()
-  const pageCount = Math.max(1, pages.length)
-  let fallbackBoxCount = 0
-  let referenceBoxCount = 0
-  pages.forEach((pageNumber, pageSlot) => {
-    const transcriptPage = transcriptPages.get(pageNumber)
-    const pageWords = transcriptPage?.words || []
-    const transform =
-      transcriptLayout.transforms.get(pageNumber) || getIdentityWordHotspotTranscriptTransform(pageNumber)
-    const referenceBoundsByWordIndex = transcriptLayout.referenceBoundsByPageWordIndex.get(pageNumber) || null
-    if (transcriptPage?.text) textParts.push(String(transcriptPage.text))
-
-    let pageWordCount = 0
-    pageWords.forEach((word, wordIndex) => {
-      const text = String(word.text || '').trim()
-      if (!text) return
-
-      const referenceBounds = referenceBoundsByWordIndex?.get(wordIndex) || null
-      const normalized =
-        referenceBounds
-          ? convertLocalPageBoundsToWordHotspotBounds(referenceBounds, pageSlot, pageCount)
-          : allowTranscriptFallbackBoxes
-            ? convertTranscriptBboxToWordHotspotBounds(word, pageSlot, pageCount, transform)
-            : null
-      if (!normalized) return
-
-      if (referenceBounds) {
-        referenceBoxCount += 1
-      } else {
-        fallbackBoxCount += 1
-      }
-      words.push({
-        text,
-        normalized,
-      })
-      pageWordCount += 1
-    })
-
-    if (pageWordCount) pagesWithTranscriptWords.add(pageNumber)
-  })
-
-  const fallbackPage = pages[0] ?? 0
-  for (const word of hotspotFile.words || []) {
-    const bounds = getFiniteWordHotspotBounds(word.normalized)
-    if (!bounds) continue
-
-    const wordPage = getWordHotspotLogicalPage(fallbackPage, pages, bounds)
-    if (!pages.includes(wordPage) || pagesWithTranscriptWords.has(wordPage)) continue
-
-    words.push(word)
-  }
-
-  if (!words.length) return null
-
-  return {
-    fallbackBoxCount,
-    file: {
-      ...hotspotFile,
-      source: 'transcript-sidecar',
-      sourceDetail: {
-        allowTranscriptFallbackBoxes,
-        fallbackBoxCount,
-        referenceBoxCount,
-        source: hotspotFile.source || null,
-      },
-      text: textParts.join(' ').trim() || words.map((word) => word.text).filter(Boolean).join(' '),
-      words,
-    },
-    referenceBoxCount,
-    transforms: Array.from(transcriptLayout.transforms.values()),
-  }
-}
-
-async function getWordHotspotFileWithTranscriptSidecar(
-  context: ExtensionContext,
-  hotspotFile: WordHotspotFile,
-  manifestUrl: string,
-): Promise<WordHotspotFile | null> {
-  const transcript = await loadWordHotspotTranscript(context, manifestUrl)
-  if (!transcript) return null
-
-  const defaultAllowTranscriptFallbackBoxes = context.data.getBookId() !== 74774
-  const allowTranscriptFallbackBoxes = getBooleanParam(
-    'riveWordHotspotTranscriptFallbackBboxes',
-    defaultAllowTranscriptFallbackBoxes,
-  )
-  const transcriptConversion = convertTranscriptToWordHotspotFile(
-    transcript,
-    hotspotFile,
-    allowTranscriptFallbackBoxes,
-  )
-  if (!transcriptConversion) return null
-
-  console.info('[1Tribe word hotspots] Using transcript sidecar for word hotspots.', {
-    allowTranscriptFallbackBoxes,
-    fallbackBoxCount: transcriptConversion.fallbackBoxCount,
-    file: hotspotFile.file,
-    pages: hotspotFile.pages,
-    referenceBoxCount: transcriptConversion.referenceBoxCount,
-    transforms: transcriptConversion.transforms,
-    words: transcriptConversion.file.words?.length || 0,
-  })
-  return transcriptConversion.file
 }
 
 function getAdjustedWordHotspotBounds(
@@ -5963,6 +5445,44 @@ function clampWordHotspotBoundsToUnitFrame(bounds: Required<WordHotspotBounds>):
   }
 
   return { x: left, y: top, width, height }
+}
+
+function transformWordHotspotBounds(
+  bounds: Required<WordHotspotBounds>,
+  transform: {
+    offsetX: number
+    offsetY: number
+    frameScaleX: number
+    frameScaleY: number
+    scaleX: number
+    scaleY: number
+  },
+): Required<WordHotspotBounds> | null {
+  const frameScaleX = Number.isFinite(transform.frameScaleX) && transform.frameScaleX > 0 ? transform.frameScaleX : 1
+  const frameScaleY = Number.isFinite(transform.frameScaleY) && transform.frameScaleY > 0 ? transform.frameScaleY : 1
+  const scaleX = Number.isFinite(transform.scaleX) && transform.scaleX > 0 ? transform.scaleX : 1
+  const scaleY = Number.isFinite(transform.scaleY) && transform.scaleY > 0 ? transform.scaleY : 1
+  const offsetX = Number.isFinite(transform.offsetX) ? transform.offsetX : 0
+  const offsetY = Number.isFinite(transform.offsetY) ? transform.offsetY : 0
+  const frameScaledBounds = clampWordHotspotBoundsToUnitFrame({
+    x: 0.5 + (bounds.x - 0.5) * frameScaleX + offsetX,
+    y: 0.5 + (bounds.y - 0.5) * frameScaleY + offsetY,
+    width: bounds.width * frameScaleX,
+    height: bounds.height * frameScaleY,
+  })
+  if (!frameScaledBounds) return null
+
+  const centerX = frameScaledBounds.x + frameScaledBounds.width / 2
+  const centerY = frameScaledBounds.y + frameScaledBounds.height / 2
+  const width = frameScaledBounds.width * scaleX
+  const height = frameScaledBounds.height * scaleY
+
+  return clampWordHotspotBoundsToUnitFrame({
+    x: centerX - width / 2,
+    y: centerY - height / 2,
+    width,
+    height,
+  })
 }
 
 function isLargeWordHotspotBounds(bounds: Required<WordHotspotBounds>): boolean {
@@ -6250,6 +5770,23 @@ function drawWordHotspotMagnifier(
   const sourceRect = sourceCanvas.getBoundingClientRect()
   const buttonRect = button.getBoundingClientRect()
   if (sourceRect.width <= 0 || sourceRect.height <= 0 || buttonRect.width <= 0 || buttonRect.height <= 0) return false
+  const sourceBounds = getWordHotspotSourceBoundsFromButton(button)
+  const parentRect = sourceBounds ? button.parentElement?.getBoundingClientRect() || null : null
+  const cropRect =
+    sourceBounds && parentRect && parentRect.width > 0 && parentRect.height > 0
+      ? {
+          left: parentRect.left + sourceBounds.x * parentRect.width,
+          top: parentRect.top + sourceBounds.y * parentRect.height,
+          width: sourceBounds.width * parentRect.width,
+          height: sourceBounds.height * parentRect.height,
+        }
+      : {
+          left: buttonRect.left,
+          top: buttonRect.top,
+          width: buttonRect.width,
+          height: buttonRect.height,
+        }
+  if (cropRect.width <= 0 || cropRect.height <= 0) return false
 
   const pixelScale = Math.max(1, Math.min(3, renderPixelScale))
   const targetRatio = Math.max(1, Math.min(6, (window.devicePixelRatio || 1) * pixelScale))
@@ -6260,14 +5797,18 @@ function drawWordHotspotMagnifier(
 
   const sourceScaleX = sourceCanvas.width / sourceRect.width
   const sourceScaleY = sourceCanvas.height / sourceRect.height
-  const sourceX = (buttonRect.left - sourceRect.left) * sourceScaleX
-  const sourceY = (buttonRect.top - sourceRect.top) * sourceScaleY
-  const sourceWidth = buttonRect.width * sourceScaleX
-  const sourceHeight = buttonRect.height * sourceScaleY
+  const sourceX = (cropRect.left - sourceRect.left) * sourceScaleX
+  const sourceY = (cropRect.top - sourceRect.top) * sourceScaleY
+  const sourceWidth = cropRect.width * sourceScaleX
+  const sourceHeight = cropRect.height * sourceScaleY
   const clampedX = Math.max(0, Math.min(sourceCanvas.width - 1, sourceX))
   const clampedY = Math.max(0, Math.min(sourceCanvas.height - 1, sourceY))
   const clampedWidth = Math.max(1, Math.min(sourceCanvas.width - clampedX, sourceWidth))
   const clampedHeight = Math.max(1, Math.min(sourceCanvas.height - clampedY, sourceHeight))
+  const targetCropWidth = Math.max(1, Math.round(cropRect.width * targetRatio))
+  const targetCropHeight = Math.max(1, Math.round(cropRect.height * targetRatio))
+  const targetCropX = Math.round((targetWidth - targetCropWidth) / 2)
+  const targetCropY = Math.round((targetHeight - targetCropHeight) / 2)
   const context = magnifier.getContext('2d')
   if (!context) return false
 
@@ -6275,12 +5816,48 @@ function drawWordHotspotMagnifier(
     context.clearRect(0, 0, targetWidth, targetHeight)
     context.imageSmoothingEnabled = true
     context.imageSmoothingQuality = 'high'
-    context.drawImage(sourceCanvas, clampedX, clampedY, clampedWidth, clampedHeight, 0, 0, targetWidth, targetHeight)
+    context.drawImage(
+      sourceCanvas,
+      clampedX,
+      clampedY,
+      clampedWidth,
+      clampedHeight,
+      targetCropX,
+      targetCropY,
+      targetCropWidth,
+      targetCropHeight,
+    )
     return true
   } catch (error) {
     console.warn('[1Tribe word hotspots] Unable to draw word magnifier.', error)
     return false
   }
+}
+
+function getWordHotspotSourceBoundsFromButton(button: HTMLElement): Required<WordHotspotBounds> | null {
+  const x = Number(button.dataset.sourceX)
+  const y = Number(button.dataset.sourceY)
+  const width = Number(button.dataset.sourceWidth)
+  const height = Number(button.dataset.sourceHeight)
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null
+  }
+
+  return { x, y, width, height }
+}
+
+function setWordHotspotSourceBounds(button: HTMLButtonElement, bounds: Required<WordHotspotBounds>): void {
+  button.dataset.sourceX = String(bounds.x)
+  button.dataset.sourceY = String(bounds.y)
+  button.dataset.sourceWidth = String(bounds.width)
+  button.dataset.sourceHeight = String(bounds.height)
 }
 
 function attachWordHotspotMagnifier(
@@ -6322,8 +5899,41 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   const outlineScaleY = Math.max(1, getNumberParam('riveWordHotspotOutlineScaleY', 1.2))
   const shadowXPx = getNonNegativeNumberParam('riveWordHotspotShadowXPx', 5)
   const shadowYPx = getNonNegativeNumberParam('riveWordHotspotShadowYPx', 5)
+  const boundsTransform = {
+    offsetX: getSignedNumberParam(
+      'riveWordHotspotBoundsOffsetXPct',
+      getSignedNumberParam(
+        'riveWordHotspotOffsetXPct',
+        getSignedNumberParam('tribeWordHotspotBoundsOffsetXPct', 0),
+      ),
+    ),
+    offsetY: getSignedNumberParam(
+      'riveWordHotspotBoundsOffsetYPct',
+      getSignedNumberParam(
+        'riveWordHotspotOffsetYPct',
+        getSignedNumberParam('tribeWordHotspotBoundsOffsetYPct', 0),
+      ),
+    ),
+    frameScaleX: getNumberParam(
+      'riveWordHotspotFrameScaleX',
+      getNumberParam('tribeWordHotspotFrameScaleX', 1),
+    ),
+    frameScaleY: getNumberParam(
+      'riveWordHotspotFrameScaleY',
+      getNumberParam('tribeWordHotspotFrameScaleY', 1),
+    ),
+    scaleX: getNumberParam(
+      'riveWordHotspotBoundsScaleX',
+      getNumberParam('riveWordHotspotScaleX', getNumberParam('tribeWordHotspotBoundsScaleX', 1)),
+    ),
+    scaleY: getNumberParam(
+      'riveWordHotspotBoundsScaleY',
+      getNumberParam('riveWordHotspotScaleY', getNumberParam('tribeWordHotspotBoundsScaleY', 1)),
+    ),
+  }
   const shouldUseWordHotspotMagnifier = magnifyScale > 1.001
   const shouldHideSuspect = getBooleanParam('riveWordHotspotHideSuspect', false)
+  const shouldShowWordHotspotBoxes = getBooleanParam('riveWordHotspotShowBoxes', false)
   const shouldShowWordHotspotStatus = getBooleanParam('tribeCommandHarnessShowControls', false)
   const defaultWordHotspotFrameMode = 'rive-artboard'
   const requestedWordHotspotFrameMode =
@@ -6378,6 +5988,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   root.className = 'tribe-standalone-word-hotspot-root'
   root.setAttribute('data-reader-navigation-ignore', 'true')
   frame.className = 'tribe-standalone-word-hotspot-frame'
+  frame.classList.toggle('is-debug-visible', shouldShowWordHotspotBoxes)
   frame.setAttribute('data-reader-navigation-ignore', 'true')
   status.className = 'tribe-standalone-word-hotspot-status'
   status.textContent = 'Word hotspots: loading'
@@ -6471,7 +6082,6 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
 
     return (
       manifest.files?.find((file) => normalizeWordHotspotPages(file.pages).includes(page)) ||
-      manifest.files?.find((file) => (file.words || []).length > 0) ||
       null
     )
   }
@@ -6750,10 +6360,13 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       ),
       contextCurrentPage: context.data.getCurrentPage(),
       completionSuppressed,
+      showBoxes: shouldShowWordHotspotBoxes,
       visibleCompletionElement: getStandaloneElementSummary(findVisibleStandaloneEpicCompletionElement()),
       forcedPage,
       frameMode: wordHotspotFrameMode,
       frameFit: wordHotspotFrameFit,
+      boundsTransform,
+      geometrySource: 'rive-ocr-sidecar',
       frameProjectionKey: lastFrameProjectionKey,
       frameProjectionMode: lastFrameProjectionMode,
       frameSource: lastFrameSource,
@@ -6994,10 +6607,25 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       manifestUrl,
       fetchController.signal,
     )
-    const transcriptHotspotFile = await getWordHotspotFileWithTranscriptSidecar(context, ocrHotspotFile, manifestUrl)
-    hotspotFile =
-      transcriptHotspotFile ||
-      ocrHotspotFile
+    if (!ocrHotspotFile) {
+      activeWordHotspots = []
+      clearButtons()
+      lastRenderedPage = page
+      lastDebug = {
+        enabled: true,
+        file: hotspotFile.file,
+        geometrySource: 'rive-ocr-sidecar',
+        manifestUrl,
+        message: 'No valid Rive OCR sidecar geometry was available for this page.',
+        mode: 'standalone',
+        page,
+        reason,
+      }
+      setStatus(`Word hotspots: no OCR geometry for page ${page}`)
+      syncDebugHelpers()
+      return
+    }
+    hotspotFile = ocrHotspotFile
     if (isDisposed || serial !== renderSerial) return
     activeRenderSize = getWordHotspotRenderSize(manifest, hotspotFile, activeRenderSize)
     positionHotspotFrame()
@@ -7028,26 +6656,34 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
         if (!lookupWord) continue
 
         const projectedBounds = projectWordHotspotBoundsForCurrentFrame(segment.bounds)
-        const isLargeHotspot = isLargeWordHotspotBounds(projectedBounds)
+        const calibratedBounds = transformWordHotspotBounds(projectedBounds, boundsTransform)
+        if (!calibratedBounds) continue
+
+        const isLargeHotspot = isLargeWordHotspotBounds(calibratedBounds)
         const paddedBounds = clampWordHotspotBoundsToUnitFrame({
-          x: projectedBounds.x - paddingXRatio,
-          y: projectedBounds.y - paddingYRatio,
-          width: projectedBounds.width + paddingXRatio * 2,
-          height: projectedBounds.height + paddingYRatio * 2,
+          x: calibratedBounds.x - paddingXRatio,
+          y: calibratedBounds.y - paddingYRatio,
+          width: calibratedBounds.width + paddingXRatio * 2,
+          height: calibratedBounds.height + paddingYRatio * 2,
         })
         if (!paddedBounds) continue
+        const displayBounds = shouldShowWordHotspotBoxes ? calibratedBounds : paddedBounds
 
         const hotspotPage = getWordHotspotLogicalPage(page, hotspotPages, segment.bounds)
         const hotspot: ActiveWordHotspot = {
           fileName: hotspotFile.file,
-          height: paddedBounds.height,
+          height: displayBounds.height,
           page: hotspotPage,
           reason,
+          sourceHeight: calibratedBounds.height,
           sourceWord: segment.sourceWord,
-          width: paddedBounds.width,
+          sourceWidth: calibratedBounds.width,
+          sourceX: calibratedBounds.x,
+          sourceY: calibratedBounds.y,
+          width: displayBounds.width,
           word: lookupWord,
-          x: paddedBounds.x,
-          y: paddedBounds.y,
+          x: displayBounds.x,
+          y: displayBounds.y,
         }
         activeWordHotspots.push(hotspot)
 
@@ -7062,10 +6698,17 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
         button.style.height = `${hotspot.height * 100}%`
         button.style.setProperty('--tribe-word-hotspot-stroke', `${strokeWidthPx}px`)
         button.style.setProperty('--tribe-word-hotspot-word-scale', String(isLargeHotspot ? 1 : magnifyScale))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-x', String(isLargeHotspot ? 1 : outlineScaleX))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-y', String(isLargeHotspot ? 1 : outlineScaleY))
-        button.style.setProperty('--tribe-word-hotspot-shadow-x', `${shadowXPx}px`)
-        button.style.setProperty('--tribe-word-hotspot-shadow-y', `${shadowYPx}px`)
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-x',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : outlineScaleX),
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-y',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : outlineScaleY),
+        )
+        button.style.setProperty('--tribe-word-hotspot-shadow-x', `${shouldShowWordHotspotBoxes ? 0 : shadowXPx}px`)
+        button.style.setProperty('--tribe-word-hotspot-shadow-y', `${shouldShowWordHotspotBoxes ? 0 : shadowYPx}px`)
+        setWordHotspotSourceBounds(button, calibratedBounds)
         button.setAttribute('aria-label', `Look up ${lookupWord}`)
         button.setAttribute('data-reader-navigation-ignore', 'true')
         button.dataset.lookupWord = lookupWord
@@ -7117,11 +6760,14 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       mode: 'standalone',
       page,
       reason,
+      geometrySource: 'rive-ocr-sidecar',
+      boundsTransform,
       source: hotspotFile.source || hotspotFileMappingSource,
       sourceDetail: {
         ...(hotspotFile.sourceDetail || {}),
         mappingSource: hotspotFileMappingSource,
       },
+      showBoxes: shouldShowWordHotspotBoxes,
     }
     setStatus(`Word hotspots: ${activeWordHotspots.length} (${hotspotFile.file})`)
     syncDebugHelpers()
@@ -7358,6 +7004,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const wordHotspotShadowXPx = getNonNegativeNumberParam('riveWordHotspotShadowXPx', 5)
   const wordHotspotShadowYPx = getNonNegativeNumberParam('riveWordHotspotShadowYPx', 5)
   const shouldUseWordHotspotMagnifier = wordHotspotMagnifyScale > 1.001
+  const shouldShowWordHotspotBoxes = getBooleanParam('riveWordHotspotShowBoxes', false)
   const wordHotspotManifestParam = getStringParam('riveWordHotspotManifest')?.trim() || null
   const wordHotspotFolderParam = getStringParam('riveWordHotspotFolder')?.trim() || null
   const focusedRiveFolder = (getStringParam('riveFolder') || wordHotspotFolderParam || '').trim()
@@ -7377,6 +7024,10 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const requestedTransitionAnimation = getStringParam('riveTransitionAnimation')?.trim() || null
   const requestedTransitionArtboard = getStringParam('riveTransitionArtboard')?.trim() || null
   const activeBookId = getSimpleRiveBookIdFromContext(context)
+  const activeBookConfig =
+    getEpicTribeBookConfig(activeBookId) ||
+    getEpicTribeBookConfig(context.data.getBookId()) ||
+    getEpicTribeBookConfig()
   const shouldAutoSelectAnimation = requestedInteractiveAnimation?.toLowerCase() === 'auto'
   const shouldAutoSelectStateMachine = requestedInteractiveStateMachine?.toLowerCase() === 'auto'
   const shouldUseStateMachine = (isRiveInteractive || shouldUseStateMachineIdleOnly) && Boolean(requestedInteractiveStateMachine)
@@ -7475,15 +7126,35 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     ariaHidden: string | null
   }> = []
   type EpicNativePointerPassthroughSide = 'left' | 'right'
-  const epicNativePointerPassthroughRules: Array<{ pages: number[]; side: EpicNativePointerPassthroughSide }> = [
-    { pages: [0], side: 'left' },
-    { pages: [25], side: 'right' },
-  ]
   let hasWarnedAboutReplacementSelector = false
   const wordHotspotManifestPromises = new Map<string, Promise<WordHotspotManifest | null>>()
 
   const getActiveSimpleRiveFileForPassthrough = () =>
-    activeFileUrl ? files.find((file) => file.url === activeFileUrl) || null : null
+    getSimpleRiveFileForPage(files, displayedPage)?.file ||
+    getSimpleRiveFileForPage(files, context.data.getCurrentPage())?.file ||
+    (activeFileUrl ? files.find((file) => file.url === activeFileUrl) || null : null)
+
+  const getLastReaderPageForNativePassthrough = () => {
+    const bookPageCount = Number(context.data.getBookData()?.numPages)
+    if (Number.isFinite(bookPageCount) && bookPageCount > 0) return Math.max(0, Math.trunc(bookPageCount) - 1)
+
+    return getSimpleRiveLastPage(files)
+  }
+
+  const getEpicNativePointerPassthroughRules = (): Array<{
+    pages: number[]
+    side: EpicNativePointerPassthroughSide
+  }> => {
+    const fallbackLastPage = getLastReaderPageForNativePassthrough()
+    const leftPages = activeBookConfig?.nativePassthroughLeftPages ?? [0]
+    const rightPages =
+      activeBookConfig?.nativePassthroughRightPages ?? (fallbackLastPage === null ? [] : [fallbackLastPage])
+
+    return [
+      { pages: leftPages, side: 'left' as const },
+      { pages: rightPages, side: 'right' as const },
+    ].filter((rule) => rule.pages.length > 0)
+  }
 
   const doesSimpleRiveFileCoverReaderPage = (file: SimpleRiveFile | null, page: number): boolean => {
     if (!file) return false
@@ -7497,6 +7168,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const getActiveEpicNativePointerPassthroughRules = () => {
     const activeFile = getActiveSimpleRiveFileForPassthrough()
     const currentPage = context.data.getCurrentPage()
+    const epicNativePointerPassthroughRules = getEpicNativePointerPassthroughRules()
     return epicNativePointerPassthroughRules.filter((rule) => {
       if (rule.pages.includes(displayedPage) || rule.pages.includes(currentPage)) return true
       return rule.pages.some((page) => doesSimpleRiveFileCoverReaderPage(activeFile, page))
@@ -7637,6 +7309,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   navNextGutter.setAttribute('aria-hidden', 'true')
   navNextGutter.setAttribute('data-reader-navigation-ignore', 'true')
   wordHotspotLayer.className = 'tribe-word-hotspot-layer'
+  wordHotspotLayer.classList.toggle('is-debug-visible', shouldShowWordHotspotBoxes)
   wordHotspotLayer.hidden = true
   wordHotspotLayer.setAttribute('data-reader-navigation-ignore', 'true')
   completionPage.className = 'book-completion-page-container tribe-simple-completion-page'
@@ -7824,7 +7497,9 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         activeFile: activeFile?.name || null,
         activeFileUrl,
         activeFileManifestUrl,
+        geometrySource: 'rive-ocr-sidecar',
         requestedFolder: getStringParam('riveFolder'),
+        showBoxes: shouldShowWordHotspotBoxes,
         wordHotspotTest: getBooleanParam('tribeWordHotspotTest', false),
         mappedFiles: files.map((item) => ({
           name: item.name,
@@ -8038,10 +7713,25 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       manifestUrl,
       fetchController.signal,
     )
-    const transcriptHotspotFile = await getWordHotspotFileWithTranscriptSidecar(context, ocrHotspotFile, manifestUrl)
-    hotspotFile =
-      transcriptHotspotFile ||
-      ocrHotspotFile
+    if (!ocrHotspotFile) {
+      wordHotspotLayer.textContent = ''
+      wordHotspotLayer.hidden = true
+      wordHotspotLayer.dataset.file = file.name
+      wordHotspotLayer.dataset.count = '0'
+      activeWordHotspots = []
+      lastWordHotspotDebug = {
+        enabled: shouldUseWordHotspots,
+        file: file.name,
+        geometrySource: 'rive-ocr-sidecar',
+        manifestUrl,
+        message: 'No valid Rive OCR sidecar geometry was available for the active Rive file.',
+        page,
+        reason,
+      }
+      syncWordHotspotDebugHelpers()
+      return
+    }
+    hotspotFile = ocrHotspotFile
     if (isDisposed || serial !== wordHotspotSerial) return
 
     const words = (hotspotFile.words || []).filter((word) => {
@@ -8078,18 +7768,23 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
           height: segment.bounds.height + wordHotspotPaddingYRatio * 2,
         })
         if (!paddedBounds) continue
+        const displayBounds = shouldShowWordHotspotBoxes ? segment.bounds : paddedBounds
 
         const hotspotPage = getWordHotspotLogicalPage(page, hotspotPages, segment.bounds)
         const hotspot: ActiveWordHotspot = {
           fileName: file.name,
-          height: paddedBounds.height,
+          height: displayBounds.height,
           page: hotspotPage,
           reason,
+          sourceHeight: segment.bounds.height,
           sourceWord: segment.sourceWord,
-          width: paddedBounds.width,
+          sourceWidth: segment.bounds.width,
+          sourceX: segment.bounds.x,
+          sourceY: segment.bounds.y,
+          width: displayBounds.width,
           word: lookupWord,
-          x: paddedBounds.x,
-          y: paddedBounds.y,
+          x: displayBounds.x,
+          y: displayBounds.y,
         }
         activeWordHotspots.push(hotspot)
 
@@ -8104,10 +7799,23 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         button.style.height = `${hotspot.height * 100}%`
         button.style.setProperty('--tribe-word-hotspot-stroke', `${wordHotspotStrokeWidthPx}px`)
         button.style.setProperty('--tribe-word-hotspot-word-scale', String(isLargeHotspot ? 1 : wordHotspotMagnifyScale))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-x', String(isLargeHotspot ? 1 : wordHotspotOutlineScaleX))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-y', String(isLargeHotspot ? 1 : wordHotspotOutlineScaleY))
-        button.style.setProperty('--tribe-word-hotspot-shadow-x', `${wordHotspotShadowXPx}px`)
-        button.style.setProperty('--tribe-word-hotspot-shadow-y', `${wordHotspotShadowYPx}px`)
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-x',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : wordHotspotOutlineScaleX),
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-y',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : wordHotspotOutlineScaleY),
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-shadow-x',
+          `${shouldShowWordHotspotBoxes ? 0 : wordHotspotShadowXPx}px`,
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-shadow-y',
+          `${shouldShowWordHotspotBoxes ? 0 : wordHotspotShadowYPx}px`,
+        )
+        setWordHotspotSourceBounds(button, segment.bounds)
         button.setAttribute('aria-label', `Look up ${lookupWord}`)
         button.setAttribute('data-reader-navigation-ignore', 'true')
         button.dataset.lookupWord = lookupWord
@@ -8157,6 +7865,8 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       manifestUrl,
       activeCount: activeWordHotspots.length,
       buttonCount: wordHotspotLayer.childElementCount,
+      geometrySource: 'rive-ocr-sidecar',
+      showBoxes: shouldShowWordHotspotBoxes,
     }
     syncWordHotspotDebugHelpers()
 
@@ -12700,16 +12410,20 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       clearPendingNavigation()
     },
     context.events.on('pageChange', (payload) => {
-      resizeRive()
-
       let page = getReaderPageFromPayload(payload, context.data.getCurrentPage())
       const payloadDirection = getNavigationDirectionFromPayload(payload)
       const payloadSource = getNavigationSourceFromPayload(payload)
-      const direction =
-        pendingNavigationDirection || payloadDirection || (page < displayedPage ? -1 : page > displayedPage ? 1 : null)
+      const inferredDirection = page < displayedPage ? -1 : page > displayedPage ? 1 : null
+      const direction = pendingNavigationDirection ?? payloadDirection ?? inferredDirection
       const reason =
         pendingNavigationReason ||
-        (payloadSource ? `pageChange ${payloadSource}` : direction && direction < 0 ? 'back page' : 'next page')
+        (payloadSource
+          ? `pageChange ${payloadSource}`
+          : direction && direction < 0
+            ? 'pageChange back'
+            : direction && direction > 0
+              ? 'pageChange next'
+              : 'pageChange same')
       const targetMatch = getSimpleRiveFileForPage(files, page)
       const activeFile = getActiveSimpleRiveFile()
       const canPromoteBusyPreloadedUnderlay = Boolean(
@@ -12800,6 +12514,8 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       }
 
       displayedPage = page
+      resizeRive()
+      applyReplacementVisibility()
       const shouldLoadForwardUnderlay = Boolean(
         isForwardSpreadBoundaryPage && shouldStackPageFiles && didStartOutgoingSpreadTransition,
       )

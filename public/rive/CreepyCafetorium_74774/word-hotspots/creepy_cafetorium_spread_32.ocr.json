@@ -1,190 +1,190 @@
 ﻿{
     "image":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\CreepyCafetorium_74774\\word-hotspots\\creepy_cafetorium_spread_32.png",
     "text":  "never going to fit into her tiny storage closet. With a CLICK! the spotlight turned on, and Margot swore it winked at her. She winked back.",
-    "width":  2964,
-    "height":  2160,
+    "width":  2416,
+    "height":  1762,
     "words":  [
                   {
                       "text":  "never",
-                      "x":  329,
-                      "y":  284,
-                      "width":  137,
-                      "height":  31
+                      "x":  278,
+                      "y":  226,
+                      "width":  118,
+                      "height":  36
                   },
                   {
                       "text":  "going",
-                      "x":  478,
-                      "y":  270,
-                      "width":  137,
+                      "x":  398,
+                      "y":  215,
+                      "width":  118,
                       "height":  57
                   },
                   {
                       "text":  "to",
-                      "x":  626,
-                      "y":  273,
-                      "width":  48,
-                      "height":  42
-                  },
-                  {
-                      "text":  "fit",
-                      "x":  687,
-                      "y":  266,
-                      "width":  57,
-                      "height":  49
-                  },
-                  {
-                      "text":  "into",
-                      "x":  756,
-                      "y":  270,
-                      "width":  97,
+                      "x":  516,
+                      "y":  217,
+                      "width":  47,
                       "height":  45
                   },
                   {
+                      "text":  "fit",
+                      "x":  566,
+                      "y":  212,
+                      "width":  53,
+                      "height":  50
+                  },
+                  {
+                      "text":  "into",
+                      "x":  621,
+                      "y":  215,
+                      "width":  86,
+                      "height":  47
+                  },
+                  {
                       "text":  "her",
-                      "x":  865,
-                      "y":  266,
-                      "width":  85,
-                      "height":  49
+                      "x":  709,
+                      "y":  212,
+                      "width":  75,
+                      "height":  50
                   },
                   {
                       "text":  "tiny",
-                      "x":  962,
-                      "y":  270,
-                      "width":  100,
-                      "height":  58
+                      "x":  786,
+                      "y":  215,
+                      "width":  89,
+                      "height":  57
                   },
                   {
                       "text":  "storage",
-                      "x":  1074,
-                      "y":  273,
-                      "width":  181,
+                      "x":  876,
+                      "y":  218,
+                      "width":  153,
                       "height":  54
                   },
                   {
                       "text":  "closet.",
-                      "x":  329,
-                      "y":  354,
-                      "width":  152,
-                      "height":  48
+                      "x":  278,
+                      "y":  284,
+                      "width":  130,
+                      "height":  49
                   },
                   {
                       "text":  "With",
-                      "x":  423,
-                      "y":  442,
-                      "width":  133,
-                      "height":  47
+                      "x":  354,
+                      "y":  355,
+                      "width":  114,
+                      "height":  49
                   },
                   {
                       "text":  "a",
-                      "x":  590,
-                      "y":  456,
-                      "width":  29,
-                      "height":  33
+                      "x":  487,
+                      "y":  367,
+                      "width":  32,
+                      "height":  37
                   },
                   {
                       "text":  "CLICK!",
-                      "x":  654,
-                      "y":  441,
-                      "width":  204,
-                      "height":  48
+                      "x":  539,
+                      "y":  355,
+                      "width":  172,
+                      "height":  49
                   },
                   {
                       "text":  "the",
-                      "x":  894,
-                      "y":  442,
-                      "width":  85,
-                      "height":  47
+                      "x":  732,
+                      "y":  355,
+                      "width":  77,
+                      "height":  49
                   },
                   {
                       "text":  "spotlight",
-                      "x":  1015,
-                      "y":  442,
-                      "width":  241,
-                      "height":  59
+                      "x":  829,
+                      "y":  355,
+                      "width":  201,
+                      "height":  58
                   },
                   {
                       "text":  "turned",
-                      "x":  329,
-                      "y":  528,
-                      "width":  186,
-                      "height":  47
+                      "x":  278,
+                      "y":  425,
+                      "width":  157,
+                      "height":  50
                   },
                   {
                       "text":  "on,",
-                      "x":  549,
-                      "y":  543,
-                      "width":  77,
-                      "height":  42
-                  },
-                  {
-                      "text":  "and",
-                      "x":  663,
-                      "y":  528,
-                      "width":  99,
-                      "height":  47
-                  },
-                  {
-                      "text":  "Margot",
-                      "x":  796,
-                      "y":  528,
-                      "width":  198,
-                      "height":  59
-                  },
-                  {
-                      "text":  "swore",
-                      "x":  1028,
-                      "y":  543,
-                      "width":  153,
-                      "height":  32
-                  },
-                  {
-                      "text":  "it",
-                      "x":  1215,
-                      "y":  529,
-                      "width":  40,
-                      "height":  46
-                  },
-                  {
-                      "text":  "winked",
-                      "x":  327,
-                      "y":  614,
-                      "width":  188,
-                      "height":  48
-                  },
-                  {
-                      "text":  "at",
-                      "x":  532,
-                      "y":  618,
-                      "width":  50,
+                      "x":  454,
+                      "y":  438,
+                      "width":  71,
                       "height":  44
                   },
                   {
-                      "text":  "her.",
-                      "x":  597,
-                      "y":  614,
-                      "width":  92,
-                      "height":  48
+                      "text":  "and",
+                      "x":  546,
+                      "y":  425,
+                      "width":  88,
+                      "height":  49
                   },
                   {
-                      "text":  "She",
-                      "x":  709,
-                      "y":  614,
-                      "width":  92,
-                      "height":  48
+                      "text":  "Margot",
+                      "x":  653,
+                      "y":  426,
+                      "width":  167,
+                      "height":  58
+                  },
+                  {
+                      "text":  "swore",
+                      "x":  839,
+                      "y":  438,
+                      "width":  131,
+                      "height":  37
+                  },
+                  {
+                      "text":  "it",
+                      "x":  990,
+                      "y":  427,
+                      "width":  40,
+                      "height":  47
                   },
                   {
                       "text":  "winked",
-                      "x":  816,
-                      "y":  614,
-                      "width":  188,
-                      "height":  48
+                      "x":  277,
+                      "y":  496,
+                      "width":  159,
+                      "height":  49
+                  },
+                  {
+                      "text":  "at",
+                      "x":  441,
+                      "y":  500,
+                      "width":  49,
+                      "height":  45
+                  },
+                  {
+                      "text":  "her.",
+                      "x":  493,
+                      "y":  496,
+                      "width":  82,
+                      "height":  49
+                  },
+                  {
+                      "text":  "She",
+                      "x":  583,
+                      "y":  496,
+                      "width":  82,
+                      "height":  49
+                  },
+                  {
+                      "text":  "winked",
+                      "x":  670,
+                      "y":  496,
+                      "width":  158,
+                      "height":  49
                   },
                   {
                       "text":  "back.",
-                      "x":  1019,
-                      "y":  614,
-                      "width":  130,
-                      "height":  48
+                      "x":  832,
+                      "y":  496,
+                      "width":  113,
+                      "height":  49
                   }
               ]
 }

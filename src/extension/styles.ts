@@ -866,7 +866,7 @@ export const simpleOverlayStyles = `
   }
 
   .tribe-word-hotspot-button.is-large-hotspot {
-    overflow: hidden;
+    overflow: visible;
   }
 
   .tribe-word-hotspot-button::before {
@@ -889,6 +889,7 @@ export const simpleOverlayStyles = `
       box-shadow 80ms ease;
   }
 
+  .tribe-word-hotspot-layer.is-debug-visible .tribe-word-hotspot-button::before,
   .tribe-word-hotspot-button:hover::before,
   .tribe-word-hotspot-button:focus-visible::before,
   .tribe-word-hotspot-button.is-read-along-active::before {
@@ -898,6 +899,16 @@ export const simpleOverlayStyles = `
       var(--tribe-word-hotspot-shadow-y, 5px)
       0
       #000000;
+  }
+
+  .tribe-word-hotspot-layer.is-debug-visible .tribe-word-hotspot-button {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .tribe-word-hotspot-layer.is-debug-visible .tribe-word-hotspot-button::before {
+    box-shadow: none;
+    transform: none;
   }
 
   .tribe-word-hotspot-button.is-suspect {
@@ -1000,7 +1011,7 @@ export const standaloneWordHotspotStyles = `
   }
 
   .tribe-standalone-word-hotspot-button.is-large-hotspot {
-    overflow: hidden;
+    overflow: visible;
   }
 
   .tribe-standalone-word-hotspot-button::before {
@@ -1023,6 +1034,7 @@ export const standaloneWordHotspotStyles = `
       box-shadow 80ms ease;
   }
 
+  .tribe-standalone-word-hotspot-frame.is-debug-visible .tribe-standalone-word-hotspot-button::before,
   .tribe-standalone-word-hotspot-button:hover::before,
   .tribe-standalone-word-hotspot-button:focus-visible::before,
   .tribe-standalone-word-hotspot-button.is-read-along-active::before {
@@ -1032,6 +1044,16 @@ export const standaloneWordHotspotStyles = `
       var(--tribe-word-hotspot-shadow-y, 5px)
       0
       #000000;
+  }
+
+  .tribe-standalone-word-hotspot-frame.is-debug-visible .tribe-standalone-word-hotspot-button {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .tribe-standalone-word-hotspot-frame.is-debug-visible .tribe-standalone-word-hotspot-button::before {
+    box-shadow: none;
+    transform: none;
   }
 
   .tribe-standalone-word-hotspot-button.is-suspect {

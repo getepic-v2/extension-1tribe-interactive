@@ -10,6 +10,16 @@ param(
   [string]$BaseUrl = 'http://localhost:8080',
   [string]$BrowserPath = '',
   [string]$OnlyBaseName = '',
+  [switch]$UseArtboardRenderSize,
+  [int]$RenderScale = 2,
+  [int]$ArtboardWidth = 0,
+  [int]$ArtboardHeight = 0,
+  [double]$OcrWordPaddingX = 0,
+  [double]$OcrWordPaddingY = 0,
+  [string]$StylizedTitleBaseName = '',
+  [string[]]$StylizedTitleWords = @(),
+  [double]$StylizedTitleMinXRatio = 0.42,
+  [double]$StylizedTitleMaxYRatio = 0.42,
   [string[]]$SinglePageSpreads = @()
 )
 
@@ -56,6 +66,80 @@ function Test-DevServer {
     return [int]$response.StatusCode -eq 200
   } catch {
     return $false
+  }
+}
+
+function Get-RiveArtboardMetadata {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Browser,
+    [Parameter(Mandatory = $true)]
+    [string]$BrowserProfileRoot,
+    [Parameter(Mandatory = $true)]
+    [string]$BaseUrl,
+    [Parameter(Mandatory = $true)]
+    [string]$FolderName,
+    [Parameter(Mandatory = $true)]
+    [string]$FileName,
+    [string]$Animation = 'idle',
+    [string]$StateMachine = '',
+    [string]$Fit = 'contain'
+  )
+
+  $profileName = 'metadata-' + ([System.Guid]::NewGuid().ToString('N').Substring(0, 8))
+  $browserProfileDir = Join-Path $BrowserProfileRoot $profileName
+  New-Item -ItemType Directory -Force -Path $browserProfileDir | Out-Null
+
+  $rivePath = "/rive/$FolderName/$([uri]::EscapeDataString($FileName))"
+  $url = "$BaseUrl/word-hotspot-render.html?file=$([uri]::EscapeDataString($rivePath))&animation=$([uri]::EscapeDataString($Animation))&stateMachine=$([uri]::EscapeDataString($StateMachine))&fit=$([uri]::EscapeDataString($Fit))&w=800&h=600&settleMs=100&status=1&metadata=1"
+  $arguments = @(
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-gpu',
+    '--disable-background-networking',
+    '--disable-breakpad',
+    '--disable-component-update',
+    '--disable-crash-reporter',
+    '--disable-crashpad',
+    '--disable-default-apps',
+    '--disable-dev-shm-usage',
+    '--disable-extensions',
+    '--disable-features=NetworkServiceSandbox',
+    '--disable-sync',
+    '--hide-scrollbars',
+    '--no-default-browser-check',
+    '--no-first-run',
+    '--run-all-compositor-stages-before-draw',
+    "--user-data-dir=$browserProfileDir",
+    '--window-size=800,600',
+    '--virtual-time-budget=4000',
+    '--dump-dom',
+    $url
+  )
+
+  try {
+    $domLines = & $Browser @arguments
+    $browserExitCode = [int]$LASTEXITCODE
+    if ($browserExitCode -ne 0) {
+      throw "Browser metadata probe failed for $FileName with exit code $browserExitCode."
+    }
+
+    $dom = $domLines -join [Environment]::NewLine
+    $match = [regex]::Match(
+      $dom,
+      '<script[^>]*id=["'']word-hotspot-metadata["''][^>]*>(.*?)</script>',
+      [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
+    )
+    if (-not $match.Success) {
+      throw "Could not find Rive artboard metadata in render output for $FileName."
+    }
+
+    $json = [System.Net.WebUtility]::HtmlDecode($match.Groups[1].Value)
+    return $json | ConvertFrom-Json
+  } finally {
+    if (Test-Path -LiteralPath $browserProfileDir) {
+      Remove-Item -LiteralPath $browserProfileDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
   }
 }
 
@@ -265,6 +349,257 @@ function Invoke-TiledOcr {
   }
 }
 
+function Add-StylizedTitleWordsFromImage {
+  param(
+    [Parameter(Mandatory = $true)]
+    $Ocr,
+    [Parameter(Mandatory = $true)]
+    [string]$ImagePath,
+    [Parameter(Mandatory = $true)]
+    [string[]]$TitleWords,
+    [double]$MinXRatio = 0.45,
+    [double]$MaxYRatio = 0.38
+  )
+
+  if (-not @($TitleWords).Count) { return $Ocr }
+
+  Add-Type -AssemblyName System.Drawing
+
+  $resolvedImagePath = (Resolve-Path -LiteralPath $ImagePath).Path
+  $image = [System.Drawing.Bitmap]::FromFile($resolvedImagePath)
+  try {
+    $imageWidth = [int]$image.Width
+    $imageHeight = [int]$image.Height
+    $minX = [math]::Max(0, [math]::Floor($imageWidth * $MinXRatio))
+    $maxY = [math]::Min($imageHeight - 1, [math]::Ceiling($imageHeight * $MaxYRatio))
+    $rowCounts = New-Object int[] ($maxY + 1)
+
+    for ($y = 0; $y -le $maxY; $y += 1) {
+      $count = 0
+      for ($x = $minX; $x -lt $imageWidth; $x += 1) {
+        $color = $image.GetPixel($x, $y)
+        if ($color.G -gt 95 -and ($color.G - [math]::Max($color.R, $color.B)) -gt 24) {
+          $count += 1
+        }
+      }
+      $rowCounts[$y] = $count
+    }
+
+    $bands = [System.Collections.ArrayList]::new()
+    $bandStart = $null
+    $rowThreshold = [math]::Max(8, [math]::Floor($imageWidth * 0.003))
+    for ($y = 0; $y -le $maxY; $y += 1) {
+      if ($rowCounts[$y] -ge $rowThreshold) {
+        if ($null -eq $bandStart) { $bandStart = $y }
+      } elseif ($null -ne $bandStart) {
+        if (($y - $bandStart) -ge 20) {
+          [void]$bands.Add([pscustomobject]@{ Start = [int]$bandStart; End = [int]($y - 1) })
+        }
+        $bandStart = $null
+      }
+    }
+    if ($null -ne $bandStart -and (($maxY - $bandStart) -ge 20)) {
+      [void]$bands.Add([pscustomobject]@{ Start = [int]$bandStart; End = [int]$maxY })
+    }
+
+    $boxes = [System.Collections.ArrayList]::new()
+    foreach ($band in @($bands)) {
+      $left = $imageWidth
+      $right = 0
+      $top = $imageHeight
+      $bottom = 0
+      for ($y = [int]$band.Start; $y -le [int]$band.End; $y += 1) {
+        for ($x = $minX; $x -lt $imageWidth; $x += 1) {
+          $color = $image.GetPixel($x, $y)
+          if ($color.G -gt 95 -and ($color.G - [math]::Max($color.R, $color.B)) -gt 24) {
+            if ($x -lt $left) { $left = $x }
+            if ($x -gt $right) { $right = $x }
+            if ($y -lt $top) { $top = $y }
+            if ($y -gt $bottom) { $bottom = $y }
+          }
+        }
+      }
+
+      $boxWidth = $right - $left + 1
+      $boxHeight = $bottom - $top + 1
+      if ($boxWidth -ge 80 -and $boxHeight -ge 24) {
+        $padX = [math]::Max(6, [math]::Round($boxWidth * 0.015))
+        $padY = [math]::Max(5, [math]::Round($boxHeight * 0.045))
+        [void]$boxes.Add([pscustomobject]@{
+          x = [math]::Max(0, $left - $padX)
+          y = [math]::Max(0, $top - $padY)
+          width = [math]::Min($imageWidth, $right + $padX) - [math]::Max(0, $left - $padX)
+          height = [math]::Min($imageHeight, $bottom + $padY) - [math]::Max(0, $top - $padY)
+        })
+      }
+    }
+
+    if ($boxes.Count -lt @($TitleWords).Count -and @($TitleWords).Count -eq 2) {
+      $activeRows = @()
+      for ($y = 0; $y -le $maxY; $y += 1) {
+        if ($rowCounts[$y] -ge $rowThreshold) {
+          $activeRows += $y
+        }
+      }
+
+      if ($activeRows.Count -gt 20) {
+        $startY = [int]($activeRows | Select-Object -First 1)
+        $endY = [int]($activeRows | Select-Object -Last 1)
+        $spanY = $endY - $startY
+        $splitStart = [int]($startY + $spanY * 0.35)
+        $splitEnd = [int]($startY + $spanY * 0.7)
+        $splitY = $splitStart
+        $bestCount = [int]::MaxValue
+
+        for ($y = $splitStart; $y -le $splitEnd; $y += 1) {
+          if ($rowCounts[$y] -lt $bestCount) {
+            $bestCount = $rowCounts[$y]
+            $splitY = $y
+          }
+        }
+
+        $boxes.Clear()
+        foreach ($range in @(
+          @{ Start = $startY; End = $splitY },
+          @{ Start = $splitY + 1; End = $endY }
+        )) {
+          $left = $imageWidth
+          $right = 0
+          $top = $imageHeight
+          $bottom = 0
+          for ($y = [int]$range.Start; $y -le [int]$range.End; $y += 1) {
+            for ($x = $minX; $x -lt $imageWidth; $x += 1) {
+              $color = $image.GetPixel($x, $y)
+              if ($color.G -gt 95 -and ($color.G - [math]::Max($color.R, $color.B)) -gt 24) {
+                if ($x -lt $left) { $left = $x }
+                if ($x -gt $right) { $right = $x }
+                if ($y -lt $top) { $top = $y }
+                if ($y -gt $bottom) { $bottom = $y }
+              }
+            }
+          }
+
+          $boxWidth = $right - $left + 1
+          $boxHeight = $bottom - $top + 1
+          if ($boxWidth -ge 80 -and $boxHeight -ge 24) {
+            $padX = [math]::Max(6, [math]::Round($boxWidth * 0.015))
+            $padY = [math]::Max(5, [math]::Round($boxHeight * 0.045))
+            [void]$boxes.Add([pscustomobject]@{
+              x = [math]::Max(0, $left - $padX)
+              y = [math]::Max(0, $top - $padY)
+              width = [math]::Min($imageWidth, $right + $padX) - [math]::Max(0, $left - $padX)
+              height = [math]::Min($imageHeight, $bottom + $padY) - [math]::Max(0, $top - $padY)
+            })
+          }
+        }
+      }
+    }
+
+    $wordList = [System.Collections.ArrayList]::new()
+    foreach ($word in @($Ocr.words)) {
+      [void]$wordList.Add($word)
+    }
+    $existingWords = @{}
+    foreach ($word in @($Ocr.words)) {
+      $existingWords[((([string]$word.text).Trim()).ToLowerInvariant())] = $true
+    }
+
+    $selectedBoxes = @($boxes | Sort-Object y | Select-Object -First @($TitleWords).Count)
+    for ($index = 0; $index -lt @($TitleWords).Count -and $index -lt $selectedBoxes.Count; $index += 1) {
+      $titleWord = ([string]$TitleWords[$index]).Trim()
+      if (-not $titleWord) { continue }
+      if ($existingWords.ContainsKey($titleWord.ToLowerInvariant())) { continue }
+
+      $box = $selectedBoxes[$index]
+      [void]$wordList.Add([pscustomobject]@{
+        text = $titleWord
+        x = [math]::Round([double]$box.x, 2)
+        y = [math]::Round([double]$box.y, 2)
+        width = [math]::Round([double]$box.width, 2)
+        height = [math]::Round([double]$box.height, 2)
+      })
+    }
+
+    $Ocr.words = @($wordList)
+    $Ocr.text = ((@($TitleWords) + @([string]$Ocr.text)) -join ' ').Trim()
+    return $Ocr
+  } finally {
+    $image.Dispose()
+  }
+}
+
+function Get-StylizedTitleWordList {
+  param([string[]]$Values)
+
+  $words = [System.Collections.Generic.List[string]]::new()
+  foreach ($value in @($Values)) {
+    foreach ($part in ([string]$value).Split(',')) {
+      $word = $part.Trim()
+      if ($word) { $words.Add($word) }
+    }
+  }
+
+  return [string[]]$words.ToArray()
+}
+
+function Expand-OcrWordBoxes {
+  param(
+    [Parameter(Mandatory = $true)]
+    $Ocr,
+    [double]$PaddingX = 0,
+    [double]$PaddingY = 0
+  )
+
+  $imageWidth = [double]$Ocr.width
+  $imageHeight = [double]$Ocr.height
+  if (
+    [double]::IsNaN($imageWidth) -or
+    [double]::IsInfinity($imageWidth) -or
+    [double]::IsNaN($imageHeight) -or
+    [double]::IsInfinity($imageHeight) -or
+    $imageWidth -le 0 -or
+    $imageHeight -le 0
+  ) {
+    return $Ocr
+  }
+
+  $padX = [math]::Max(0, [double]$PaddingX)
+  $padY = [math]::Max(0, [double]$PaddingY)
+  if ($padX -le 0 -and $padY -le 0) { return $Ocr }
+
+  foreach ($word in @($Ocr.words)) {
+    $x = [double]$word.x
+    $y = [double]$word.y
+    $width = [double]$word.width
+    $height = [double]$word.height
+    if (
+      [double]::IsNaN($x) -or
+      [double]::IsInfinity($x) -or
+      [double]::IsNaN($y) -or
+      [double]::IsInfinity($y) -or
+      [double]::IsNaN($width) -or
+      [double]::IsInfinity($width) -or
+      [double]::IsNaN($height) -or
+      [double]::IsInfinity($height) -or
+      $width -le 0 -or
+      $height -le 0
+    ) {
+      continue
+    }
+
+    $left = [math]::Max(0, $x - $padX)
+    $top = [math]::Max(0, $y - $padY)
+    $right = [math]::Min($imageWidth, $x + $width + $padX)
+    $bottom = [math]::Min($imageHeight, $y + $height + $padY)
+    $word.x = [math]::Round($left, 2)
+    $word.y = [math]::Round($top, 2)
+    $word.width = [math]::Round([math]::Max(1, $right - $left), 2)
+    $word.height = [math]::Round([math]::Max(1, $bottom - $top), 2)
+  }
+
+  return $Ocr
+}
+
 $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $folderPath = (Resolve-Path -LiteralPath (Join-Path $repoRoot $Folder)).Path
 $folderName = Split-Path -Leaf $folderPath
@@ -292,6 +627,40 @@ if ($OnlyBaseName.Trim()) {
 }
 if (-not $files.Count) {
   throw "No .riv files found in $folderPath"
+}
+
+$renderSizeSource = 'explicit'
+$artboardMetadata = $null
+$stylizedTitleWordList = Get-StylizedTitleWordList $StylizedTitleWords
+if ($UseArtboardRenderSize) {
+  $artboardMetadata = Get-RiveArtboardMetadata `
+    -Browser $browser `
+    -BrowserProfileRoot $browserProfileRoot `
+    -BaseUrl $BaseUrl `
+    -FolderName $folderName `
+    -FileName $files[0].Name `
+    -Animation $Animation `
+    -StateMachine $StateMachine `
+    -Fit $Fit
+  $ArtboardWidth = [int][math]::Round([double]$artboardMetadata.artboardWidth)
+  $ArtboardHeight = [int][math]::Round([double]$artboardMetadata.artboardHeight)
+  $renderSizeSource = 'rive-artboard'
+}
+
+if (($ArtboardWidth -gt 0) -or ($ArtboardHeight -gt 0)) {
+  if ($ArtboardWidth -le 0 -or $ArtboardHeight -le 0) {
+    throw 'Both ArtboardWidth and ArtboardHeight are required when using artboard render sizing.'
+  }
+  if ($RenderScale -le 0) {
+    throw 'RenderScale must be greater than 0.'
+  }
+
+  $Width = [int][math]::Round($ArtboardWidth * $RenderScale)
+  $Height = [int][math]::Round($ArtboardHeight * $RenderScale)
+  if ($renderSizeSource -eq 'explicit') {
+    $renderSizeSource = 'artboard-params'
+  }
+  Write-Host "Using $renderSizeSource render size $Width x $Height from artboard $ArtboardWidth x $ArtboardHeight at ${RenderScale}x."
 }
 
 $results = @()
@@ -365,41 +734,24 @@ foreach ($file in $files) {
     }
   }
 
+  $stylizedTitleBase = [System.IO.Path]::GetFileNameWithoutExtension($StylizedTitleBaseName.Trim())
+  if (@($stylizedTitleWordList).Count -gt 0 -and (-not $stylizedTitleBase -or $stylizedTitleBase -eq $baseName)) {
+    $ocr = Add-StylizedTitleWordsFromImage `
+      -Ocr $ocr `
+      -ImagePath $screenshotPath `
+      -TitleWords $stylizedTitleWordList `
+      -MinXRatio $StylizedTitleMinXRatio `
+      -MaxYRatio $StylizedTitleMaxYRatio
+  }
+
+  $ocr = Expand-OcrWordBoxes -Ocr $ocr -PaddingX $OcrWordPaddingX -PaddingY $OcrWordPaddingY
+  $ocrJson = $ocr | ConvertTo-Json -Depth 6
+
   $ocrJson | Set-Content -Path $ocrPath -Encoding UTF8
   $imageWidth = [double]$ocr.width
   $imageHeight = [double]$ocr.height
-  $words = @()
-
-  foreach ($word in @($ocr.words)) {
-    $text = [string]$word.text
-    if (-not $text.Trim()) { continue }
-
-    $x = [double]$word.x
-    $y = [double]$word.y
-    $wordWidth = [double]$word.width
-    $wordHeight = [double]$word.height
-    $safeWord = Get-EventSafeWord $text
-
-    $words += [pscustomobject]@{
-      text = $text
-      bbox = [pscustomobject]@{
-        x = [math]::Round($x, 2)
-        y = [math]::Round($y, 2)
-        width = [math]::Round($wordWidth, 2)
-        height = [math]::Round($wordHeight, 2)
-      }
-      normalized = [pscustomobject]@{
-        x = [math]::Round($x / $imageWidth, 6)
-        y = [math]::Round($y / $imageHeight, 6)
-        width = [math]::Round($wordWidth / $imageWidth, 6)
-        height = [math]::Round($wordHeight / $imageHeight, 6)
-      }
-      rive = [pscustomobject]@{
-        eventName = 'lookup_word'
-        property = [pscustomobject]@{ word = $text }
-        encodedEventName = "lookup_word_$safeWord"
-      }
-    }
+  if ($imageWidth -le 0 -or $imageHeight -le 0) {
+    throw "OCR returned invalid image dimensions for $($screenshotPath)"
   }
 
   $results += [pscustomobject]@{
@@ -411,8 +763,6 @@ foreach ($file in $files) {
       width = [int]$imageWidth
       height = [int]$imageHeight
     }
-    text = [string]$ocr.text
-    words = $words
   }
 }
 
@@ -422,6 +772,13 @@ $manifest = [pscustomobject]@{
   render = [pscustomobject]@{
     width = $Width
     height = $Height
+    source = $renderSizeSource
+    artboardWidth = if ($ArtboardWidth -gt 0) { $ArtboardWidth } else { $null }
+    artboardHeight = if ($ArtboardHeight -gt 0) { $ArtboardHeight } else { $null }
+    renderScale = if ($ArtboardWidth -gt 0 -and $ArtboardHeight -gt 0) { $RenderScale } else { $null }
+    metadataFile = if ($artboardMetadata) { $files[0].Name } else { $null }
+    ocrWordPaddingX = $OcrWordPaddingX
+    ocrWordPaddingY = $OcrWordPaddingY
     animation = $Animation
     stateMachine = $StateMachine
     fit = $Fit

@@ -77,6 +77,7 @@
 
       window.__WORD_HOTSPOT_READY = false
       window.__WORD_HOTSPOT_ERROR = null
+      window.__WORD_HOTSPOT_ARTBOARD = null
 
       function normalizeRiveName(value) {
         return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '')
@@ -169,6 +170,57 @@
         return entries[0]
       }
 
+      function finiteNumber(value) {
+        const number = Number(value)
+        return Number.isFinite(number) ? number : null
+      }
+
+      function publishArtboardMetadata(riveInstance) {
+        const bounds = riveInstance.bounds || null
+        const boundsMinX = finiteNumber(bounds?.minX)
+        const boundsMinY = finiteNumber(bounds?.minY)
+        const boundsMaxX = finiteNumber(bounds?.maxX)
+        const boundsMaxY = finiteNumber(bounds?.maxY)
+        const boundsWidth =
+          boundsMinX !== null && boundsMaxX !== null && boundsMaxX > boundsMinX ? boundsMaxX - boundsMinX : null
+        const boundsHeight =
+          boundsMinY !== null && boundsMaxY !== null && boundsMaxY > boundsMinY ? boundsMaxY - boundsMinY : null
+        const artboardWidth = finiteNumber(riveInstance.artboardWidth) || boundsWidth
+        const artboardHeight = finiteNumber(riveInstance.artboardHeight) || boundsHeight
+        const metadata = {
+          file,
+          animation,
+          requestedStateMachine: stateMachine || null,
+          resolvedStateMachine: window.__WORD_HOTSPOT_STATE_MACHINE || null,
+          artboardWidth,
+          artboardHeight,
+          bounds:
+            boundsMinX !== null && boundsMinY !== null && boundsMaxX !== null && boundsMaxY !== null
+              ? {
+                  minX: boundsMinX,
+                  minY: boundsMinY,
+                  maxX: boundsMaxX,
+                  maxY: boundsMaxY,
+                  width: boundsWidth,
+                  height: boundsHeight,
+                }
+              : null,
+          contents: riveInstance.contents || null,
+        }
+        window.__WORD_HOTSPOT_ARTBOARD = metadata
+        if (artboardWidth) document.documentElement.dataset.artboardWidth = String(artboardWidth)
+        if (artboardHeight) document.documentElement.dataset.artboardHeight = String(artboardHeight)
+
+        let metadataElement = document.querySelector('#word-hotspot-metadata')
+        if (!metadataElement) {
+          metadataElement = document.createElement('script')
+          metadataElement.id = 'word-hotspot-metadata'
+          metadataElement.type = 'application/json'
+          document.body.append(metadataElement)
+        }
+        metadataElement.textContent = JSON.stringify(metadata).replace(/<\/script/gi, '<\\/script')
+      }
+
       let didResolveStateMachine = false
       const instance = new Rive({
         src: file,
@@ -203,6 +255,7 @@
             })
           }
 
+          publishArtboardMetadata(instance)
           instance.resizeDrawingSurfaceToCanvas(dpr)
           const resolvedStateMachine = window.__WORD_HOTSPOT_STATE_MACHINE
           status.textContent = `Loaded ${file}${

@@ -1,736 +1,736 @@
 ﻿{
     "image":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\CreepyCafetorium_74774\\word-hotspots\\creepy_cafetorium_spread_30.png",
     "text":  "After a week of performances, the play ended, and the crew dismantled the set to get ready for the next production, The Wizard Is Odd 2: More Odder. Margot couldn\u0027t wait to paint the Emerald City! As she and Tiana were mixing up the perfect green, she saw Gertie up in the rafters, messing with the spotlight. When Gertie came back down, the custodian had a proud smile on her face. \"That spotlight has been out of commission for decades,\" Gertie said. \"But I figured out the problem. No bulb!\" Gertie shuffled off, wearing a big smile and carrying a ladder that was 29",
-    "width":  2964,
-    "height":  2160,
+    "width":  2416,
+    "height":  1762,
     "words":  [
                   {
                       "text":  "After",
-                      "x":  1759,
-                      "y":  268,
-                      "width":  142,
-                      "height":  48
-                  },
-                  {
-                      "text":  "a",
-                      "x":  1928,
-                      "y":  284,
-                      "width":  30,
-                      "height":  32
-                  },
-                  {
-                      "text":  "week",
-                      "x":  1982,
-                      "y":  268,
-                      "width":  135,
-                      "height":  48
-                  },
-                  {
-                      "text":  "of",
-                      "x":  2143,
-                      "y":  268,
-                      "width":  54,
+                      "x":  1426,
+                      "y":  214,
+                      "width":  122,
                       "height":  49
                   },
                   {
+                      "text":  "a",
+                      "x":  1562,
+                      "y":  226,
+                      "width":  32,
+                      "height":  37
+                  },
+                  {
+                      "text":  "week",
+                      "x":  1605,
+                      "y":  214,
+                      "width":  117,
+                      "height":  49
+                  },
+                  {
+                      "text":  "of",
+                      "x":  1734,
+                      "y":  213,
+                      "width":  52,
+                      "height":  50
+                  },
+                  {
                       "text":  "performances,",
-                      "x":  2215,
-                      "y":  268,
-                      "width":  375,
+                      "x":  1793,
+                      "y":  213,
+                      "width":  309,
                       "height":  60
                   },
                   {
                       "text":  "the",
-                      "x":  1666,
-                      "y":  355,
-                      "width":  88,
-                      "height":  47
+                      "x":  1352,
+                      "y":  284,
+                      "width":  78,
+                      "height":  49
                   },
                   {
                       "text":  "play",
-                      "x":  1798,
-                      "y":  355,
-                      "width":  118,
-                      "height":  60
+                      "x":  1458,
+                      "y":  284,
+                      "width":  103,
+                      "height":  59
                   },
                   {
                       "text":  "ended,",
-                      "x":  1958,
-                      "y":  355,
-                      "width":  181,
+                      "x":  1586,
+                      "y":  284,
+                      "width":  154,
                       "height":  57
                   },
                   {
                       "text":  "and",
-                      "x":  2185,
-                      "y":  355,
-                      "width":  101,
-                      "height":  47
+                      "x":  1768,
+                      "y":  284,
+                      "width":  90,
+                      "height":  49
                   },
                   {
                       "text":  "the",
-                      "x":  2329,
-                      "y":  355,
-                      "width":  88,
-                      "height":  47
+                      "x":  1884,
+                      "y":  284,
+                      "width":  79,
+                      "height":  49
                   },
                   {
                       "text":  "crew",
-                      "x":  2462,
-                      "y":  370,
-                      "width":  129,
-                      "height":  32
+                      "x":  1991,
+                      "y":  297,
+                      "width":  112,
+                      "height":  36
                   },
                   {
                       "text":  "dismantled",
-                      "x":  1667,
-                      "y":  441,
-                      "width":  290,
-                      "height":  48
+                      "x":  1353,
+                      "y":  355,
+                      "width":  240,
+                      "height":  49
                   },
                   {
                       "text":  "the",
-                      "x":  1979,
-                      "y":  442,
-                      "width":  83,
-                      "height":  47
+                      "x":  1603,
+                      "y":  355,
+                      "width":  74,
+                      "height":  49
                   },
                   {
                       "text":  "set",
-                      "x":  2086,
-                      "y":  446,
-                      "width":  74,
-                      "height":  43
+                      "x":  1688,
+                      "y":  359,
+                      "width":  69,
+                      "height":  45
                   },
                   {
                       "text":  "to",
-                      "x":  2181,
-                      "y":  446,
-                      "width":  50,
-                      "height":  43
+                      "x":  1765,
+                      "y":  359,
+                      "width":  48,
+                      "height":  45
                   },
                   {
                       "text":  "get",
-                      "x":  2254,
-                      "y":  446,
-                      "width":  78,
+                      "x":  1823,
+                      "y":  359,
+                      "width":  72,
                       "height":  54
                   },
                   {
                       "text":  "ready",
-                      "x":  2354,
-                      "y":  441,
-                      "width":  146,
-                      "height":  59
+                      "x":  1904,
+                      "y":  355,
+                      "width":  126,
+                      "height":  58
                   },
                   {
                       "text":  "for",
-                      "x":  2522,
-                      "y":  441,
-                      "width":  71,
-                      "height":  48
+                      "x":  2039,
+                      "y":  355,
+                      "width":  65,
+                      "height":  49
                   },
                   {
                       "text":  "the",
-                      "x":  1666,
-                      "y":  528,
-                      "width":  82,
-                      "height":  47
+                      "x":  1352,
+                      "y":  426,
+                      "width":  74,
+                      "height":  48
                   },
                   {
                       "text":  "next",
-                      "x":  1772,
-                      "y":  533,
-                      "width":  113,
-                      "height":  42
+                      "x":  1436,
+                      "y":  429,
+                      "width":  99,
+                      "height":  45
                   },
                   {
                       "text":  "production,",
-                      "x":  1907,
-                      "y":  528,
-                      "width":  289,
-                      "height":  59
+                      "x":  1545,
+                      "y":  426,
+                      "width":  241,
+                      "height":  58
                   },
                   {
                       "text":  "The",
-                      "x":  2221,
-                      "y":  528,
-                      "width":  94,
-                      "height":  47
-                  },
-                  {
-                      "text":  "Wizard",
-                      "x":  2341,
-                      "y":  528,
-                      "width":  182,
-                      "height":  47
-                  },
-                  {
-                      "text":  "Is",
-                      "x":  2543,
-                      "y":  528,
-                      "width":  47,
-                      "height":  47
-                  },
-                  {
-                      "text":  "Odd",
-                      "x":  1667,
-                      "y":  614,
-                      "width":  110,
-                      "height":  48
-                  },
-                  {
-                      "text":  "2:",
-                      "x":  1791,
-                      "y":  615,
-                      "width":  46,
-                      "height":  47
-                  },
-                  {
-                      "text":  "More",
-                      "x":  1853,
-                      "y":  615,
-                      "width":  128,
-                      "height":  46
-                  },
-                  {
-                      "text":  "Odder.",
-                      "x":  2001,
-                      "y":  614,
-                      "width":  165,
-                      "height":  48
-                  },
-                  {
-                      "text":  "Margot",
-                      "x":  2190,
-                      "y":  615,
-                      "width":  186,
-                      "height":  58
-                  },
-                  {
-                      "text":  "couldn\u0027t",
-                      "x":  2394,
-                      "y":  614,
-                      "width":  198,
-                      "height":  48
-                  },
-                  {
-                      "text":  "wait",
-                      "x":  1665,
-                      "y":  702,
-                      "width":  114,
-                      "height":  46
-                  },
-                  {
-                      "text":  "to",
-                      "x":  1800,
-                      "y":  705,
-                      "width":  50,
-                      "height":  43
-                  },
-                  {
-                      "text":  "paint",
-                      "x":  1872,
-                      "y":  702,
-                      "width":  137,
-                      "height":  58
-                  },
-                  {
-                      "text":  "the",
-                      "x":  2031,
-                      "y":  700,
-                      "width":  82,
-                      "height":  48
-                  },
-                  {
-                      "text":  "Emerald",
-                      "x":  2136,
-                      "y":  700,
-                      "width":  221,
-                      "height":  47
-                  },
-                  {
-                      "text":  "City!",
-                      "x":  2380,
-                      "y":  700,
-                      "width":  119,
-                      "height":  60
-                  },
-                  {
-                      "text":  "As",
-                      "x":  2523,
-                      "y":  700,
-                      "width":  68,
-                      "height":  48
-                  },
-                  {
-                      "text":  "she",
-                      "x":  1667,
-                      "y":  786,
+                      "x":  1797,
+                      "y":  426,
                       "width":  85,
                       "height":  48
                   },
                   {
-                      "text":  "and",
-                      "x":  1776,
-                      "y":  786,
-                      "width":  97,
-                      "height":  47
-                  },
-                  {
-                      "text":  "Tiana",
+                      "text":  "Wizard",
                       "x":  1894,
-                      "y":  787,
-                      "width":  155,
-                      "height":  46
-                  },
-                  {
-                      "text":  "were",
-                      "x":  2070,
-                      "y":  801,
-                      "width":  122,
-                      "height":  33
-                  },
-                  {
-                      "text":  "mixing",
-                      "x":  2216,
-                      "y":  787,
-                      "width":  184,
-                      "height":  58
-                  },
-                  {
-                      "text":  "up",
-                      "x":  2422,
-                      "y":  801,
-                      "width":  64,
-                      "height":  45
-                  },
-                  {
-                      "text":  "the",
-                      "x":  2508,
-                      "y":  786,
-                      "width":  82,
-                      "height":  48
-                  },
-                  {
-                      "text":  "perfect",
-                      "x":  1666,
-                      "y":  872,
-                      "width":  180,
-                      "height":  60
-                  },
-                  {
-                      "text":  "green,",
-                      "x":  1865,
-                      "y":  887,
-                      "width":  159,
-                      "height":  45
-                  },
-                  {
-                      "text":  "she",
-                      "x":  2048,
-                      "y":  872,
-                      "width":  84,
-                      "height":  48
-                  },
-                  {
-                      "text":  "saw",
-                      "x":  2153,
-                      "y":  887,
-                      "width":  97,
-                      "height":  33
-                  },
-                  {
-                      "text":  "Gertie",
-                      "x":  2273,
-                      "y":  872,
-                      "width":  161,
-                      "height":  48
-                  },
-                  {
-                      "text":  "up",
-                      "x":  2455,
-                      "y":  888,
-                      "width":  64,
-                      "height":  44
-                  },
-                  {
-                      "text":  "in",
-                      "x":  2539,
-                      "y":  874,
-                      "width":  53,
-                      "height":  45
-                  },
-                  {
-                      "text":  "the",
-                      "x":  1666,
-                      "y":  959,
-                      "width":  89,
-                      "height":  47
-                  },
-                  {
-                      "text":  "rafters,",
-                      "x":  1799,
-                      "y":  959,
-                      "width":  214,
-                      "height":  57
-                  },
-                  {
-                      "text":  "messing",
-                      "x":  2059,
-                      "y":  961,
-                      "width":  230,
-                      "height":  56
-                  },
-                  {
-                      "text":  "with",
-                      "x":  2330,
-                      "y":  959,
-                      "width":  129,
-                      "height":  47
-                  },
-                  {
-                      "text":  "the",
-                      "x":  2502,
-                      "y":  959,
-                      "width":  89,
-                      "height":  47
-                  },
-                  {
-                      "text":  "spotlight.",
-                      "x":  1667,
-                      "y":  1045,
-                      "width":  245,
-                      "height":  59
-                  },
-                  {
-                      "text":  "When",
-                      "x":  1939,
-                      "y":  1045,
+                      "y":  426,
                       "width":  154,
                       "height":  48
                   },
                   {
-                      "text":  "Gertie",
-                      "x":  2119,
-                      "y":  1045,
-                      "width":  165,
+                      "text":  "Is",
+                      "x":  2056,
+                      "y":  426,
+                      "width":  46,
                       "height":  48
                   },
                   {
-                      "text":  "came",
-                      "x":  2311,
-                      "y":  1060,
-                      "width":  134,
-                      "height":  33
+                      "text":  "Odd",
+                      "x":  1353,
+                      "y":  496,
+                      "width":  96,
+                      "height":  49
                   },
                   {
-                      "text":  "back",
-                      "x":  2471,
-                      "y":  1045,
-                      "width":  122,
+                      "text":  "2:",
+                      "x":  1452,
+                      "y":  497,
+                      "width":  45,
                       "height":  48
                   },
                   {
-                      "text":  "down,",
-                      "x":  1667,
-                      "y":  1131,
-                      "width":  153,
+                      "text":  "More",
+                      "x":  1502,
+                      "y":  497,
+                      "width":  110,
+                      "height":  47
+                  },
+                  {
+                      "text":  "Odder.",
+                      "x":  1621,
+                      "y":  495,
+                      "width":  140,
+                      "height":  50
+                  },
+                  {
+                      "text":  "Margot",
+                      "x":  1772,
+                      "y":  497,
+                      "width":  158,
                       "height":  58
                   },
                   {
-                      "text":  "the",
-                      "x":  1850,
-                      "y":  1131,
-                      "width":  85,
-                      "height":  48
+                      "text":  "couldn\u0027t",
+                      "x":  1936,
+                      "y":  496,
+                      "width":  167,
+                      "height":  49
                   },
                   {
-                      "text":  "custodian",
-                      "x":  1965,
-                      "y":  1131,
-                      "width":  260,
-                      "height":  48
-                  },
-                  {
-                      "text":  "had",
-                      "x":  2253,
-                      "y":  1131,
+                      "text":  "wait",
+                      "x":  1351,
+                      "y":  568,
                       "width":  99,
-                      "height":  48
-                  },
-                  {
-                      "text":  "a",
-                      "x":  2381,
-                      "y":  1146,
-                      "width":  29,
-                      "height":  33
-                  },
-                  {
-                      "text":  "proud",
-                      "x":  2439,
-                      "y":  1131,
-                      "width":  153,
-                      "height":  60
-                  },
-                  {
-                      "text":  "smile",
-                      "x":  1667,
-                      "y":  1217,
-                      "width":  134,
-                      "height":  48
-                  },
-                  {
-                      "text":  "on",
-                      "x":  1817,
-                      "y":  1233,
-                      "width":  61,
-                      "height":  32
-                  },
-                  {
-                      "text":  "her",
-                      "x":  1892,
-                      "y":  1217,
-                      "width":  84,
-                      "height":  48
-                  },
-                  {
-                      "text":  "face.",
-                      "x":  1991,
-                      "y":  1217,
-                      "width":  112,
-                      "height":  48
-                  },
-                  {
-                      "text":  "\"That",
-                      "x":  1760,
-                      "y":  1304,
-                      "width":  152,
                       "height":  47
                   },
                   {
-                      "text":  "spotlight",
-                      "x":  1934,
-                      "y":  1303,
-                      "width":  231,
+                      "text":  "to",
+                      "x":  1459,
+                      "y":  570,
+                      "width":  48,
+                      "height":  45
+                  },
+                  {
+                      "text":  "paint",
+                      "x":  1517,
+                      "y":  568,
+                      "width":  118,
+                      "height":  57
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1644,
+                      "y":  566,
+                      "width":  74,
+                      "height":  49
+                  },
+                  {
+                      "text":  "Emerald",
+                      "x":  1729,
+                      "y":  566,
+                      "width":  186,
+                      "height":  49
+                  },
+                  {
+                      "text":  "City!",
+                      "x":  1925,
+                      "y":  566,
+                      "width":  104,
                       "height":  59
                   },
                   {
-                      "text":  "has",
-                      "x":  2185,
-                      "y":  1304,
-                      "width":  91,
-                      "height":  47
+                      "text":  "As",
+                      "x":  2040,
+                      "y":  566,
+                      "width":  62,
+                      "height":  49
                   },
                   {
-                      "text":  "been",
-                      "x":  2298,
-                      "y":  1304,
-                      "width":  123,
-                      "height":  47
-                  },
-                  {
-                      "text":  "out",
-                      "x":  2442,
-                      "y":  1308,
-                      "width":  83,
-                      "height":  43
-                  },
-                  {
-                      "text":  "of",
-                      "x":  2546,
-                      "y":  1303,
-                      "width":  53,
-                      "height":  48
-                  },
-                  {
-                      "text":  "commission",
-                      "x":  1667,
-                      "y":  1391,
-                      "width":  320,
-                      "height":  47
-                  },
-                  {
-                      "text":  "for",
-                      "x":  2020,
-                      "y":  1389,
+                      "text":  "she",
+                      "x":  1353,
+                      "y":  636,
                       "width":  75,
                       "height":  49
                   },
                   {
-                      "text":  "decades,\"",
-                      "x":  2129,
-                      "y":  1389,
-                      "width":  253,
-                      "height":  58
-                  },
-                  {
-                      "text":  "Gertie",
-                      "x":  2417,
-                      "y":  1389,
-                      "width":  173,
+                      "text":  "and",
+                      "x":  1440,
+                      "y":  636,
+                      "width":  86,
                       "height":  49
                   },
                   {
-                      "text":  "said.",
-                      "x":  1667,
-                      "y":  1476,
-                      "width":  117,
-                      "height":  47
+                      "text":  "Tiana",
+                      "x":  1534,
+                      "y":  637,
+                      "width":  133,
+                      "height":  48
                   },
                   {
-                      "text":  "\"But",
-                      "x":  1802,
-                      "y":  1476,
-                      "width":  117,
-                      "height":  47
+                      "text":  "were",
+                      "x":  1676,
+                      "y":  648,
+                      "width":  106,
+                      "height":  37
                   },
                   {
-                      "text":  "I",
-                      "x":  1935,
-                      "y":  1476,
-                      "width":  20,
-                      "height":  47
-                  },
-                  {
-                      "text":  "figured",
-                      "x":  1971,
-                      "y":  1476,
-                      "width":  190,
-                      "height":  60
-                  },
-                  {
-                      "text":  "out",
-                      "x":  2178,
-                      "y":  1480,
-                      "width":  79,
-                      "height":  43
-                  },
-                  {
-                      "text":  "the",
-                      "x":  2273,
-                      "y":  1476,
-                      "width":  82,
-                      "height":  47
-                  },
-                  {
-                      "text":  "problem.",
-                      "x":  2371,
-                      "y":  1476,
-                      "width":  218,
-                      "height":  60
-                  },
-                  {
-                      "text":  "No",
-                      "x":  1666,
-                      "y":  1563,
-                      "width":  71,
-                      "height":  46
-                  },
-                  {
-                      "text":  "bulb!\"",
-                      "x":  1753,
-                      "y":  1562,
-                      "width":  151,
-                      "height":  47
-                  },
-                  {
-                      "text":  "Gertie",
-                      "x":  1762,
-                      "y":  1649,
-                      "width":  159,
-                      "height":  47
-                  },
-                  {
-                      "text":  "shuffled",
-                      "x":  1937,
-                      "y":  1649,
-                      "width":  206,
-                      "height":  47
-                  },
-                  {
-                      "text":  "off,",
-                      "x":  2158,
-                      "y":  1649,
-                      "width":  77,
-                      "height":  56
-                  },
-                  {
-                      "text":  "wearing",
-                      "x":  2249,
-                      "y":  1650,
-                      "width":  209,
+                      "text":  "mixing",
+                      "x":  1793,
+                      "y":  637,
+                      "width":  157,
                       "height":  58
                   },
                   {
-                      "text":  "a",
-                      "x":  2472,
-                      "y":  1663,
-                      "width":  29,
-                      "height":  33
+                      "text":  "up",
+                      "x":  1959,
+                      "y":  648,
+                      "width":  59,
+                      "height":  47
                   },
                   {
-                      "text":  "big",
-                      "x":  2514,
-                      "y":  1649,
+                      "text":  "the",
+                      "x":  2028,
+                      "y":  636,
+                      "width":  74,
+                      "height":  49
+                  },
+                  {
+                      "text":  "perfect",
+                      "x":  1352,
+                      "y":  706,
+                      "width":  152,
+                      "height":  59
+                  },
+                  {
+                      "text":  "green,",
+                      "x":  1511,
+                      "y":  718,
+                      "width":  136,
+                      "height":  47
+                  },
+                  {
+                      "text":  "she",
+                      "x":  1658,
+                      "y":  706,
+                      "width":  76,
+                      "height":  50
+                  },
+                  {
+                      "text":  "saw",
+                      "x":  1743,
+                      "y":  719,
+                      "width":  86,
+                      "height":  36
+                  },
+                  {
+                      "text":  "Gertie",
+                      "x":  1839,
+                      "y":  706,
+                      "width":  138,
+                      "height":  50
+                  },
+                  {
+                      "text":  "up",
+                      "x":  1985,
+                      "y":  719,
+                      "width":  60,
+                      "height":  46
+                  },
+                  {
+                      "text":  "in",
+                      "x":  2053,
+                      "y":  708,
+                      "width":  50,
+                      "height":  47
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1352,
+                      "y":  777,
                       "width":  79,
-                      "height":  59
+                      "height":  49
                   },
                   {
-                      "text":  "smile",
+                      "text":  "rafters,",
+                      "x":  1458,
+                      "y":  777,
+                      "width":  180,
+                      "height":  57
+                  },
+                  {
+                      "text":  "messing",
                       "x":  1667,
-                      "y":  1735,
-                      "width":  134,
+                      "y":  779,
+                      "width":  193,
+                      "height":  56
+                  },
+                  {
+                      "text":  "with",
+                      "x":  1885,
+                      "y":  777,
+                      "width":  112,
+                      "height":  49
+                  },
+                  {
+                      "text":  "the",
+                      "x":  2023,
+                      "y":  777,
+                      "width":  79,
+                      "height":  49
+                  },
+                  {
+                      "text":  "spotlight.",
+                      "x":  1353,
+                      "y":  848,
+                      "width":  205,
+                      "height":  58
+                  },
+                  {
+                      "text":  "When",
+                      "x":  1571,
+                      "y":  848,
+                      "width":  131,
                       "height":  48
                   },
                   {
-                      "text":  "and",
-                      "x":  1817,
-                      "y":  1735,
-                      "width":  93,
+                      "text":  "Gertie",
+                      "x":  1715,
+                      "y":  848,
+                      "width":  141,
                       "height":  48
                   },
                   {
-                      "text":  "carrying",
-                      "x":  1925,
-                      "y":  1736,
-                      "width":  220,
-                      "height":  59
+                      "text":  "came",
+                      "x":  1870,
+                      "y":  860,
+                      "width":  115,
+                      "height":  36
                   },
                   {
-                      "text":  "a",
-                      "x":  2159,
-                      "y":  1750,
-                      "width":  29,
-                      "height":  33
-                  },
-                  {
-                      "text":  "ladder",
-                      "x":  2202,
-                      "y":  1735,
-                      "width":  159,
-                      "height":  48
-                  },
-                  {
-                      "text":  "that",
-                      "x":  2375,
-                      "y":  1735,
+                      "text":  "back",
+                      "x":  1998,
+                      "y":  848,
                       "width":  106,
                       "height":  48
                   },
                   {
+                      "text":  "down,",
+                      "x":  1353,
+                      "y":  918,
+                      "width":  131,
+                      "height":  57
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1499,
+                      "y":  918,
+                      "width":  77,
+                      "height":  49
+                  },
+                  {
+                      "text":  "custodian",
+                      "x":  1591,
+                      "y":  918,
+                      "width":  217,
+                      "height":  49
+                  },
+                  {
+                      "text":  "had",
+                      "x":  1823,
+                      "y":  918,
+                      "width":  87,
+                      "height":  49
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1926,
+                      "y":  930,
+                      "width":  31,
+                      "height":  37
+                  },
+                  {
+                      "text":  "proud",
+                      "x":  1972,
+                      "y":  918,
+                      "width":  131,
+                      "height":  59
+                  },
+                  {
+                      "text":  "smile",
+                      "x":  1353,
+                      "y":  988,
+                      "width":  115,
+                      "height":  49
+                  },
+                  {
+                      "text":  "on",
+                      "x":  1473,
+                      "y":  1001,
+                      "width":  57,
+                      "height":  36
+                  },
+                  {
+                      "text":  "her",
+                      "x":  1533,
+                      "y":  988,
+                      "width":  76,
+                      "height":  49
+                  },
+                  {
+                      "text":  "face.",
+                      "x":  1613,
+                      "y":  988,
+                      "width":  97,
+                      "height":  49
+                  },
+                  {
+                      "text":  "\"That",
+                      "x":  1427,
+                      "y":  1059,
+                      "width":  130,
+                      "height":  48
+                  },
+                  {
+                      "text":  "spotlight",
+                      "x":  1567,
+                      "y":  1058,
+                      "width":  193,
+                      "height":  59
+                  },
+                  {
+                      "text":  "has",
+                      "x":  1768,
+                      "y":  1058,
+                      "width":  82,
+                      "height":  49
+                  },
+                  {
+                      "text":  "been",
+                      "x":  1859,
+                      "y":  1058,
+                      "width":  107,
+                      "height":  49
+                  },
+                  {
+                      "text":  "out",
+                      "x":  1975,
+                      "y":  1062,
+                      "width":  75,
+                      "height":  45
+                  },
+                  {
+                      "text":  "of",
+                      "x":  2059,
+                      "y":  1058,
+                      "width":  50,
+                      "height":  49
+                  },
+                  {
+                      "text":  "commission",
+                      "x":  1353,
+                      "y":  1130,
+                      "width":  264,
+                      "height":  48
+                  },
+                  {
+                      "text":  "for",
+                      "x":  1636,
+                      "y":  1128,
+                      "width":  69,
+                      "height":  50
+                  },
+                  {
+                      "text":  "decades,\"",
+                      "x":  1724,
+                      "y":  1128,
+                      "width":  210,
+                      "height":  57
+                  },
+                  {
+                      "text":  "Gertie",
+                      "x":  1955,
+                      "y":  1128,
+                      "width":  147,
+                      "height":  50
+                  },
+                  {
+                      "text":  "said.",
+                      "x":  1353,
+                      "y":  1199,
+                      "width":  101,
+                      "height":  49
+                  },
+                  {
+                      "text":  "\"But",
+                      "x":  1461,
+                      "y":  1199,
+                      "width":  101,
+                      "height":  49
+                  },
+                  {
+                      "text":  "I",
+                      "x":  1567,
+                      "y":  1199,
+                      "width":  25,
+                      "height":  48
+                  },
+                  {
+                      "text":  "figured",
+                      "x":  1597,
+                      "y":  1199,
+                      "width":  161,
+                      "height":  59
+                  },
+                  {
+                      "text":  "out",
+                      "x":  1763,
+                      "y":  1203,
+                      "width":  71,
+                      "height":  45
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1839,
+                      "y":  1199,
+                      "width":  74,
+                      "height":  49
+                  },
+                  {
+                      "text":  "problem.",
+                      "x":  1918,
+                      "y":  1199,
+                      "width":  183,
+                      "height":  59
+                  },
+                  {
+                      "text":  "No",
+                      "x":  1352,
+                      "y":  1270,
+                      "width":  65,
+                      "height":  48
+                  },
+                  {
+                      "text":  "bulb!\"",
+                      "x":  1421,
+                      "y":  1269,
+                      "width":  130,
+                      "height":  49
+                  },
+                  {
+                      "text":  "Gertie",
+                      "x":  1428,
+                      "y":  1340,
+                      "width":  136,
+                      "height":  49
+                  },
+                  {
+                      "text":  "shuffled",
+                      "x":  1569,
+                      "y":  1340,
+                      "width":  174,
+                      "height":  49
+                  },
+                  {
+                      "text":  "off,",
+                      "x":  1747,
+                      "y":  1340,
+                      "width":  70,
+                      "height":  56
+                  },
+                  {
+                      "text":  "wearing",
+                      "x":  1820,
+                      "y":  1341,
+                      "width":  176,
+                      "height":  57
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1999,
+                      "y":  1352,
+                      "width":  31,
+                      "height":  37
+                  },
+                  {
+                      "text":  "big",
+                      "x":  2033,
+                      "y":  1340,
+                      "width":  71,
+                      "height":  58
+                  },
+                  {
+                      "text":  "smile",
+                      "x":  1353,
+                      "y":  1410,
+                      "width":  115,
+                      "height":  50
+                  },
+                  {
+                      "text":  "and",
+                      "x":  1473,
+                      "y":  1410,
+                      "width":  83,
+                      "height":  49
+                  },
+                  {
+                      "text":  "carrying",
+                      "x":  1560,
+                      "y":  1412,
+                      "width":  184,
+                      "height":  57
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1748,
+                      "y":  1422,
+                      "width":  31,
+                      "height":  37
+                  },
+                  {
+                      "text":  "ladder",
+                      "x":  1782,
+                      "y":  1410,
+                      "width":  136,
+                      "height":  49
+                  },
+                  {
+                      "text":  "that",
+                      "x":  1921,
+                      "y":  1410,
+                      "width":  93,
+                      "height":  49
+                  },
+                  {
                       "text":  "was",
-                      "x":  2493,
-                      "y":  1750,
-                      "width":  98,
-                      "height":  33
+                      "x":  2016,
+                      "y":  1422,
+                      "width":  86,
+                      "height":  38
                   },
                   {
                       "text":  "29",
-                      "x":  2093,
-                      "y":  1956,
-                      "width":  71,
-                      "height":  58
+                      "x":  1695,
+                      "y":  1591,
+                      "width":  65,
+                      "height":  57
                   }
               ]
 }
