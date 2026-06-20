@@ -129,6 +129,28 @@
                       "y":  372,
                       "width":  990,
                       "height":  216
+                  },
+                  {
+                      "height":  44,
+                      "width":  21,
+                      "x":  1805,
+                      "y":  1390,
+                      "page":  1,
+                      "reviewFile":  "creepy_cafetorium_spread_00.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "F"
+                  },
+                  {
+                      "height":  42,
+                      "width":  23,
+                      "x":  1783,
+                      "y":  1390,
+                      "page":  1,
+                      "reviewFile":  "creepy_cafetorium_spread_00.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "A"
                   }
               ]
 }

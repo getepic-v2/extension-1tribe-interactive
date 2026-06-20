@@ -2348,6 +2348,215 @@
       "y": 1917,
       "width": 55,
       "height": 29
+    },
+    {
+      "height": 65,
+      "width": 183,
+      "x": 208,
+      "y": 212,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Eight"
+    },
+    {
+      "height": 60,
+      "width": 122,
+      "x": 405,
+      "y": 212,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "AM"
+    },
+    {
+      "height": 26,
+      "width": 145,
+      "x": 1949,
+      "y": 301,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "pollination"
+    },
+    {
+      "height": 77,
+      "width": 326,
+      "x": 232,
+      "y": 679,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "ALWAYS"
+    },
+    {
+      "height": 77,
+      "width": 364,
+      "x": 573,
+      "y": 679,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "HUNGRY"
+    },
+    {
+      "height": 26,
+      "width": 84,
+      "x": 403,
+      "y": 1121,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "bright"
+    },
+    {
+      "height": 21,
+      "width": 85,
+      "x": 1783,
+      "y": 1311,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Copper"
+    },
+    {
+      "height": 21,
+      "width": 90,
+      "x": 1871,
+      "y": 1311,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "rumped"
+    },
+    {
+      "height": 24,
+      "width": 158,
+      "x": 1781,
+      "y": 1340,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Hummingbird"
+    },
+    {
+      "height": 24,
+      "width": 75,
+      "x": 1002,
+      "y": 1605,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "much"
+    },
+    {
+      "height": 21,
+      "width": 19,
+      "x": 1715,
+      "y": 1729,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "One"
+    },
+    {
+      "height": 22,
+      "width": 27,
+      "x": 1715,
+      "y": 1766,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Two"
+    },
+    {
+      "height": 26,
+      "width": 25,
+      "x": 1715,
+      "y": 1804,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Three"
+    },
+    {
+      "height": 26,
+      "width": 18,
+      "x": 389,
+      "y": 1825,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "If"
+    },
+    {
+      "height": 26,
+      "width": 28,
+      "x": 1713,
+      "y": 1841,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Four"
+    },
+    {
+      "height": 27,
+      "width": 25,
+      "x": 1715,
+      "y": 1881,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Five"
+    },
+    {
+      "height": 24,
+      "width": 27,
+      "x": 1715,
+      "y": 1918,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "six"
+    },
+    {
+      "height": 24,
+      "width": 47,
+      "x": 765,
+      "y": 1343,
+      "page": 8,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "130"
+    },
+    {
+      "height": 26,
+      "width": 25,
+      "x": 2738,
+      "y": 1944,
+      "page": 9,
+      "reviewFile": "hummingbird_spread_08.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "9"
     }
   ]
 }

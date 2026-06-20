@@ -1,1023 +1,1188 @@
 {
-  "image": "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230\\word-hotspots\\hummingbird_spread_14.png",
-  "text": "Why does a hum hum? AFTERNOON You and most other hummingbirds aren't very social. You fly alone, eat alone, and build a nest alone. But when you're with other hummingbirds, you certainly do express yourself! A of hummingbirds can be called a charm. a shimmer. a bouquet. a hover. or a glittering! You communicate by flying. You may do a fast dive. fly in a U shape. or dart around to either attract another hummingbird or signal that they should get out of way. You can chirp. twitter. and sing. Different hummingbirds make different vocal sounds. You protect your territory. If someone dares to get too close to your food or home. you'll make noise. puff out your chest. raise your feathers. and chase them away If you feel threatened. you might even attack them with your bill. Because doesnt know he words! Rivoli's Hummingbird",
-  "width": 2964,
-  "height": 2160,
-  "words": [
-    {
-      "text": "Why",
-      "x": 1064,
-      "y": 1153,
-      "width": 67,
-      "height": 31
-    },
-    {
-      "text": "does",
-      "x": 1138,
-      "y": 1154,
-      "width": 65,
-      "height": 25
-    },
-    {
-      "text": "a",
-      "x": 1211,
-      "y": 1161,
-      "width": 17,
-      "height": 17
-    },
-    {
-      "text": "hum",
-      "x": 1059,
-      "y": 1187,
-      "width": 57,
-      "height": 24
-    },
-    {
-      "text": "hum?",
-      "x": 1111,
-      "y": 1220,
-      "width": 73,
-      "height": 25
-    },
-    {
-      "text": "AFTERNOON",
-      "x": 1596,
-      "y": 236,
-      "width": 504,
-      "height": 88
-    },
-    {
-      "text": "You",
-      "x": 1609,
-      "y": 364,
-      "width": 88,
-      "height": 42
-    },
-    {
-      "text": "and",
-      "x": 1712,
-      "y": 364,
-      "width": 92,
-      "height": 40
-    },
-    {
-      "text": "most",
-      "x": 1816,
-      "y": 366,
-      "width": 118,
-      "height": 40
-    },
-    {
-      "text": "other",
-      "x": 1948,
-      "y": 366,
-      "width": 127,
-      "height": 39
-    },
-    {
-      "text": "hummingbirds",
-      "x": 2089,
-      "y": 361,
-      "width": 333,
-      "height": 56
-    },
-    {
-      "text": "aren't",
-      "x": 2437,
-      "y": 365,
-      "width": 135,
-      "height": 41
-    },
-    {
-      "text": "very",
-      "x": 1610,
-      "y": 434,
-      "width": 101,
-      "height": 42
-    },
-    {
-      "text": "social.",
-      "x": 1726,
-      "y": 424,
-      "width": 149,
-      "height": 44
-    },
-    {
-      "text": "You",
-      "x": 1889,
-      "y": 426,
-      "width": 89,
-      "height": 42
-    },
-    {
-      "text": "fly",
-      "x": 1993,
-      "y": 426,
-      "width": 57,
-      "height": 50
-    },
-    {
-      "text": "alone,",
-      "x": 2064,
-      "y": 426,
-      "width": 145,
-      "height": 49
-    },
-    {
-      "text": "eat",
-      "x": 2224,
-      "y": 428,
-      "width": 79,
-      "height": 40
-    },
-    {
-      "text": "alone,",
-      "x": 2318,
-      "y": 426,
-      "width": 144,
-      "height": 50
-    },
-    {
-      "text": "and",
-      "x": 2478,
-      "y": 426,
-      "width": 92,
-      "height": 40
-    },
-    {
-      "text": "build",
-      "x": 1611,
-      "y": 487,
-      "width": 116,
-      "height": 43
-    },
-    {
-      "text": "a",
-      "x": 1741,
-      "y": 500,
-      "width": 29,
-      "height": 28
-    },
-    {
-      "text": "nest",
-      "x": 1785,
-      "y": 491,
-      "width": 100,
-      "height": 39
-    },
-    {
-      "text": "alone.",
-      "x": 1902,
-      "y": 488,
-      "width": 142,
-      "height": 42
-    },
-    {
-      "text": "But",
-      "x": 2060,
-      "y": 488,
-      "width": 80,
-      "height": 42
-    },
-    {
-      "text": "when",
-      "x": 2159,
-      "y": 491,
-      "width": 121,
-      "height": 39
-    },
-    {
-      "text": "you're",
-      "x": 2296,
-      "y": 490,
-      "width": 139,
-      "height": 48
-    },
-    {
-      "text": "with",
-      "x": 1613,
-      "y": 549,
-      "width": 97,
-      "height": 43
-    },
-    {
-      "text": "other",
-      "x": 1725,
-      "y": 553,
-      "width": 127,
-      "height": 40
-    },
-    {
-      "text": "hummingbirds,",
-      "x": 1867,
-      "y": 549,
-      "width": 345,
-      "height": 55
-    },
-    {
-      "text": "you",
-      "x": 2228,
-      "y": 562,
-      "width": 85,
-      "height": 39
-    },
-    {
-      "text": "certainly",
-      "x": 2327,
-      "y": 549,
-      "width": 204,
-      "height": 52
-    },
-    {
-      "text": "do",
-      "x": 1611,
-      "y": 614,
-      "width": 61,
-      "height": 41
-    },
-    {
-      "text": "express",
-      "x": 1687,
-      "y": 622,
-      "width": 182,
-      "height": 43
-    },
-    {
-      "text": "yourself!",
-      "x": 1884,
-      "y": 614,
-      "width": 201,
-      "height": 50
-    },
-    {
-      "text": "A",
-      "x": 1654,
-      "y": 695,
-      "width": 21,
-      "height": 23
-    },
-    {
-      "text": "of",
-      "x": 1770,
-      "y": 695,
-      "width": 31,
-      "height": 23
-    },
-    {
-      "text": "hummingbirds",
-      "x": 1808,
-      "y": 694,
-      "width": 200,
-      "height": 30
-    },
-    {
-      "text": "can",
-      "x": 2016,
-      "y": 700,
-      "width": 46,
-      "height": 18
-    },
-    {
-      "text": "be",
-      "x": 2071,
-      "y": 695,
-      "width": 33,
-      "height": 23
-    },
-    {
-      "text": "called",
-      "x": 2112,
-      "y": 695,
-      "width": 79,
-      "height": 23
-    },
-    {
-      "text": "a",
-      "x": 2201,
-      "y": 700,
-      "width": 14,
-      "height": 18
-    },
-    {
-      "text": "charm.",
-      "x": 2223,
-      "y": 695,
-      "width": 92,
-      "height": 26
-    },
-    {
-      "text": "a",
-      "x": 2321,
-      "y": 700,
-      "width": 16,
-      "height": 18
-    },
-    {
-      "text": "shimmer.",
-      "x": 2346,
-      "y": 695,
-      "width": 121,
-      "height": 25
-    },
-    {
-      "text": "a",
-      "x": 2476,
-      "y": 700,
-      "width": 14,
-      "height": 19
-    },
-    {
-      "text": "bouquet.",
-      "x": 2499,
-      "y": 695,
-      "width": 120,
-      "height": 28
-    },
-    {
-      "text": "a",
-      "x": 1655,
-      "y": 738,
-      "width": 14,
-      "height": 18
-    },
-    {
-      "text": "hover.",
-      "x": 1679,
-      "y": 733,
-      "width": 79,
-      "height": 26
-    },
-    {
-      "text": "or",
-      "x": 1767,
-      "y": 738,
-      "width": 28,
-      "height": 18
-    },
-    {
-      "text": "a",
-      "x": 1802,
-      "y": 738,
-      "width": 16,
-      "height": 18
-    },
-    {
-      "text": "glittering!",
-      "x": 1826,
-      "y": 732,
-      "width": 126,
-      "height": 30
-    },
-    {
-      "text": "You",
-      "x": 1654,
-      "y": 787,
-      "width": 50,
-      "height": 24
-    },
-    {
-      "text": "communicate",
-      "x": 1713,
-      "y": 786,
-      "width": 186,
-      "height": 24
-    },
-    {
-      "text": "by",
-      "x": 1906,
-      "y": 787,
-      "width": 33,
-      "height": 29
-    },
-    {
-      "text": "flying.",
-      "x": 1947,
-      "y": 786,
-      "width": 85,
-      "height": 30
-    },
-    {
-      "text": "You",
-      "x": 2041,
-      "y": 787,
-      "width": 50,
-      "height": 24
-    },
-    {
-      "text": "may",
-      "x": 2100,
-      "y": 792,
-      "width": 56,
-      "height": 24
-    },
-    {
-      "text": "do",
-      "x": 2164,
-      "y": 787,
-      "width": 34,
-      "height": 24
-    },
-    {
-      "text": "a",
-      "x": 2206,
-      "y": 792,
-      "width": 15,
-      "height": 19
-    },
-    {
-      "text": "fast",
-      "x": 2229,
-      "y": 787,
-      "width": 48,
-      "height": 23
-    },
-    {
-      "text": "dive.",
-      "x": 2286,
-      "y": 787,
-      "width": 64,
-      "height": 26
-    },
-    {
-      "text": "fly",
-      "x": 2356,
-      "y": 787,
-      "width": 34,
-      "height": 29
-    },
-    {
-      "text": "in",
-      "x": 2397,
-      "y": 787,
-      "width": 22,
-      "height": 23
-    },
-    {
-      "text": "a",
-      "x": 2429,
-      "y": 792,
-      "width": 14,
-      "height": 19
-    },
-    {
-      "text": "U",
-      "x": 2453,
-      "y": 787,
-      "width": 20,
-      "height": 24
-    },
-    {
-      "text": "shape.",
-      "x": 2482,
-      "y": 787,
-      "width": 88,
-      "height": 29
-    },
-    {
-      "text": "or",
-      "x": 2578,
-      "y": 792,
-      "width": 27,
-      "height": 19
-    },
-    {
-      "text": "dart",
-      "x": 2614,
-      "y": 787,
-      "width": 54,
-      "height": 24
-    },
-    {
-      "text": "around",
-      "x": 1655,
-      "y": 825,
-      "width": 93,
-      "height": 24
-    },
-    {
-      "text": "to",
-      "x": 1756,
-      "y": 827,
-      "width": 27,
-      "height": 22
-    },
-    {
-      "text": "either",
-      "x": 1791,
-      "y": 825,
-      "width": 77,
-      "height": 24
-    },
-    {
-      "text": "attract",
-      "x": 1876,
-      "y": 827,
-      "width": 87,
-      "height": 22
-    },
-    {
-      "text": "another",
-      "x": 1971,
-      "y": 825,
-      "width": 104,
-      "height": 24
-    },
-    {
-      "text": "hummingbird",
-      "x": 2084,
-      "y": 825,
-      "width": 175,
-      "height": 29
-    },
-    {
-      "text": "or",
-      "x": 2268,
-      "y": 830,
-      "width": 28,
-      "height": 19
-    },
-    {
-      "text": "signal",
-      "x": 2304,
-      "y": 825,
-      "width": 77,
-      "height": 29
-    },
-    {
-      "text": "that",
-      "x": 2389,
-      "y": 825,
-      "width": 53,
-      "height": 23
-    },
-    {
-      "text": "they",
-      "x": 2449,
-      "y": 825,
-      "width": 60,
-      "height": 29
-    },
-    {
-      "text": "should",
-      "x": 2516,
-      "y": 825,
-      "width": 88,
-      "height": 24
-    },
-    {
-      "text": "get",
-      "x": 2614,
-      "y": 827,
-      "width": 43,
-      "height": 27
-    },
-    {
-      "text": "out",
-      "x": 2664,
-      "y": 827,
-      "width": 45,
-      "height": 22
-    },
-    {
-      "text": "of",
-      "x": 1654,
-      "y": 863,
-      "width": 27,
-      "height": 24
-    },
-    {
-      "text": "way.",
-      "x": 1754,
-      "y": 868,
-      "width": 60,
-      "height": 24
-    },
-    {
-      "text": "You",
-      "x": 1654,
-      "y": 917,
-      "width": 50,
-      "height": 24
-    },
-    {
-      "text": "can",
-      "x": 1712,
-      "y": 923,
-      "width": 47,
-      "height": 18
-    },
-    {
-      "text": "chirp.",
-      "x": 1768,
-      "y": 918,
-      "width": 74,
-      "height": 28
-    },
-    {
-      "text": "twitter.",
-      "x": 1849,
-      "y": 918,
-      "width": 94,
-      "height": 25
-    },
-    {
-      "text": "and",
-      "x": 1951,
-      "y": 918,
-      "width": 49,
-      "height": 23
-    },
-    {
-      "text": "sing.",
-      "x": 2009,
-      "y": 918,
-      "width": 61,
-      "height": 29
-    },
-    {
-      "text": "Different",
-      "x": 2079,
-      "y": 917,
-      "width": 119,
-      "height": 24
-    },
-    {
-      "text": "hummingbirds",
-      "x": 2206,
-      "y": 917,
-      "width": 190,
-      "height": 29
-    },
-    {
-      "text": "make",
-      "x": 2405,
-      "y": 918,
-      "width": 71,
-      "height": 23
-    },
-    {
-      "text": "different",
-      "x": 2484,
-      "y": 918,
-      "width": 114,
-      "height": 23
-    },
-    {
-      "text": "vocal",
-      "x": 2605,
-      "y": 918,
-      "width": 72,
-      "height": 23
-    },
-    {
-      "text": "sounds.",
-      "x": 1654,
-      "y": 956,
-      "width": 107,
-      "height": 23
-    },
-    {
-      "text": "You",
-      "x": 1654,
-      "y": 1010,
-      "width": 50,
-      "height": 23
-    },
-    {
-      "text": "protect",
-      "x": 1712,
-      "y": 1011,
-      "width": 100,
-      "height": 28
-    },
-    {
-      "text": "your",
-      "x": 1820,
-      "y": 1015,
-      "width": 62,
-      "height": 24
-    },
-    {
-      "text": "territory.",
-      "x": 1890,
-      "y": 1009,
-      "width": 118,
-      "height": 30
-    },
-    {
-      "text": "If",
-      "x": 2018,
-      "y": 1010,
-      "width": 17,
-      "height": 23
-    },
-    {
-      "text": "someone",
-      "x": 2041,
-      "y": 1015,
-      "width": 124,
-      "height": 19
-    },
-    {
-      "text": "dares",
-      "x": 2173,
-      "y": 1010,
-      "width": 74,
-      "height": 23
-    },
-    {
-      "text": "to",
-      "x": 2255,
-      "y": 1012,
-      "width": 27,
-      "height": 21
-    },
-    {
-      "text": "get",
-      "x": 2290,
-      "y": 1012,
-      "width": 44,
-      "height": 27
-    },
-    {
-      "text": "too",
-      "x": 2341,
-      "y": 1012,
-      "width": 44,
-      "height": 21
-    },
-    {
-      "text": "close",
-      "x": 2392,
-      "y": 1010,
-      "width": 70,
-      "height": 24
-    },
-    {
-      "text": "to",
-      "x": 2470,
-      "y": 1011,
-      "width": 27,
-      "height": 22
-    },
-    {
-      "text": "your",
-      "x": 2503,
-      "y": 1015,
-      "width": 61,
-      "height": 24
-    },
-    {
-      "text": "food",
-      "x": 2571,
-      "y": 1010,
-      "width": 60,
-      "height": 24
-    },
-    {
-      "text": "or",
-      "x": 2639,
-      "y": 1015,
-      "width": 29,
-      "height": 18
-    },
-    {
-      "text": "home.",
-      "x": 1654,
-      "y": 1048,
-      "width": 82,
-      "height": 25
-    },
-    {
-      "text": "you'll",
-      "x": 1743,
-      "y": 1053,
-      "width": 48,
-      "height": 24
-    },
-    {
-      "text": "make",
-      "x": 1823,
-      "y": 1048,
-      "width": 71,
-      "height": 24
-    },
-    {
-      "text": "noise.",
-      "x": 1903,
-      "y": 1048,
-      "width": 78,
-      "height": 25
-    },
-    {
-      "text": "puff",
-      "x": 1989,
-      "y": 1048,
-      "width": 54,
-      "height": 29
-    },
-    {
-      "text": "out",
-      "x": 2051,
-      "y": 1049,
-      "width": 43,
-      "height": 23
-    },
-    {
-      "text": "your",
-      "x": 2102,
-      "y": 1053,
-      "width": 60,
-      "height": 24
-    },
-    {
-      "text": "chest.",
-      "x": 2169,
-      "y": 1048,
-      "width": 81,
-      "height": 26
-    },
-    {
-      "text": "raise",
-      "x": 2257,
-      "y": 1048,
-      "width": 64,
-      "height": 23
-    },
-    {
-      "text": "your",
-      "x": 2328,
-      "y": 1053,
-      "width": 60,
-      "height": 24
-    },
-    {
-      "text": "feathers.",
-      "x": 2395,
-      "y": 1048,
-      "width": 118,
-      "height": 26
-    },
-    {
-      "text": "and",
-      "x": 2521,
-      "y": 1048,
-      "width": 50,
-      "height": 24
-    },
-    {
-      "text": "chase",
-      "x": 2579,
-      "y": 1048,
-      "width": 79,
-      "height": 24
-    },
-    {
-      "text": "them",
-      "x": 1654,
-      "y": 1086,
-      "width": 67,
-      "height": 23
-    },
-    {
-      "text": "away",
-      "x": 1731,
-      "y": 1091,
-      "width": 73,
-      "height": 24
-    },
-    {
-      "text": "If",
-      "x": 1813,
-      "y": 1086,
-      "width": 19,
-      "height": 23
-    },
-    {
-      "text": "you",
-      "x": 1836,
-      "y": 1091,
-      "width": 50,
-      "height": 24
-    },
-    {
-      "text": "feel",
-      "x": 1895,
-      "y": 1086,
-      "width": 48,
-      "height": 23
-    },
-    {
-      "text": "threatened.",
-      "x": 1952,
-      "y": 1086,
-      "width": 153,
-      "height": 26
-    },
-    {
-      "text": "you",
-      "x": 2113,
-      "y": 1091,
-      "width": 48,
-      "height": 24
-    },
-    {
-      "text": "might",
-      "x": 2171,
-      "y": 1086,
-      "width": 76,
-      "height": 29
-    },
-    {
-      "text": "even",
-      "x": 2253,
-      "y": 1091,
-      "width": 65,
-      "height": 19
-    },
-    {
-      "text": "attack",
-      "x": 2326,
-      "y": 1086,
-      "width": 82,
-      "height": 23
-    },
-    {
-      "text": "them",
-      "x": 2416,
-      "y": 1086,
-      "width": 68,
-      "height": 23
-    },
-    {
-      "text": "with",
-      "x": 2492,
-      "y": 1086,
-      "width": 57,
-      "height": 23
-    },
-    {
-      "text": "your",
-      "x": 2556,
-      "y": 1091,
-      "width": 60,
-      "height": 24
-    },
-    {
-      "text": "bill.",
-      "x": 2624,
-      "y": 1086,
-      "width": 46,
-      "height": 24
-    },
-    {
-      "text": "Because",
-      "x": 1989,
-      "y": 1263,
-      "width": 124,
-      "height": 26
-    },
-    {
-      "text": "doesnt",
-      "x": 1968,
-      "y": 1297,
-      "width": 105,
-      "height": 25
-    },
-    {
-      "text": "know",
-      "x": 2080,
-      "y": 1298,
-      "width": 78,
-      "height": 24
-    },
-    {
-      "text": "he",
-      "x": 1989,
-      "y": 1331,
-      "width": 47,
-      "height": 24
-    },
-    {
-      "text": "words!",
-      "x": 2044,
-      "y": 1330,
-      "width": 95,
-      "height": 26
-    },
-    {
-      "text": "Rivoli's",
-      "x": 2508,
-      "y": 1474,
-      "width": 157,
-      "height": 24
-    },
-    {
-      "text": "Hummingbird",
-      "x": 1712,
-      "y": 1930,
-      "width": 159,
-      "height": 24
-    }
-  ]
+    "image":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230\\word-hotspots\\hummingbird_spread_14.png",
+    "text":  "Why does a hum hum? AFTERNOON You and most other hummingbirds aren\u0027t very social. You fly alone, eat alone, and build a nest alone. But when you\u0027re with other hummingbirds, you certainly do express yourself! A of hummingbirds can be called a charm. a shimmer. a bouquet. a hover. or a glittering! You communicate by flying. You may do a fast dive. fly in a U shape. or dart around to either attract another hummingbird or signal that they should get out of way. You can chirp. twitter. and sing. Different hummingbirds make different vocal sounds. You protect your territory. If someone dares to get too close to your food or home. you\u0027ll make noise. puff out your chest. raise your feathers. and chase them away If you feel threatened. you might even attack them with your bill. Because doesnt know he words! Rivoli\u0027s Hummingbird",
+    "width":  2964,
+    "height":  2160,
+    "words":  [
+                  {
+                      "text":  "Why",
+                      "x":  1064,
+                      "y":  1153,
+                      "width":  67,
+                      "height":  31
+                  },
+                  {
+                      "text":  "does",
+                      "x":  1138,
+                      "y":  1154,
+                      "width":  65,
+                      "height":  25
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1211,
+                      "y":  1161,
+                      "width":  17,
+                      "height":  17
+                  },
+                  {
+                      "text":  "hum",
+                      "x":  1059,
+                      "y":  1187,
+                      "width":  57,
+                      "height":  24
+                  },
+                  {
+                      "text":  "hum?",
+                      "x":  1111,
+                      "y":  1220,
+                      "width":  73,
+                      "height":  25
+                  },
+                  {
+                      "text":  "AFTERNOON",
+                      "x":  1596,
+                      "y":  236,
+                      "width":  504,
+                      "height":  88
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1609,
+                      "y":  364,
+                      "width":  88,
+                      "height":  42
+                  },
+                  {
+                      "text":  "and",
+                      "x":  1712,
+                      "y":  364,
+                      "width":  92,
+                      "height":  40
+                  },
+                  {
+                      "text":  "most",
+                      "x":  1816,
+                      "y":  366,
+                      "width":  118,
+                      "height":  40
+                  },
+                  {
+                      "text":  "other",
+                      "x":  1948,
+                      "y":  366,
+                      "width":  127,
+                      "height":  39
+                  },
+                  {
+                      "text":  "hummingbirds",
+                      "x":  2089,
+                      "y":  361,
+                      "width":  333,
+                      "height":  56
+                  },
+                  {
+                      "text":  "aren\u0027t",
+                      "x":  2437,
+                      "y":  365,
+                      "width":  135,
+                      "height":  41
+                  },
+                  {
+                      "text":  "very",
+                      "x":  1610,
+                      "y":  434,
+                      "width":  101,
+                      "height":  42
+                  },
+                  {
+                      "text":  "social.",
+                      "x":  1726,
+                      "y":  424,
+                      "width":  149,
+                      "height":  44
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1889,
+                      "y":  426,
+                      "width":  89,
+                      "height":  42
+                  },
+                  {
+                      "text":  "fly",
+                      "x":  1993,
+                      "y":  426,
+                      "width":  57,
+                      "height":  50
+                  },
+                  {
+                      "text":  "alone,",
+                      "x":  2064,
+                      "y":  426,
+                      "width":  145,
+                      "height":  49
+                  },
+                  {
+                      "text":  "eat",
+                      "x":  2224,
+                      "y":  428,
+                      "width":  79,
+                      "height":  40
+                  },
+                  {
+                      "text":  "alone,",
+                      "x":  2318,
+                      "y":  426,
+                      "width":  144,
+                      "height":  50
+                  },
+                  {
+                      "text":  "and",
+                      "x":  2478,
+                      "y":  426,
+                      "width":  92,
+                      "height":  40
+                  },
+                  {
+                      "text":  "build",
+                      "x":  1611,
+                      "y":  487,
+                      "width":  116,
+                      "height":  43
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1741,
+                      "y":  500,
+                      "width":  29,
+                      "height":  28
+                  },
+                  {
+                      "text":  "nest",
+                      "x":  1785,
+                      "y":  491,
+                      "width":  100,
+                      "height":  39
+                  },
+                  {
+                      "text":  "alone.",
+                      "x":  1902,
+                      "y":  488,
+                      "width":  142,
+                      "height":  42
+                  },
+                  {
+                      "text":  "But",
+                      "x":  2060,
+                      "y":  488,
+                      "width":  80,
+                      "height":  42
+                  },
+                  {
+                      "text":  "when",
+                      "x":  2159,
+                      "y":  491,
+                      "width":  121,
+                      "height":  39
+                  },
+                  {
+                      "text":  "you\u0027re",
+                      "x":  2296,
+                      "y":  490,
+                      "width":  139,
+                      "height":  48
+                  },
+                  {
+                      "text":  "with",
+                      "x":  1613,
+                      "y":  549,
+                      "width":  97,
+                      "height":  43
+                  },
+                  {
+                      "text":  "other",
+                      "x":  1725,
+                      "y":  553,
+                      "width":  127,
+                      "height":  40
+                  },
+                  {
+                      "text":  "hummingbirds,",
+                      "x":  1867,
+                      "y":  549,
+                      "width":  345,
+                      "height":  55
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2228,
+                      "y":  562,
+                      "width":  85,
+                      "height":  39
+                  },
+                  {
+                      "text":  "certainly",
+                      "x":  2327,
+                      "y":  549,
+                      "width":  204,
+                      "height":  52
+                  },
+                  {
+                      "text":  "do",
+                      "x":  1611,
+                      "y":  614,
+                      "width":  61,
+                      "height":  41
+                  },
+                  {
+                      "text":  "express",
+                      "x":  1687,
+                      "y":  622,
+                      "width":  182,
+                      "height":  43
+                  },
+                  {
+                      "text":  "yourself!",
+                      "x":  1884,
+                      "y":  614,
+                      "width":  201,
+                      "height":  50
+                  },
+                  {
+                      "text":  "A",
+                      "x":  1654,
+                      "y":  695,
+                      "width":  21,
+                      "height":  23
+                  },
+                  {
+                      "text":  "of",
+                      "x":  1770,
+                      "y":  695,
+                      "width":  31,
+                      "height":  23
+                  },
+                  {
+                      "text":  "hummingbirds",
+                      "x":  1808,
+                      "y":  694,
+                      "width":  200,
+                      "height":  30
+                  },
+                  {
+                      "text":  "can",
+                      "x":  2016,
+                      "y":  700,
+                      "width":  46,
+                      "height":  18
+                  },
+                  {
+                      "text":  "be",
+                      "x":  2071,
+                      "y":  695,
+                      "width":  33,
+                      "height":  23
+                  },
+                  {
+                      "text":  "called",
+                      "x":  2112,
+                      "y":  695,
+                      "width":  79,
+                      "height":  23
+                  },
+                  {
+                      "text":  "a",
+                      "x":  2201,
+                      "y":  700,
+                      "width":  14,
+                      "height":  18
+                  },
+                  {
+                      "text":  "charm.",
+                      "x":  2223,
+                      "y":  695,
+                      "width":  92,
+                      "height":  26
+                  },
+                  {
+                      "text":  "a",
+                      "x":  2321,
+                      "y":  700,
+                      "width":  16,
+                      "height":  18
+                  },
+                  {
+                      "text":  "shimmer.",
+                      "x":  2346,
+                      "y":  695,
+                      "width":  121,
+                      "height":  25
+                  },
+                  {
+                      "text":  "a",
+                      "x":  2476,
+                      "y":  700,
+                      "width":  14,
+                      "height":  19
+                  },
+                  {
+                      "text":  "bouquet.",
+                      "x":  2499,
+                      "y":  695,
+                      "width":  120,
+                      "height":  28
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1655,
+                      "y":  738,
+                      "width":  14,
+                      "height":  18
+                  },
+                  {
+                      "text":  "hover.",
+                      "x":  1679,
+                      "y":  733,
+                      "width":  79,
+                      "height":  26
+                  },
+                  {
+                      "text":  "or",
+                      "x":  1767,
+                      "y":  738,
+                      "width":  28,
+                      "height":  18
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1802,
+                      "y":  738,
+                      "width":  16,
+                      "height":  18
+                  },
+                  {
+                      "text":  "glittering!",
+                      "x":  1826,
+                      "y":  732,
+                      "width":  126,
+                      "height":  30
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1654,
+                      "y":  787,
+                      "width":  50,
+                      "height":  24
+                  },
+                  {
+                      "text":  "communicate",
+                      "x":  1713,
+                      "y":  786,
+                      "width":  186,
+                      "height":  24
+                  },
+                  {
+                      "text":  "by",
+                      "x":  1906,
+                      "y":  787,
+                      "width":  33,
+                      "height":  29
+                  },
+                  {
+                      "text":  "flying.",
+                      "x":  1947,
+                      "y":  786,
+                      "width":  85,
+                      "height":  30
+                  },
+                  {
+                      "text":  "You",
+                      "x":  2041,
+                      "y":  787,
+                      "width":  50,
+                      "height":  24
+                  },
+                  {
+                      "text":  "may",
+                      "x":  2100,
+                      "y":  792,
+                      "width":  56,
+                      "height":  24
+                  },
+                  {
+                      "text":  "do",
+                      "x":  2164,
+                      "y":  787,
+                      "width":  34,
+                      "height":  24
+                  },
+                  {
+                      "text":  "a",
+                      "x":  2206,
+                      "y":  792,
+                      "width":  15,
+                      "height":  19
+                  },
+                  {
+                      "text":  "fast",
+                      "x":  2229,
+                      "y":  787,
+                      "width":  48,
+                      "height":  23
+                  },
+                  {
+                      "text":  "dive.",
+                      "x":  2286,
+                      "y":  787,
+                      "width":  64,
+                      "height":  26
+                  },
+                  {
+                      "text":  "fly",
+                      "x":  2356,
+                      "y":  787,
+                      "width":  34,
+                      "height":  29
+                  },
+                  {
+                      "text":  "in",
+                      "x":  2397,
+                      "y":  787,
+                      "width":  22,
+                      "height":  23
+                  },
+                  {
+                      "text":  "a",
+                      "x":  2429,
+                      "y":  792,
+                      "width":  14,
+                      "height":  19
+                  },
+                  {
+                      "text":  "U",
+                      "x":  2453,
+                      "y":  787,
+                      "width":  20,
+                      "height":  24
+                  },
+                  {
+                      "text":  "shape.",
+                      "x":  2482,
+                      "y":  787,
+                      "width":  88,
+                      "height":  29
+                  },
+                  {
+                      "text":  "or",
+                      "x":  2578,
+                      "y":  792,
+                      "width":  27,
+                      "height":  19
+                  },
+                  {
+                      "text":  "dart",
+                      "x":  2614,
+                      "y":  787,
+                      "width":  54,
+                      "height":  24
+                  },
+                  {
+                      "text":  "around",
+                      "x":  1655,
+                      "y":  825,
+                      "width":  93,
+                      "height":  24
+                  },
+                  {
+                      "text":  "to",
+                      "x":  1756,
+                      "y":  827,
+                      "width":  27,
+                      "height":  22
+                  },
+                  {
+                      "text":  "either",
+                      "x":  1791,
+                      "y":  825,
+                      "width":  77,
+                      "height":  24
+                  },
+                  {
+                      "text":  "attract",
+                      "x":  1876,
+                      "y":  827,
+                      "width":  87,
+                      "height":  22
+                  },
+                  {
+                      "text":  "another",
+                      "x":  1971,
+                      "y":  825,
+                      "width":  104,
+                      "height":  24
+                  },
+                  {
+                      "text":  "hummingbird",
+                      "x":  2084,
+                      "y":  825,
+                      "width":  175,
+                      "height":  29
+                  },
+                  {
+                      "text":  "or",
+                      "x":  2268,
+                      "y":  830,
+                      "width":  28,
+                      "height":  19
+                  },
+                  {
+                      "text":  "signal",
+                      "x":  2304,
+                      "y":  825,
+                      "width":  77,
+                      "height":  29
+                  },
+                  {
+                      "text":  "that",
+                      "x":  2389,
+                      "y":  825,
+                      "width":  53,
+                      "height":  23
+                  },
+                  {
+                      "text":  "they",
+                      "x":  2449,
+                      "y":  825,
+                      "width":  60,
+                      "height":  29
+                  },
+                  {
+                      "text":  "should",
+                      "x":  2516,
+                      "y":  825,
+                      "width":  88,
+                      "height":  24
+                  },
+                  {
+                      "text":  "get",
+                      "x":  2614,
+                      "y":  827,
+                      "width":  43,
+                      "height":  27
+                  },
+                  {
+                      "text":  "out",
+                      "x":  2664,
+                      "y":  827,
+                      "width":  45,
+                      "height":  22
+                  },
+                  {
+                      "text":  "of",
+                      "x":  1654,
+                      "y":  863,
+                      "width":  27,
+                      "height":  24
+                  },
+                  {
+                      "text":  "way.",
+                      "x":  1754,
+                      "y":  868,
+                      "width":  60,
+                      "height":  24
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1654,
+                      "y":  917,
+                      "width":  50,
+                      "height":  24
+                  },
+                  {
+                      "text":  "can",
+                      "x":  1712,
+                      "y":  923,
+                      "width":  47,
+                      "height":  18
+                  },
+                  {
+                      "text":  "chirp.",
+                      "x":  1768,
+                      "y":  918,
+                      "width":  74,
+                      "height":  28
+                  },
+                  {
+                      "text":  "twitter.",
+                      "x":  1849,
+                      "y":  918,
+                      "width":  94,
+                      "height":  25
+                  },
+                  {
+                      "text":  "and",
+                      "x":  1951,
+                      "y":  918,
+                      "width":  49,
+                      "height":  23
+                  },
+                  {
+                      "text":  "sing.",
+                      "x":  2009,
+                      "y":  918,
+                      "width":  61,
+                      "height":  29
+                  },
+                  {
+                      "text":  "Different",
+                      "x":  2079,
+                      "y":  917,
+                      "width":  119,
+                      "height":  24
+                  },
+                  {
+                      "text":  "hummingbirds",
+                      "x":  2206,
+                      "y":  917,
+                      "width":  190,
+                      "height":  29
+                  },
+                  {
+                      "text":  "make",
+                      "x":  2405,
+                      "y":  918,
+                      "width":  71,
+                      "height":  23
+                  },
+                  {
+                      "text":  "different",
+                      "x":  2484,
+                      "y":  918,
+                      "width":  114,
+                      "height":  23
+                  },
+                  {
+                      "text":  "vocal",
+                      "x":  2605,
+                      "y":  918,
+                      "width":  72,
+                      "height":  23
+                  },
+                  {
+                      "text":  "sounds.",
+                      "x":  1654,
+                      "y":  956,
+                      "width":  107,
+                      "height":  23
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1654,
+                      "y":  1010,
+                      "width":  50,
+                      "height":  23
+                  },
+                  {
+                      "text":  "protect",
+                      "x":  1712,
+                      "y":  1011,
+                      "width":  100,
+                      "height":  28
+                  },
+                  {
+                      "text":  "your",
+                      "x":  1820,
+                      "y":  1015,
+                      "width":  62,
+                      "height":  24
+                  },
+                  {
+                      "text":  "territory.",
+                      "x":  1890,
+                      "y":  1009,
+                      "width":  118,
+                      "height":  30
+                  },
+                  {
+                      "text":  "If",
+                      "x":  2018,
+                      "y":  1010,
+                      "width":  17,
+                      "height":  23
+                  },
+                  {
+                      "text":  "someone",
+                      "x":  2041,
+                      "y":  1015,
+                      "width":  124,
+                      "height":  19
+                  },
+                  {
+                      "text":  "dares",
+                      "x":  2173,
+                      "y":  1010,
+                      "width":  74,
+                      "height":  23
+                  },
+                  {
+                      "text":  "to",
+                      "x":  2255,
+                      "y":  1012,
+                      "width":  27,
+                      "height":  21
+                  },
+                  {
+                      "text":  "get",
+                      "x":  2290,
+                      "y":  1012,
+                      "width":  44,
+                      "height":  27
+                  },
+                  {
+                      "text":  "too",
+                      "x":  2341,
+                      "y":  1012,
+                      "width":  44,
+                      "height":  21
+                  },
+                  {
+                      "text":  "close",
+                      "x":  2392,
+                      "y":  1010,
+                      "width":  70,
+                      "height":  24
+                  },
+                  {
+                      "text":  "to",
+                      "x":  2470,
+                      "y":  1011,
+                      "width":  27,
+                      "height":  22
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2503,
+                      "y":  1015,
+                      "width":  61,
+                      "height":  24
+                  },
+                  {
+                      "text":  "food",
+                      "x":  2571,
+                      "y":  1010,
+                      "width":  60,
+                      "height":  24
+                  },
+                  {
+                      "text":  "or",
+                      "x":  2639,
+                      "y":  1015,
+                      "width":  29,
+                      "height":  18
+                  },
+                  {
+                      "text":  "home.",
+                      "x":  1654,
+                      "y":  1048,
+                      "width":  82,
+                      "height":  25
+                  },
+                  {
+                      "text":  "you\u0027ll",
+                      "x":  1743,
+                      "y":  1053,
+                      "width":  48,
+                      "height":  24
+                  },
+                  {
+                      "text":  "make",
+                      "x":  1823,
+                      "y":  1048,
+                      "width":  71,
+                      "height":  24
+                  },
+                  {
+                      "text":  "noise.",
+                      "x":  1903,
+                      "y":  1048,
+                      "width":  78,
+                      "height":  25
+                  },
+                  {
+                      "text":  "puff",
+                      "x":  1989,
+                      "y":  1048,
+                      "width":  54,
+                      "height":  29
+                  },
+                  {
+                      "text":  "out",
+                      "x":  2051,
+                      "y":  1049,
+                      "width":  43,
+                      "height":  23
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2102,
+                      "y":  1053,
+                      "width":  60,
+                      "height":  24
+                  },
+                  {
+                      "text":  "chest.",
+                      "x":  2169,
+                      "y":  1048,
+                      "width":  81,
+                      "height":  26
+                  },
+                  {
+                      "text":  "raise",
+                      "x":  2257,
+                      "y":  1048,
+                      "width":  64,
+                      "height":  23
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2328,
+                      "y":  1053,
+                      "width":  60,
+                      "height":  24
+                  },
+                  {
+                      "text":  "feathers.",
+                      "x":  2395,
+                      "y":  1048,
+                      "width":  118,
+                      "height":  26
+                  },
+                  {
+                      "text":  "and",
+                      "x":  2521,
+                      "y":  1048,
+                      "width":  50,
+                      "height":  24
+                  },
+                  {
+                      "text":  "chase",
+                      "x":  2579,
+                      "y":  1048,
+                      "width":  79,
+                      "height":  24
+                  },
+                  {
+                      "text":  "them",
+                      "x":  1654,
+                      "y":  1086,
+                      "width":  67,
+                      "height":  23
+                  },
+                  {
+                      "text":  "away",
+                      "x":  1731,
+                      "y":  1091,
+                      "width":  73,
+                      "height":  24
+                  },
+                  {
+                      "text":  "If",
+                      "x":  1813,
+                      "y":  1086,
+                      "width":  19,
+                      "height":  23
+                  },
+                  {
+                      "text":  "you",
+                      "x":  1836,
+                      "y":  1091,
+                      "width":  50,
+                      "height":  24
+                  },
+                  {
+                      "text":  "feel",
+                      "x":  1895,
+                      "y":  1086,
+                      "width":  48,
+                      "height":  23
+                  },
+                  {
+                      "text":  "threatened.",
+                      "x":  1952,
+                      "y":  1086,
+                      "width":  153,
+                      "height":  26
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2113,
+                      "y":  1091,
+                      "width":  48,
+                      "height":  24
+                  },
+                  {
+                      "text":  "might",
+                      "x":  2171,
+                      "y":  1086,
+                      "width":  76,
+                      "height":  29
+                  },
+                  {
+                      "text":  "even",
+                      "x":  2253,
+                      "y":  1091,
+                      "width":  65,
+                      "height":  19
+                  },
+                  {
+                      "text":  "attack",
+                      "x":  2326,
+                      "y":  1086,
+                      "width":  82,
+                      "height":  23
+                  },
+                  {
+                      "text":  "them",
+                      "x":  2416,
+                      "y":  1086,
+                      "width":  68,
+                      "height":  23
+                  },
+                  {
+                      "text":  "with",
+                      "x":  2492,
+                      "y":  1086,
+                      "width":  57,
+                      "height":  23
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2556,
+                      "y":  1091,
+                      "width":  60,
+                      "height":  24
+                  },
+                  {
+                      "text":  "bill.",
+                      "x":  2624,
+                      "y":  1086,
+                      "width":  46,
+                      "height":  24
+                  },
+                  {
+                      "text":  "Because",
+                      "x":  1989,
+                      "y":  1263,
+                      "width":  124,
+                      "height":  26
+                  },
+                  {
+                      "text":  "doesnt",
+                      "x":  1968,
+                      "y":  1297,
+                      "width":  105,
+                      "height":  25
+                  },
+                  {
+                      "text":  "know",
+                      "x":  2080,
+                      "y":  1298,
+                      "width":  78,
+                      "height":  24
+                  },
+                  {
+                      "text":  "he",
+                      "x":  1989,
+                      "y":  1331,
+                      "width":  47,
+                      "height":  24
+                  },
+                  {
+                      "text":  "words!",
+                      "x":  2044,
+                      "y":  1330,
+                      "width":  95,
+                      "height":  26
+                  },
+                  {
+                      "text":  "Rivoli\u0027s",
+                      "x":  2508,
+                      "y":  1474,
+                      "width":  157,
+                      "height":  24
+                  },
+                  {
+                      "text":  "Hummingbird",
+                      "x":  1712,
+                      "y":  1930,
+                      "width":  159,
+                      "height":  24
+                  },
+                  {
+                      "height":  82,
+                      "width":  248,
+                      "x":  224,
+                      "y":  195,
+                      "page":  14,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "Two"
+                  },
+                  {
+                      "height":  82,
+                      "width":  170,
+                      "x":  506,
+                      "y":  195,
+                      "page":  14,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "PM"
+                  },
+                  {
+                      "height":  72,
+                      "width":  305,
+                      "x":  2133,
+                      "y":  245,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "RECESS"
+                  },
+                  {
+                      "height":  25,
+                      "width":  88,
+                      "x":  1679,
+                      "y":  696,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "group"
+                  },
+                  {
+                      "height":  22,
+                      "width":  61,
+                      "x":  1686,
+                      "y":  867,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "your"
+                  },
+                  {
+                      "height":  34,
+                      "width":  196,
+                      "x":  1052,
+                      "y":  1188,
+                      "page":  14,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "hummingbird"
+                  },
+                  {
+                      "height":  28,
+                      "width":  23,
+                      "x":  2127,
+                      "y":  1264,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "it"
+                  },
+                  {
+                      "height":  27,
+                      "width":  52,
+                      "x":  2001,
+                      "y":  1329,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "the"
+                  },
+                  {
+                      "height":  28,
+                      "width":  96,
+                      "x":  690,
+                      "y":  1319,
+                      "page":  14,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "Rivolis"
+                  },
+                  {
+                      "height":  34,
+                      "width":  190,
+                      "x":  690,
+                      "y":  1354,
+                      "page":  14,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "Hummingbirds"
+                  },
+                  {
+                      "height":  27,
+                      "width":  167,
+                      "x":  2508,
+                      "y":  1475,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "Hummingbird"
+                  },
+                  {
+                      "height":  28,
+                      "width":  107,
+                      "x":  1775,
+                      "y":  1897,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "throated"
+                  },
+                  {
+                      "height":  28,
+                      "width":  63,
+                      "x":  1714,
+                      "y":  1900,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "Fiery"
+                  },
+                  {
+                      "height":  23,
+                      "width":  38,
+                      "x":  2731,
+                      "y":  1943,
+                      "page":  15,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "15"
+                  },
+                  {
+                      "height":  46,
+                      "width":  52,
+                      "x":  178,
+                      "y":  1966,
+                      "page":  14,
+                      "reviewFile":  "hummingbird_spread_14.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "14"
+                  }
+              ]
 }

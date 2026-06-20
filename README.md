@@ -46,6 +46,7 @@ npm run dev:serve
 Then open the Epic QA reader for a configured book and load the local extension:
 
 ```js
+// Enable blank Epic pages while loading the local 1Tribe plugin.
 localStorage.setItem('epic_debug_skip_page_render', '1')
 localStorage.setItem(
   'epic_debug_plugin',
@@ -62,9 +63,10 @@ This milestone intentionally does not auto-run on unconfigured books. Add a new 
 
 - `src/extension`: extension source
 - `public/rive`: Rive runtime files and book-specific `.riv` assets
-- `public/rive/ICanFindIt_83936/word-hotspots`: word hotspot timing/position data
+- `public/rive/*/word-hotspots`: book-specific OCR sidecars and word hotspot position data
 - `public/rive-page-map.json`: simple overlay page-to-Rive mapping by book ID
 - `scripts/dev-server.mjs`: local static server for QA review
+- `scripts/generate-word-hotspots.ps1`: local Rive screenshot/OCR generator for word hotspot data
 
 The active book configuration lives in `src/extension/bookConfig.ts`.
 

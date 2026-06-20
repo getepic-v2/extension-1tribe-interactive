@@ -144,6 +144,19 @@ interface ReadAlongBounds {
   y: number
 }
 
+interface ReadAlongCoordsTransform {
+  anchorCount: number
+  heightScale: number
+  offsetX: number
+  offsetY: number
+  scaleX: number
+  scaleY: number
+  widthScale: number
+}
+
+const READ_ALONG_NATIVE_COORDS_WIDTH = 800
+const READ_ALONG_NATIVE_COORDS_HEIGHT = 1144
+
 interface ReadAlongTranscriptWord {
   bbox: WordTimingEntry['bbox'] | null
   coords: WordTimingEntry['coords'] | null
@@ -533,12 +546,30 @@ function findReadAlongTimingIndexAtTime(
 ): number {
   if (!Number.isFinite(currentTime) || currentTime < 0) return -1
 
+  let activeIndex = -1
+  let activeStartTime = Number.NEGATIVE_INFINITY
+  let lingeringIndex = -1
+  let lingeringEndTime = Number.NEGATIVE_INFINITY
+
   for (let index = 0; index < timings.length; index += 1) {
     const timing = timings[index]
-    if (currentTime >= timing.time && currentTime <= timing.endTime + lingerSeconds) return index
+    if (currentTime < timing.time) continue
+
+    if (currentTime <= timing.endTime) {
+      if (timing.time >= activeStartTime) {
+        activeIndex = index
+        activeStartTime = timing.time
+      }
+      continue
+    }
+
+    if (currentTime <= timing.endTime + lingerSeconds && timing.endTime >= lingeringEndTime) {
+      lingeringIndex = index
+      lingeringEndTime = timing.endTime
+    }
   }
 
-  return -1
+  return activeIndex >= 0 ? activeIndex : lingeringIndex
 }
 
 function getReadAlongTimingOccurrenceIndex(timings: ReadAlongWordTiming[], timingIndex: number): number {
@@ -548,6 +579,27 @@ function getReadAlongTimingOccurrenceIndex(timings: ReadAlongWordTiming[], timin
   let occurrence = 0
   for (let index = 0; index < timingIndex; index += 1) {
     if (timings[index]?.word === target.word) occurrence += 1
+  }
+
+  return occurrence
+}
+
+function getReadAlongTimingAliasOccurrenceIndex(
+  timings: ReadAlongWordTiming[],
+  timingIndex: number,
+  targetAliases: Set<string>,
+): number {
+  let occurrence = 0
+  for (let index = 0; index < timingIndex; index += 1) {
+    const timing = timings[index]
+    if (!timing) continue
+
+    const aliases = [
+      ...getReadAlongWordAliasVariants(timing.word),
+      ...getReadAlongWordAliasVariants(timing.text),
+      ...getReadAlongWordAliasVariants(timing.nativeText),
+    ]
+    if (aliases.some((alias) => targetAliases.has(alias))) occurrence += 1
   }
 
   return occurrence
@@ -567,7 +619,24 @@ export function clearReadAlongButtonHighlight(): void {
 }
 
 function normalizeReadAlongWordAlias(value: string): string {
-  return cleanWordHotspotText(value.replace(/[\u2010-\u2015]/g, '-')).toLowerCase()
+  return cleanWordHotspotText(
+    value
+      .replace(/\u00e2\u20ac\u2122/g, "'")
+      .replace(/\u00e2\u20ac\u02dc/g, "'")
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u2010-\u2015]/g, '-'),
+  ).toLowerCase()
+}
+
+function getReadAlongWordAliasVariants(value: string): string[] {
+  const aliases = new Set<string>()
+  const alias = normalizeReadAlongWordAlias(value)
+  if (!alias) return []
+
+  aliases.add(alias)
+  const apostropheFreeAlias = alias.replace(/'/g, '')
+  if (apostropheFreeAlias) aliases.add(apostropheFreeAlias)
+  return Array.from(aliases)
 }
 
 function getReadAlongHyphenSegments(value: string): ReadAlongHyphenSegment[] {
@@ -657,8 +726,7 @@ function getReadAlongButtonWord(button: HTMLButtonElement): string {
 export function getReadAlongButtonWordAliases(button: HTMLButtonElement): string[] {
   const aliases = new Set<string>()
   const addAlias = (value: string) => {
-    const alias = normalizeReadAlongWordAlias(value)
-    if (alias) aliases.add(alias)
+    getReadAlongWordAliasVariants(value).forEach((alias) => aliases.add(alias))
   }
   const sourceText = button.dataset.sourceWord || button.dataset.lookupWord || button.textContent || ''
 
@@ -718,6 +786,40 @@ function normalizeReadAlongBoundsUnit(value: number, scale: number): number {
   return Math.max(0, Math.min(1, value / scale))
 }
 
+function getReadAlongTimingRawCoordsBounds(timing: ReadAlongWordTiming): ReadAlongBounds | null {
+  const coords = timing.raw.coords
+  if (!Array.isArray(coords) || coords.length < 4) return null
+
+  const x = Number(coords[0])
+  const y = Number(coords[1])
+  const width = Number(coords[2])
+  const height = Number(coords[3])
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null
+  }
+
+  return { height, width, x, y }
+}
+
+function clampReadAlongBoundsToUnit(bounds: ReadAlongBounds): ReadAlongBounds | null {
+  const left = Math.max(0, Math.min(1, bounds.x))
+  const top = Math.max(0, Math.min(1, bounds.y))
+  const right = Math.max(left, Math.min(1, bounds.x + bounds.width))
+  const bottom = Math.max(top, Math.min(1, bounds.y + bounds.height))
+  const width = right - left
+  const height = bottom - top
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null
+
+  return { height, width, x: left, y: top }
+}
+
 function getReadAlongTimingPageBounds(timing: ReadAlongWordTiming): ReadAlongBounds | null {
   const bbox = timing.raw.bbox
   const x1 = Number(bbox?.x1)
@@ -747,10 +849,59 @@ function getReadAlongTimingPageBounds(timing: ReadAlongWordTiming): ReadAlongBou
   }
 }
 
+function getDefaultReadAlongCoordsTransform(button: HTMLButtonElement): ReadAlongCoordsTransform | null {
+  const buttonPage = getReadAlongButtonPage(button)
+  const pages = getReadAlongButtonPages(button)
+  const pageIndex = buttonPage === null ? -1 : pages.indexOf(buttonPage)
+  const pageCount = Math.max(1, pages.length)
+  if (pages.length > 1 && pageIndex < 0) return null
+
+  return {
+    anchorCount: 0,
+    heightScale: 1 / READ_ALONG_NATIVE_COORDS_HEIGHT,
+    offsetX: pages.length > 1 ? pageIndex / pageCount : 0,
+    offsetY: 0,
+    scaleX: 1 / (READ_ALONG_NATIVE_COORDS_WIDTH * pageCount),
+    scaleY: 1 / READ_ALONG_NATIVE_COORDS_HEIGHT,
+    widthScale: 1 / (READ_ALONG_NATIVE_COORDS_WIDTH * pageCount),
+  }
+}
+
+function projectReadAlongRawCoordsBounds(
+  rawBounds: ReadAlongBounds,
+  transform: ReadAlongCoordsTransform,
+): ReadAlongBounds | null {
+  const centerX = rawBounds.x + rawBounds.width / 2
+  const centerY = rawBounds.y + rawBounds.height / 2
+  const width = rawBounds.width * transform.widthScale
+  const height = rawBounds.height * transform.heightScale
+  return clampReadAlongBoundsToUnit({
+    height,
+    width,
+    x: centerX * transform.scaleX + transform.offsetX - width / 2,
+    y: centerY * transform.scaleY + transform.offsetY - height / 2,
+  })
+}
+
+function projectReadAlongTimingCoordsBounds(
+  timing: ReadAlongWordTiming,
+  transform: ReadAlongCoordsTransform,
+): ReadAlongBounds | null {
+  const rawBounds = getReadAlongTimingRawCoordsBounds(timing)
+  return rawBounds ? projectReadAlongRawCoordsBounds(rawBounds, transform) : null
+}
+
 function projectReadAlongTimingBoundsForButton(
   timing: ReadAlongWordTiming,
   button: HTMLButtonElement,
+  coordsTransform: ReadAlongCoordsTransform | null = null,
 ): ReadAlongBounds | null {
+  const defaultCoordsTransform = getDefaultReadAlongCoordsTransform(button)
+  const projectedCoordsBounds =
+    (coordsTransform ? projectReadAlongTimingCoordsBounds(timing, coordsTransform) : null) ||
+    (defaultCoordsTransform ? projectReadAlongTimingCoordsBounds(timing, defaultCoordsTransform) : null)
+  if (projectedCoordsBounds) return projectedCoordsBounds
+
   const timingBounds = getReadAlongTimingPageBounds(timing)
   if (!timingBounds) return null
 
@@ -777,8 +928,159 @@ function getReadAlongBoundsCenter(bounds: ReadAlongBounds): { x: number; y: numb
   }
 }
 
-function getReadAlongButtonGeometryScore(timing: ReadAlongWordTiming, button: HTMLButtonElement): number | null {
-  const timingBounds = projectReadAlongTimingBoundsForButton(timing, button)
+function getReadAlongMedian(values: number[]): number | null {
+  const sorted = values.filter(Number.isFinite).slice().sort((first, second) => first - second)
+  if (!sorted.length) return null
+
+  const middle = Math.floor(sorted.length / 2)
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+}
+
+function fitReadAlongCoordsAxis(
+  anchors: Array<{ buttonBounds: ReadAlongBounds; rawBounds: ReadAlongBounds }>,
+  getRawValue: (anchor: { buttonBounds: ReadAlongBounds; rawBounds: ReadAlongBounds }) => number,
+  getButtonValue: (anchor: { buttonBounds: ReadAlongBounds; rawBounds: ReadAlongBounds }) => number,
+): { offset: number; scale: number } | null {
+  if (anchors.length < 2) return null
+
+  const rawMean = anchors.reduce((total, anchor) => total + getRawValue(anchor), 0) / anchors.length
+  const buttonMean = anchors.reduce((total, anchor) => total + getButtonValue(anchor), 0) / anchors.length
+  let numerator = 0
+  let denominator = 0
+  for (const anchor of anchors) {
+    const rawDelta = getRawValue(anchor) - rawMean
+    numerator += rawDelta * (getButtonValue(anchor) - buttonMean)
+    denominator += rawDelta * rawDelta
+  }
+  if (Math.abs(denominator) < 0.0001) return null
+
+  const scale = numerator / denominator
+  const offset = buttonMean - scale * rawMean
+  if (!Number.isFinite(scale) || !Number.isFinite(offset) || scale <= 0) return null
+
+  return { offset, scale }
+}
+
+function fitReadAlongCoordsTransform(
+  anchors: Array<{ buttonBounds: ReadAlongBounds; rawBounds: ReadAlongBounds }>,
+): ReadAlongCoordsTransform | null {
+  if (anchors.length < 3) return null
+
+  const xAxis = fitReadAlongCoordsAxis(
+    anchors,
+    (anchor) => getReadAlongBoundsCenter(anchor.rawBounds).x,
+    (anchor) => getReadAlongBoundsCenter(anchor.buttonBounds).x,
+  )
+  const yAxis = fitReadAlongCoordsAxis(
+    anchors,
+    (anchor) => getReadAlongBoundsCenter(anchor.rawBounds).y,
+    (anchor) => getReadAlongBoundsCenter(anchor.buttonBounds).y,
+  )
+  if (!xAxis || !yAxis) return null
+
+  const widthScale = getReadAlongMedian(anchors.map((anchor) => anchor.buttonBounds.width / anchor.rawBounds.width))
+  const heightScale = getReadAlongMedian(anchors.map((anchor) => anchor.buttonBounds.height / anchor.rawBounds.height))
+  if (!widthScale || !heightScale || widthScale <= 0 || heightScale <= 0) return null
+
+  return {
+    anchorCount: anchors.length,
+    heightScale,
+    offsetX: xAxis.offset,
+    offsetY: yAxis.offset,
+    scaleX: xAxis.scale,
+    scaleY: yAxis.scale,
+    widthScale,
+  }
+}
+
+function getReadAlongCoordsTransformResidual(
+  anchor: { buttonBounds: ReadAlongBounds; rawBounds: ReadAlongBounds },
+  transform: ReadAlongCoordsTransform,
+): number {
+  const projected = projectReadAlongRawCoordsBounds(anchor.rawBounds, transform)
+  if (!projected) return Number.POSITIVE_INFINITY
+
+  const projectedCenter = getReadAlongBoundsCenter(projected)
+  const buttonCenter = getReadAlongBoundsCenter(anchor.buttonBounds)
+  return Math.abs(projectedCenter.x - buttonCenter.x) + Math.abs(projectedCenter.y - buttonCenter.y)
+}
+
+function createReadAlongCoordsTransform(
+  timingSet: ReadAlongTimingSet,
+  buttons: HTMLButtonElement[],
+): ReadAlongCoordsTransform | null {
+  const timingsByWord = new Map<string, ReadAlongWordTiming[]>()
+  for (const timing of timingSet.timings) {
+    if (!getReadAlongTimingRawCoordsBounds(timing)) continue
+    const timingAliases = new Set([
+      ...getReadAlongWordAliasVariants(timing.word),
+      ...getReadAlongWordAliasVariants(timing.text),
+      ...getReadAlongWordAliasVariants(timing.nativeText),
+    ])
+    for (const alias of timingAliases) {
+      const group = timingsByWord.get(alias) || []
+      if (!group.includes(timing)) group.push(timing)
+      timingsByWord.set(alias, group)
+    }
+  }
+
+  const buttonsByWord = new Map<string, HTMLButtonElement[]>()
+  for (const button of buttons) {
+    if (getReadAlongButtonPage(button) !== timingSet.page || !getReadAlongButtonSourceBounds(button)) continue
+    for (const alias of getReadAlongButtonWordAliases(button)) {
+      const group = buttonsByWord.get(alias) || []
+      if (!group.includes(button)) group.push(button)
+      buttonsByWord.set(alias, group)
+    }
+  }
+
+  let anchors: Array<{ buttonBounds: ReadAlongBounds; rawBounds: ReadAlongBounds }> = []
+  for (const [word, timings] of timingsByWord) {
+    const matchingButtons = buttonsByWord.get(word) || []
+    if (timings.length !== 1 || matchingButtons.length !== 1) continue
+
+    const rawBounds = getReadAlongTimingRawCoordsBounds(timings[0])
+    const buttonBounds = getReadAlongButtonSourceBounds(matchingButtons[0])
+    if (!rawBounds || !buttonBounds) continue
+
+    const defaultTransform = getDefaultReadAlongCoordsTransform(matchingButtons[0])
+    const defaultBounds = defaultTransform ? projectReadAlongTimingCoordsBounds(timings[0], defaultTransform) : null
+    if (defaultBounds) {
+      const defaultCenter = getReadAlongBoundsCenter(defaultBounds)
+      const buttonCenter = getReadAlongBoundsCenter(buttonBounds)
+      const defaultDistance = Math.abs(defaultCenter.x - buttonCenter.x) + Math.abs(defaultCenter.y - buttonCenter.y)
+      if (defaultDistance > 0.2) continue
+    }
+
+    anchors.push({ buttonBounds, rawBounds })
+  }
+
+  let transform = fitReadAlongCoordsTransform(anchors)
+  if (!transform) return null
+
+  for (let pass = 0; pass < 2; pass += 1) {
+    const residuals = anchors.map((anchor) => getReadAlongCoordsTransformResidual(anchor, transform))
+    const medianResidual = getReadAlongMedian(residuals) || 0
+    const medianDeviation = getReadAlongMedian(residuals.map((residual) => Math.abs(residual - medianResidual))) || 0
+    const threshold = Math.max(0.04, medianResidual + medianDeviation * 2.5)
+    const filteredAnchors = anchors.filter((anchor) => getReadAlongCoordsTransformResidual(anchor, transform) <= threshold)
+    if (filteredAnchors.length < 3 || filteredAnchors.length === anchors.length) break
+
+    anchors = filteredAnchors
+    const nextTransform = fitReadAlongCoordsTransform(anchors)
+    if (!nextTransform) break
+    transform = nextTransform
+  }
+
+  return transform
+}
+
+function getReadAlongButtonGeometryScore(
+  timing: ReadAlongWordTiming,
+  button: HTMLButtonElement,
+  coordsTransform: ReadAlongCoordsTransform | null = null,
+): number | null {
+  const timingBounds = projectReadAlongTimingBoundsForButton(timing, button, coordsTransform)
   const buttonBounds = getReadAlongButtonSourceBounds(button)
   if (!timingBounds || !buttonBounds) return null
 
@@ -790,6 +1092,251 @@ function getReadAlongButtonGeometryScore(timing: ReadAlongWordTiming, button: HT
     Math.abs(timingBounds.width - buttonBounds.width) + Math.abs(timingBounds.height - buttonBounds.height)
 
   return centerDistance + sizeDistance * 0.15
+}
+
+type ReadAlongButtonGeometryMatch = {
+  button: HTMLButtonElement
+  index: number
+  score: number
+}
+
+function findReadAlongOccurrenceMatch(
+  timingSet: ReadAlongTimingSet,
+  timingIndex: number,
+  timingAliases: Set<string>,
+  preferredButtons: HTMLButtonElement[],
+  geometryMatches: ReadAlongButtonGeometryMatch[],
+  maxGeometryScore: number,
+  maxScoreDelta: number,
+): ReadAlongButtonGeometryMatch | null {
+  const occurrenceButton = findReadAlongOrderedOccurrenceButton(timingSet, timingIndex, timingAliases, preferredButtons)
+  if (!occurrenceButton) return null
+
+  const bestScore = geometryMatches[0]?.score
+  if (bestScore === undefined) return null
+
+  const occurrenceMatch = geometryMatches.find((match) => match.button === occurrenceButton)
+  if (!occurrenceMatch || occurrenceMatch.score > maxGeometryScore) return null
+  if (occurrenceMatch.score - bestScore > maxScoreDelta) return null
+
+  return occurrenceMatch
+}
+
+function doesReadAlongButtonMatchAliases(button: HTMLButtonElement, timingAliases: Set<string>): boolean {
+  return (
+    timingAliases.has(getReadAlongButtonWord(button)) ||
+    getReadAlongButtonWordAliases(button).some((alias) => timingAliases.has(alias))
+  )
+}
+
+function getReadAlongTimingAliases(timing: ReadAlongWordTiming): Set<string> {
+  return new Set([
+    ...getReadAlongWordAliasVariants(timing.word),
+    ...getReadAlongWordAliasVariants(timing.text),
+    ...getReadAlongWordAliasVariants(timing.nativeText),
+  ])
+}
+
+function doReadAlongAliasSetsIntersect(first: Set<string>, second: Set<string>): boolean {
+  for (const alias of first) {
+    if (second.has(alias)) return true
+  }
+
+  return false
+}
+
+function getReadAlongButtonAliases(button: HTMLButtonElement): Set<string> {
+  return new Set(getReadAlongButtonWordAliases(button))
+}
+
+function getReadAlongOrderedCandidateButtons(
+  timingSet: ReadAlongTimingSet,
+  buttons: HTMLButtonElement[],
+): HTMLButtonElement[] {
+  const pageButtons = buttons.filter((button) => getReadAlongButtonPage(button) === timingSet.page)
+  if (pageButtons.length) return pageButtons
+
+  const spreadButtons = buttons.filter((button) => getReadAlongButtonPages(button).includes(timingSet.page))
+  return spreadButtons.length ? spreadButtons : buttons
+}
+
+function findReadAlongSequenceAlignedButton(
+  timingSet: ReadAlongTimingSet,
+  timingIndex: number,
+  timingAliases: Set<string>,
+  orderedButtons: HTMLButtonElement[],
+): HTMLButtonElement | null {
+  const timingCount = timingSet.timings.length
+  const buttonCount = orderedButtons.length
+  if (buttonCount < 3 || timingCount < 3) return null
+
+  const timingAliasesByIndex = timingSet.timings.map(getReadAlongTimingAliases)
+  const buttonAliasesByIndex = orderedButtons.map((button) => new Set(getReadAlongButtonWordAliases(button)))
+  const doesIndexMatch = (buttonIndex: number, timingWordIndex: number) => {
+    const buttonAliases = buttonAliasesByIndex[buttonIndex]
+    const wordAliases = timingAliasesByIndex[timingWordIndex]
+    if (!buttonAliases || !wordAliases) return false
+
+    for (const alias of buttonAliases) {
+      if (wordAliases.has(alias)) return true
+    }
+    return false
+  }
+
+  const columnCount = timingCount + 1
+  const scores = new Uint16Array((buttonCount + 1) * columnCount)
+  const getScore = (buttonIndex: number, timingWordIndex: number) => scores[buttonIndex * columnCount + timingWordIndex]
+  const setScore = (buttonIndex: number, timingWordIndex: number, value: number) => {
+    scores[buttonIndex * columnCount + timingWordIndex] = value
+  }
+
+  for (let buttonIndex = 1; buttonIndex <= buttonCount; buttonIndex += 1) {
+    for (let timingWordIndex = 1; timingWordIndex <= timingCount; timingWordIndex += 1) {
+      if (doesIndexMatch(buttonIndex - 1, timingWordIndex - 1)) {
+        setScore(buttonIndex, timingWordIndex, getScore(buttonIndex - 1, timingWordIndex - 1) + 1)
+      } else {
+        setScore(
+          buttonIndex,
+          timingWordIndex,
+          Math.max(getScore(buttonIndex - 1, timingWordIndex), getScore(buttonIndex, timingWordIndex - 1)),
+        )
+      }
+    }
+  }
+
+  const matchCount = getScore(buttonCount, timingCount)
+  const minMatchRatio = Math.max(0, Math.min(1, getNumberParam('tribeReadAlongSequenceMinMatchRatio', 0.72)))
+  const requiredMatches = Math.max(3, Math.ceil(Math.min(buttonCount, timingCount) * minMatchRatio))
+  if (matchCount < requiredMatches) return null
+
+  const timingToButton = new Map<number, number>()
+  let buttonIndex = buttonCount
+  let timingWordIndex = timingCount
+  while (buttonIndex > 0 && timingWordIndex > 0) {
+    if (
+      doesIndexMatch(buttonIndex - 1, timingWordIndex - 1) &&
+      getScore(buttonIndex, timingWordIndex) === getScore(buttonIndex - 1, timingWordIndex - 1) + 1
+    ) {
+      timingToButton.set(timingWordIndex - 1, buttonIndex - 1)
+      buttonIndex -= 1
+      timingWordIndex -= 1
+      continue
+    }
+
+    if (getScore(buttonIndex - 1, timingWordIndex) >= getScore(buttonIndex, timingWordIndex - 1)) {
+      buttonIndex -= 1
+    } else {
+      timingWordIndex -= 1
+    }
+  }
+
+  const matchedButtonIndex = timingToButton.get(timingIndex)
+  if (matchedButtonIndex === undefined) return null
+
+  const button = orderedButtons[matchedButtonIndex]
+  if (!button || !doesReadAlongButtonMatchAliases(button, timingAliases)) return null
+
+  return button
+}
+
+type ReadAlongContextButtonMatch = {
+  button: HTMLButtonElement
+  contextMatches: number
+  score: number
+}
+
+function findReadAlongContextMatchedButton(
+  timingSet: ReadAlongTimingSet,
+  timingIndex: number,
+  timingAliases: Set<string>,
+  orderedButtons: HTMLButtonElement[],
+): HTMLButtonElement | null {
+  if (!orderedButtons.length) return null
+
+  const timingAliasesByIndex = timingSet.timings.map(getReadAlongTimingAliases)
+  const buttonAliasesByIndex = orderedButtons.map(getReadAlongButtonAliases)
+  const matchingButtonIndexes = buttonAliasesByIndex
+    .map((buttonAliases, index) => (doReadAlongAliasSetsIntersect(buttonAliases, timingAliases) ? index : -1))
+    .filter((index) => index >= 0)
+
+  if (!matchingButtonIndexes.length) return null
+  if (matchingButtonIndexes.length === 1) return orderedButtons[matchingButtonIndexes[0]] || null
+
+  const windowSize = Math.max(1, Math.min(8, Math.trunc(getNumberParam('tribeReadAlongContextWindowWords', 4))))
+  const gapTolerance = Math.max(0, Math.min(4, Math.trunc(getNumberParam('tribeReadAlongContextGapWords', 2))))
+  const scoreNeighbor = (candidateIndex: number, direction: -1 | 1, distance: number) => {
+    const timingNeighborIndex = timingIndex + direction * distance
+    if (timingNeighborIndex < 0 || timingNeighborIndex >= timingAliasesByIndex.length) return 0
+
+    const timingNeighborAliases = timingAliasesByIndex[timingNeighborIndex]
+    let bestScore = 0
+    const minButtonDistance = Math.max(1, distance - gapTolerance)
+    const maxButtonDistance = distance + gapTolerance
+    for (let buttonDistance = minButtonDistance; buttonDistance <= maxButtonDistance; buttonDistance += 1) {
+      const buttonNeighborIndex = candidateIndex + direction * buttonDistance
+      if (buttonNeighborIndex < 0 || buttonNeighborIndex >= buttonAliasesByIndex.length) continue
+      if (!doReadAlongAliasSetsIntersect(buttonAliasesByIndex[buttonNeighborIndex], timingNeighborAliases)) continue
+
+      const gapPenalty = Math.abs(buttonDistance - distance)
+      const distanceWeight = windowSize - distance + 1
+      bestScore = Math.max(bestScore, distanceWeight * 2 - gapPenalty)
+    }
+
+    return Math.max(0, bestScore)
+  }
+
+  const scoredMatches: ReadAlongContextButtonMatch[] = matchingButtonIndexes
+    .map((candidateIndex) => {
+      let score = 12
+      let contextMatches = 0
+      for (let distance = 1; distance <= windowSize; distance += 1) {
+        const previousScore = scoreNeighbor(candidateIndex, -1, distance)
+        const nextScore = scoreNeighbor(candidateIndex, 1, distance)
+        if (previousScore > 0) {
+          contextMatches += 1
+          score += previousScore
+        }
+        if (nextScore > 0) {
+          contextMatches += 1
+          score += nextScore
+        }
+      }
+
+      return {
+        button: orderedButtons[candidateIndex],
+        contextMatches,
+        score,
+      }
+    })
+    .filter((match): match is ReadAlongContextButtonMatch => Boolean(match.button))
+    .sort((first, second) => second.score - first.score || second.contextMatches - first.contextMatches)
+
+  const [bestMatch, nextMatch] = scoredMatches
+  if (!bestMatch) return null
+
+  const minContextMatches = Math.max(1, Math.min(4, Math.trunc(getNumberParam('tribeReadAlongContextMinMatches', 1))))
+  if (bestMatch.contextMatches < minContextMatches) return null
+
+  const minLead = Math.max(0, getNumberParam('tribeReadAlongContextMinScoreLead', 2))
+  if (nextMatch && bestMatch.score - nextMatch.score < minLead && bestMatch.contextMatches <= nextMatch.contextMatches) {
+    return null
+  }
+
+  return bestMatch.button
+}
+
+function findReadAlongOrderedOccurrenceButton(
+  timingSet: ReadAlongTimingSet,
+  timingIndex: number,
+  timingAliases: Set<string>,
+  preferredButtons: HTMLButtonElement[],
+): HTMLButtonElement | null {
+  const occurrenceIndex = getReadAlongTimingAliasOccurrenceIndex(timingSet.timings, timingIndex, timingAliases)
+  const orderedMatchingButtons = preferredButtons.filter((button) =>
+    getReadAlongButtonWordAliases(button).some((alias) => timingAliases.has(alias)),
+  )
+
+  return orderedMatchingButtons[occurrenceIndex] || null
 }
 
 type WordHotspotMagnifierButton = HTMLButtonElement & {
@@ -811,20 +1358,34 @@ function findReadAlongButtonForTiming(timingSet: ReadAlongTimingSet, timingIndex
   const buttons = getReadAlongHotspotButtons()
   if (!buttons.length) return null
 
-  const exactMatchingButtons = buttons.filter((button) => getReadAlongButtonWord(button) === timing.word)
-  const matchingButtons = exactMatchingButtons.length
-    ? exactMatchingButtons
-    : buttons.filter((button) => getReadAlongButtonWordAliases(button).includes(timing.word))
+  const timingAliases = getReadAlongTimingAliases(timing)
+  const matchingButtons = buttons.filter(
+    (button) => doesReadAlongButtonMatchAliases(button, timingAliases),
+  )
+  const orderedButtons = getReadAlongOrderedCandidateButtons(timingSet, buttons)
+  const contextButton = findReadAlongContextMatchedButton(timingSet, timingIndex, timingAliases, orderedButtons)
+  if (contextButton) return contextButton
+
+  const orderedSequenceButton = findReadAlongSequenceAlignedButton(
+    timingSet,
+    timingIndex,
+    timingAliases,
+    orderedButtons,
+  )
+  if (orderedSequenceButton) return orderedSequenceButton
+
   const pageMatchingButtons = matchingButtons.filter((button) => getReadAlongButtonPage(button) === timingSet.page)
-  const hasPagedButtons = matchingButtons.some((button) => getReadAlongButtonPage(button) !== null)
-  if (hasPagedButtons && !pageMatchingButtons.length) return null
 
   const preferredButtons = pageMatchingButtons.length ? pageMatchingButtons : matchingButtons
+  const orderedOccurrenceButton = pageMatchingButtons.length
+    ? findReadAlongOrderedOccurrenceButton(timingSet, timingIndex, timingAliases, pageMatchingButtons)
+    : null
+  const coordsTransform = createReadAlongCoordsTransform(timingSet, buttons)
   const geometryMatches = preferredButtons
     .map((button, index) => ({
       button,
       index,
-      score: getReadAlongButtonGeometryScore(timing, button),
+      score: getReadAlongButtonGeometryScore(timing, button, coordsTransform),
     }))
     .filter((item): item is { button: HTMLButtonElement; index: number; score: number } => item.score !== null)
     .sort((first, second) => first.score - second.score || first.index - second.index)
@@ -833,13 +1394,24 @@ function findReadAlongButtonForTiming(timingSet: ReadAlongTimingSet, timingIndex
     const maxGeometryScore = Math.max(0.01, getNumberParam('tribeReadAlongGeometryMaxScore', 0.08))
     const minScoreGap = Math.max(0, getNumberParam('tribeReadAlongGeometryMinScoreGap', 0.018))
     const [bestMatch, nextBestMatch] = geometryMatches
-    if (bestMatch.score > maxGeometryScore) return null
-    if (nextBestMatch && nextBestMatch.score - bestMatch.score < minScoreGap) return null
+    if (bestMatch.score > maxGeometryScore) return orderedOccurrenceButton
+    if (nextBestMatch && nextBestMatch.score - bestMatch.score < minScoreGap) {
+      const occurrenceMatch = findReadAlongOccurrenceMatch(
+        timingSet,
+        timingIndex,
+        timingAliases,
+        preferredButtons,
+        geometryMatches,
+        maxGeometryScore,
+        minScoreGap,
+      )
+      return occurrenceMatch?.button || orderedOccurrenceButton
+    }
 
     return bestMatch.button
   }
 
-  return null
+  return orderedOccurrenceButton
 }
 
 function applyReadAlongButtonHighlight(timingSet: ReadAlongTimingSet | null, timingIndex: number): HTMLButtonElement | null {

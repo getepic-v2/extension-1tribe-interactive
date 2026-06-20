@@ -231,7 +231,7 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     bookId: CREEPY_CAFETORIUM_BOOK_ID,
     defaultParams: CREEPY_CAFETORIUM_READER_DEFAULTS,
     nativePassthroughLeftPages: [],
-    nativePassthroughRightPages: [],
+    nativePassthroughRightPages: [32],
     previewFiles: createCreepyCafetoriumPreviewFiles(),
     readAlongTranscriptFile: 'creepy-cafetorium-74774-transcript.json',
     riveFolder: 'CreepyCafetorium_74774',

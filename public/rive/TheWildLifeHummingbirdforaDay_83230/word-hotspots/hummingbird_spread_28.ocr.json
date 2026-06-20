@@ -1319,6 +1319,138 @@
       "y": 1747,
       "width": 63,
       "height": 62
+    },
+    {
+      "height": 61,
+      "width": 184,
+      "x": 223,
+      "y": 208,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Four"
+    },
+    {
+      "height": 53,
+      "width": 119,
+      "x": 425,
+      "y": 208,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "AM"
+    },
+    {
+      "height": 22,
+      "width": 48,
+      "x": 2103,
+      "y": 307,
+      "page": 29,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Am"
+    },
+    {
+      "height": 22,
+      "width": 16,
+      "x": 2160,
+      "y": 307,
+      "page": 29,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "I"
+    },
+    {
+      "height": 72,
+      "width": 183,
+      "x": 242,
+      "y": 596,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "LATE"
+    },
+    {
+      "height": 72,
+      "width": 259,
+      "x": 457,
+      "y": 596,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "NIGHT"
+    },
+    {
+      "height": 72,
+      "width": 482,
+      "x": 735,
+      "y": 596,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "MIGRATION"
+    },
+    {
+      "height": 24,
+      "width": 99,
+      "x": 424,
+      "y": 797,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "usually"
+    },
+    {
+      "height": 24,
+      "width": 112,
+      "x": 343,
+      "y": 1259,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "calliope"
+    },
+    {
+      "height": 22,
+      "width": 188,
+      "x": 439,
+      "y": 1299,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "hummingbird"
+    },
+    {
+      "height": 21,
+      "width": 101,
+      "x": 583,
+      "y": 1892,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Mexico"
+    },
+    {
+      "height": 24,
+      "width": 43,
+      "x": 189,
+      "y": 1949,
+      "page": 28,
+      "reviewFile": "hummingbird_spread_28.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "28"
     }
   ]
 }

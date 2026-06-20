@@ -46,7 +46,7 @@ function splitTokens(value) {
 }
 
 function isNoiseToken(token) {
-  return /^\d+$/.test(token) || token === 'epic'
+  return token === 'epic'
 }
 
 function addCount(counts, token) {

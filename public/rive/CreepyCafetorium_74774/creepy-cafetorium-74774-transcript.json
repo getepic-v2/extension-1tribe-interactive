@@ -36478,9 +36478,9 @@
     },
     {
       "page": 31,
-      "text": "After a week of performances the play ended and the crew dismantled the set to get ready for the next production The Wizard Is Odd 2 More Odder Margot couldn’t wait to paint the Emerald City As she and Tiana were mixing up the perfect green she saw Gertie up in the rafters messing with the spotlight When Gertie came back down the custodian had a proud smile on her face That spotlight has been out of commission for decades Gertie said But I figured out the problem No bulb Gertie shuffled off wearing a big smile and carrying a ladder that was",
+      "text": "After a week of performances the play ended and the crew dismantled the set to get ready for the next production The Wizard Is Odd 2 More Odder Margot couldn’t wait to paint the Emerald City As she and Tiana were mixing up the perfect green she saw Gertie up in the rafters messing with the spotlight When Gertie came back down the custodian had a proud smile on her face That spotlight has been out of commission for decades Gertie said But I figured out the problem No bulb Gertie shuffled off wearing a big smile and carrying a ladder that was never going to fit into her tiny storage closet With a CLICK the spotlight turned on and Margot swore it winked at her She winked back",
       "audioUrl": "https://cdn-gcp-media-drm.getepic.com/drm/4/74774/OEBPS/Audio/1/book74774_29.mp3?Expires=1781822750&KeyName=edge-key-v2&Signature=TZWY64xR8ii2TveO2IjTKoQTGVLVfQzJyujz9r6z-Ghr_ug48xT5somAqGeHbUv6lMo2_mj-yoxzAS6OLebJBw==",
-      "usableCount": 103,
+      "usableCount": 129,
       "words": [
         {
           "bbox": {
@@ -38129,6 +38129,422 @@
           "text": "was",
           "time": 39.7,
           "word": "was"
+        },
+        {
+          "bbox": {
+            "x1": 16.37,
+            "y1": 85.13,
+            "x2": 26.98,
+            "y2": 87.17,
+            "height": 2.04,
+            "width": 10.61
+          },
+          "coords": null,
+          "duration": 0.4,
+          "endTime": 40.4,
+          "text": "never",
+          "time": 40,
+          "word": "never"
+        },
+        {
+          "bbox": {
+            "x1": 27.16,
+            "y1": 84.56,
+            "x2": 37.77,
+            "y2": 87.8,
+            "height": 3.23,
+            "width": 10.61
+          },
+          "coords": null,
+          "duration": 0.4,
+          "endTime": 40.8,
+          "text": "going",
+          "time": 40.4,
+          "word": "going"
+        },
+        {
+          "bbox": {
+            "x1": 37.77,
+            "y1": 85.13,
+            "x2": 42,
+            "y2": 87.68,
+            "height": 2.55,
+            "width": 4.23
+          },
+          "coords": null,
+          "duration": 0.21,
+          "endTime": 41.01,
+          "text": "to",
+          "time": 40.8,
+          "word": "to"
+        },
+        {
+          "bbox": {
+            "x1": 42.27,
+            "y1": 85.13,
+            "x2": 47.03,
+            "y2": 87.97,
+            "height": 2.84,
+            "width": 4.77
+          },
+          "coords": null,
+          "duration": 0.25,
+          "endTime": 41.26,
+          "text": "fit",
+          "time": 41.01,
+          "word": "fit"
+        },
+        {
+          "bbox": {
+            "x1": 47.21,
+            "y1": 85.13,
+            "x2": 54.95,
+            "y2": 87.8,
+            "height": 2.67,
+            "width": 7.73
+          },
+          "coords": null,
+          "duration": 0.32,
+          "endTime": 41.58,
+          "text": "into",
+          "time": 41.26,
+          "word": "into"
+        },
+        {
+          "bbox": {
+            "x1": 55.13,
+            "y1": 85.13,
+            "x2": 61.87,
+            "y2": 87.97,
+            "height": 2.84,
+            "width": 6.74
+          },
+          "coords": null,
+          "duration": 0.25,
+          "endTime": 41.83,
+          "text": "her",
+          "time": 41.58,
+          "word": "her"
+        },
+        {
+          "bbox": {
+            "x1": 62.05,
+            "y1": 84.56,
+            "x2": 70.05,
+            "y2": 87.8,
+            "height": 3.23,
+            "width": 8
+          },
+          "coords": null,
+          "duration": 0.36,
+          "endTime": 42.19,
+          "text": "tiny",
+          "time": 41.83,
+          "word": "tiny"
+        },
+        {
+          "bbox": {
+            "x1": 70.14,
+            "y1": 84.56,
+            "x2": 83.9,
+            "y2": 87.63,
+            "height": 3.06,
+            "width": 13.76
+          },
+          "coords": null,
+          "duration": 0.51,
+          "endTime": 42.7,
+          "text": "storage",
+          "time": 42.19,
+          "word": "storage"
+        },
+        {
+          "bbox": {
+            "x1": 16.37,
+            "y1": 81.1,
+            "x2": 28.06,
+            "y2": 83.88,
+            "height": 2.78,
+            "width": 11.69
+          },
+          "coords": null,
+          "duration": 0.74,
+          "endTime": 43.44,
+          "text": "closet",
+          "time": 42.7,
+          "word": "closet"
+        },
+        {
+          "bbox": {
+            "x1": 23.2,
+            "y1": 77.07,
+            "x2": 33.45,
+            "y2": 79.85,
+            "height": 2.78,
+            "width": 10.25
+          },
+          "coords": null,
+          "duration": 0.32,
+          "endTime": 43.76,
+          "text": "With",
+          "time": 43.44,
+          "word": "with"
+        },
+        {
+          "bbox": {
+            "x1": 35.16,
+            "y1": 77.07,
+            "x2": 38.04,
+            "y2": 79.17,
+            "height": 2.1,
+            "width": 2.88
+          },
+          "coords": null,
+          "duration": 0.16,
+          "endTime": 43.92,
+          "text": "a",
+          "time": 43.76,
+          "word": "a"
+        },
+        {
+          "bbox": {
+            "x1": 39.84,
+            "y1": 77.07,
+            "x2": 55.31,
+            "y2": 79.85,
+            "height": 2.78,
+            "width": 15.47
+          },
+          "coords": null,
+          "duration": 0.66,
+          "endTime": 44.58,
+          "text": "CLICK",
+          "time": 43.92,
+          "word": "click"
+        },
+        {
+          "bbox": {
+            "x1": 57.19,
+            "y1": 77.07,
+            "x2": 64.12,
+            "y2": 79.85,
+            "height": 2.78,
+            "width": 6.92
+          },
+          "coords": null,
+          "duration": 0.21,
+          "endTime": 44.79,
+          "text": "the",
+          "time": 44.58,
+          "word": "the"
+        },
+        {
+          "bbox": {
+            "x1": 65.92,
+            "y1": 76.56,
+            "x2": 83.99,
+            "y2": 79.85,
+            "height": 3.29,
+            "width": 18.08
+          },
+          "coords": null,
+          "duration": 0.59,
+          "endTime": 45.38,
+          "text": "spotlight",
+          "time": 44.79,
+          "word": "spotlight"
+        },
+        {
+          "bbox": {
+            "x1": 16.37,
+            "y1": 73.04,
+            "x2": 30.49,
+            "y2": 75.88,
+            "height": 2.84,
+            "width": 14.12
+          },
+          "coords": null,
+          "duration": 0.4,
+          "endTime": 45.78,
+          "text": "turned",
+          "time": 45.38,
+          "word": "turned"
+        },
+        {
+          "bbox": {
+            "x1": 32.19,
+            "y1": 72.64,
+            "x2": 38.58,
+            "y2": 75.14,
+            "height": 2.5,
+            "width": 6.38
+          },
+          "coords": null,
+          "duration": 0.36,
+          "endTime": 46.14,
+          "text": "on",
+          "time": 45.78,
+          "word": "on"
+        },
+        {
+          "bbox": {
+            "x1": 40.47,
+            "y1": 73.1,
+            "x2": 48.38,
+            "y2": 75.88,
+            "height": 2.78,
+            "width": 7.91
+          },
+          "coords": null,
+          "duration": 0.25,
+          "endTime": 46.39,
+          "text": "and",
+          "time": 46.14,
+          "word": "and"
+        },
+        {
+          "bbox": {
+            "x1": 50.09,
+            "y1": 72.53,
+            "x2": 65.11,
+            "y2": 75.82,
+            "height": 3.29,
+            "width": 15.02
+          },
+          "coords": null,
+          "duration": 0.51,
+          "endTime": 46.9,
+          "text": "Margot",
+          "time": 46.39,
+          "word": "margot"
+        },
+        {
+          "bbox": {
+            "x1": 66.82,
+            "y1": 73.04,
+            "x2": 78.6,
+            "y2": 75.14,
+            "height": 2.1,
+            "width": 11.78
+          },
+          "coords": null,
+          "duration": 0.4,
+          "endTime": 47.3,
+          "text": "swore",
+          "time": 46.9,
+          "word": "swore"
+        },
+        {
+          "bbox": {
+            "x1": 80.4,
+            "y1": 73.1,
+            "x2": 83.99,
+            "y2": 75.77,
+            "height": 2.67,
+            "width": 3.6
+          },
+          "coords": null,
+          "duration": 0.21,
+          "endTime": 47.51,
+          "text": "it",
+          "time": 47.3,
+          "word": "it"
+        },
+        {
+          "bbox": {
+            "x1": 16.28,
+            "y1": 69.07,
+            "x2": 30.58,
+            "y2": 71.85,
+            "height": 2.78,
+            "width": 14.3
+          },
+          "coords": null,
+          "duration": 0.46,
+          "endTime": 47.97,
+          "text": "winked",
+          "time": 47.51,
+          "word": "winked"
+        },
+        {
+          "bbox": {
+            "x1": 31.03,
+            "y1": 69.07,
+            "x2": 35.43,
+            "y2": 71.62,
+            "height": 2.55,
+            "width": 4.41
+          },
+          "coords": null,
+          "duration": 0.21,
+          "endTime": 48.18,
+          "text": "at",
+          "time": 47.97,
+          "word": "at"
+        },
+        {
+          "bbox": {
+            "x1": 35.7,
+            "y1": 69.07,
+            "x2": 43.08,
+            "y2": 71.85,
+            "height": 2.78,
+            "width": 7.37
+          },
+          "coords": null,
+          "duration": 0.34,
+          "endTime": 48.52,
+          "text": "her",
+          "time": 48.18,
+          "word": "her"
+        },
+        {
+          "bbox": {
+            "x1": 43.79,
+            "y1": 69.07,
+            "x2": 51.17,
+            "y2": 71.85,
+            "height": 2.78,
+            "width": 7.37
+          },
+          "coords": null,
+          "duration": 0.29,
+          "endTime": 48.81,
+          "text": "She",
+          "time": 48.52,
+          "word": "she"
+        },
+        {
+          "bbox": {
+            "x1": 51.62,
+            "y1": 69.07,
+            "x2": 65.83,
+            "y2": 71.85,
+            "height": 2.78,
+            "width": 14.21
+          },
+          "coords": null,
+          "duration": 0.46,
+          "endTime": 49.27,
+          "text": "winked",
+          "time": 48.81,
+          "word": "winked"
+        },
+        {
+          "bbox": {
+            "x1": 66.19,
+            "y1": 69.07,
+            "x2": 76.35,
+            "y2": 71.85,
+            "height": 2.78,
+            "width": 10.16
+          },
+          "coords": null,
+          "duration": 0.74,
+          "endTime": 50.01,
+          "text": "back",
+          "time": 49.27,
+          "word": "back"
         }
       ]
     }

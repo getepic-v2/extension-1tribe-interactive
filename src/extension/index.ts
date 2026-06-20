@@ -459,7 +459,7 @@ const RIVE_WASM_FALLBACK_SOURCE = new URL('rive/rive_fallback.wasm', extensionSc
 const urlParams = new URL(extensionScriptUrl).searchParams
 const pageUrlParams = new URLSearchParams(window.location.search)
 const STATIC_PREVIEW_ANIMATION = '__1tribe_static_preview__'
-const COMMAND_HARNESS_DEBUG_BUILD_LABEL = 'left-load-guard-20260619-02'
+const COMMAND_HARNESS_DEBUG_BUILD_LABEL = 'creepy-overlap-readalong-20260620-01'
 function getStableEpicDefaultParam(name: string): string | null {
   const isDisabled =
     urlParams.get('tribeStablePreset') === '0' ||
@@ -951,6 +951,29 @@ function getActiveWordHotspotPageAudit(
     pageCounts,
     sampleByPage,
   }
+}
+
+function getSmallestActiveWordHotspotAtPoint(
+  activeWordHotspots: ActiveWordHotspot[],
+  x: number,
+  y: number,
+): ActiveWordHotspot | null {
+  let bestHotspot: ActiveWordHotspot | null = null
+  let bestArea = Number.POSITIVE_INFINITY
+
+  for (const hotspot of activeWordHotspots) {
+    if (x < hotspot.x || x > hotspot.x + hotspot.width || y < hotspot.y || y > hotspot.y + hotspot.height) {
+      continue
+    }
+
+    const area = hotspot.width * hotspot.height
+    if (area < bestArea) {
+      bestArea = area
+      bestHotspot = hotspot
+    }
+  }
+
+  return bestHotspot
 }
 
 function getDebugWordHotspotButtons(context: ExtensionContext): HTMLButtonElement[] {
@@ -2382,6 +2405,18 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     return null
   }
 
+  const isCommandHarnessPrecompletionElement = (element: Element | null) =>
+    Boolean(
+      element?.closest(
+        [
+          'epic-book-precompletion-page',
+          '.book-precompletion-page-container',
+          '.almost-done-container',
+          '.almost-done',
+        ].join(','),
+      ),
+    )
+
   const isCommandHarnessCompletionEligible = () => {
     const currentPage = context.data.getCurrentPage()
     return currentPage >= lastPreviewReaderStart
@@ -2478,9 +2513,13 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
 
     const visibleCompletionElement = findVisibleEpicCompletionElement()
-    if (visibleCompletionElement && commandHarnessCompletionHandoff) {
+    if (
+      visibleCompletionElement &&
+      (commandHarnessCompletionHandoff || !isCommandHarnessPrecompletionElement(visibleCompletionElement))
+    ) {
       setCommandHarnessCompletionHandoff(true, reason, {
         visibleElement: getCommandHarnessElementSummary(visibleCompletionElement),
+        trigger: commandHarnessCompletionHandoff ? 'completion-visible-refresh' : 'completion-visible',
       })
       return true
     }
@@ -5497,10 +5536,11 @@ function getConfiguredWordHotspotFileForPage(
 
   const fileName = normalizeWordHotspotFileName(previewFile.file)
   const manifestFile = getManifestFileByName(manifest, fileName)
+  const manifestPages = normalizeWordHotspotPages(manifestFile?.pages)
   return {
     ...(manifestFile || {}),
     file: fileName,
-    pages: getPageRange(previewFile.readerStart, previewFile.readerEnd),
+    pages: manifestPages.length ? manifestPages : getPageRange(previewFile.readerStart, previewFile.readerEnd),
     render: manifestFile?.render || manifest.render,
   }
 }
@@ -7743,15 +7783,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     const x = (event.clientX - rect.left) / rect.width
     const y = (event.clientY - rect.top) / rect.height
 
-    return (
-      activeWordHotspots.find(
-        (hotspot) =>
-          x >= hotspot.x &&
-          x <= hotspot.x + hotspot.width &&
-          y >= hotspot.y &&
-          y <= hotspot.y + hotspot.height,
-      ) || null
-    )
+    return getSmallestActiveWordHotspotAtPoint(activeWordHotspots, x, y)
   }
 
   const onWordHotspotFramePointerUp = (event: PointerEvent) => {

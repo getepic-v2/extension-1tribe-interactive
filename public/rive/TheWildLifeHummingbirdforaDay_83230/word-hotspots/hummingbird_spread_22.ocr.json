@@ -1046,6 +1046,94 @@
       "y": 1277,
       "width": 98,
       "height": 24
+    },
+    {
+      "height": 73,
+      "width": 223,
+      "x": 197,
+      "y": 219,
+      "page": 22,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "ten"
+    },
+    {
+      "height": 55,
+      "width": 109,
+      "x": 442,
+      "y": 223,
+      "page": 22,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "PM"
+    },
+    {
+      "height": 25,
+      "width": 75,
+      "x": 2102,
+      "y": 1054,
+      "page": 23,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "sleep"
+    },
+    {
+      "height": 23,
+      "width": 20,
+      "x": 2102,
+      "y": 1094,
+      "page": 23,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "If"
+    },
+    {
+      "height": 23,
+      "width": 93,
+      "x": 1954,
+      "y": 1238,
+      "page": 23,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "What's"
+    },
+    {
+      "height": 23,
+      "width": 105,
+      "x": 970,
+      "y": 1266,
+      "page": 22,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Violetear"
+    },
+    {
+      "height": 23,
+      "width": 34,
+      "x": 2457,
+      "y": 924,
+      "page": 23,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "50"
+    },
+    {
+      "height": 25,
+      "width": 75,
+      "x": 2552,
+      "y": 962,
+      "page": 23,
+      "reviewFile": "hummingbird_spread_22.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "1,200"
     }
   ]
 }

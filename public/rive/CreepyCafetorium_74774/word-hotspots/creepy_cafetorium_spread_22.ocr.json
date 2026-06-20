@@ -1403,6 +1403,17 @@
                       "y":  1587,
                       "width":  55,
                       "height":  58
+                  },
+                  {
+                      "height":  49,
+                      "width":  39,
+                      "x":  873,
+                      "y":  1198,
+                      "page":  22,
+                      "reviewFile":  "creepy_cafetorium_spread_22.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "ol"
                   }
               ]
 }

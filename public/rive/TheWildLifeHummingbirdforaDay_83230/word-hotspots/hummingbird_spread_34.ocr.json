@@ -143,6 +143,17 @@
       "y": 1316,
       "width": 74,
       "height": 24
+    },
+    {
+      "height": 24,
+      "width": 54,
+      "x": 301,
+      "y": 1313,
+      "page": 34,
+      "reviewFile": "hummingbird_spread_34.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "and"
     }
   ]
 }
