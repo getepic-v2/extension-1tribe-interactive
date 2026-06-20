@@ -1699,6 +1699,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   let previewRive: Rive | null = null
   let previewStateMachine: string | null = null
   let previewLoadSerial = 0
+  let previewLoadingFadeTimer: number | null = null
   let previewSwapHoldUntil = 0
   let pendingPreviewSwapTimer: number | null = null
   const shouldUseTakeover = getBooleanParam('tribeCommandHarnessTakeover', false)
@@ -2880,7 +2881,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   previewLoadingSpinner.className = 'tribe-command-harness__loading-spinner'
   previewLoadingSpinner.setAttribute('aria-hidden', 'true')
   previewLoadingText.className = 'tribe-command-harness__loading-text'
-  previewLoadingText.textContent = 'Loading interactive pages...'
+  previewLoadingText.textContent = 'Loading Interactive Pages'
   previewLoading.append(previewLoadingSpinner, previewLoadingText)
   previewDebugBadge.className = 'tribe-command-harness__debug-badge'
   previewDebugBadge.hidden = !shouldShowCommandHarnessDebugBadge
@@ -2901,10 +2902,27 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   status.className = 'tribe-command-harness__status'
   status.textContent = `Ready on page ${context.data.getCurrentPage()}: previousPage / nextPage`
 
-  const setCommandHarnessLoadingIndicator = (isLoading: boolean, message = 'Loading interactive pages...') => {
-    previewLoading.hidden = !isLoading
+  const setCommandHarnessLoadingIndicator = (isLoading: boolean) => {
     previewStage.classList.toggle('is-loading', isLoading)
-    previewLoadingText.textContent = message
+    previewLoadingText.textContent = 'Loading Interactive Pages'
+
+    if (isLoading) {
+      if (previewLoadingFadeTimer !== null) {
+        window.clearTimeout(previewLoadingFadeTimer)
+        previewLoadingFadeTimer = null
+      }
+      previewLoading.classList.remove('is-fading')
+      previewLoading.hidden = false
+      return
+    }
+
+    if (previewLoading.hidden || previewLoadingFadeTimer !== null) return
+    previewLoading.classList.add('is-fading')
+    previewLoadingFadeTimer = window.setTimeout(() => {
+      previewLoading.hidden = true
+      previewLoading.classList.remove('is-fading')
+      previewLoadingFadeTimer = null
+    }, 1000)
   }
 
   const syncCommandHarnessLoadingIndicator = () => {
@@ -3933,7 +3951,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     setPreviewCanvasRole(layer, role)
     resizeCanvasToOwnBounds(canvas, getEffectivePixelRatio(previewStage))
     if (role === 'active' && !previewActiveLayer?.loaded) {
-      setCommandHarnessLoadingIndicator(true, `Loading ${file.label}...`)
+      setCommandHarnessLoadingIndicator(true)
     }
 
     try {
@@ -3951,9 +3969,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         },
         onLoadError(event) {
           previewStatus.textContent = `Failed to load ${file.label}: ${String(event?.data || 'unknown error')}`
-          if (role === 'active') {
-            setCommandHarnessLoadingIndicator(true, `Failed to load ${file.label}.`)
-          }
+          if (role === 'active') setCommandHarnessLoadingIndicator(true)
           console.warn('[1Tribe command harness] Rive layer failed.', {
             file: file.file,
             index,
@@ -4896,7 +4912,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     previewStateMachine = null
     previewCanvas.getContext('2d')?.clearRect(0, 0, previewCanvas.width, previewCanvas.height)
     previewStatus.textContent = `Loading ${previewFile.label}...`
-    setCommandHarnessLoadingIndicator(true, `Loading ${previewFile.label}...`)
+    setCommandHarnessLoadingIndicator(true)
     resizeCanvasToOwnBounds(previewCanvas, getEffectivePixelRatio(previewStage))
 
     try {
@@ -4969,7 +4985,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         },
         onLoadError(event) {
           previewStatus.textContent = `Rive preview failed: ${String(event?.data || 'unknown error')}`
-          setCommandHarnessLoadingIndicator(true, `Failed to load ${previewFile.label}.`)
+          setCommandHarnessLoadingIndicator(true)
           console.warn('[1Tribe command harness] Rive preview failed.', {
             file: previewFile.file,
             index: previewIndex,
@@ -4983,7 +4999,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       previewRive = instance
     } catch (error) {
       previewStatus.textContent = `Rive preview failed: ${String(error)}`
-      setCommandHarnessLoadingIndicator(true, `Failed to load ${previewFile.label}.`)
+      setCommandHarnessLoadingIndicator(true)
       console.warn('[1Tribe command harness] Could not create passive Rive preview.', error)
     }
   }
@@ -5133,6 +5149,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     cleanupBackEdgeGutterListeners()
     cleanupNextEdgeGutterListeners()
     clearPendingPreviewSwapTimer()
+    if (previewLoadingFadeTimer !== null) window.clearTimeout(previewLoadingFadeTimer)
+    previewLoadingFadeTimer = null
     if (previewSettleTimer !== null) window.clearTimeout(previewSettleTimer)
     previewSettleTimer = null
     pendingPreviewTurn = null

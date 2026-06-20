@@ -204,12 +204,18 @@ export const commandHarnessStyles = `
     color: #ffffff;
     font: 700 13px/1.25 Inter, ui-sans-serif, system-ui, sans-serif;
     letter-spacing: 0;
+    opacity: 1;
     pointer-events: none;
     transform: translate(-50%, -50%);
+    transition: opacity 1s ease;
   }
 
   .tribe-command-harness__loading[hidden] {
     display: none;
+  }
+
+  .tribe-command-harness__loading.is-fading {
+    opacity: 0;
   }
 
   .tribe-command-harness__loading-spinner {
