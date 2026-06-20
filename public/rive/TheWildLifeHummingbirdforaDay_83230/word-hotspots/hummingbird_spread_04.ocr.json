@@ -1,0 +1,2318 @@
+{
+  "image": "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230\\word-hotspots\\hummingbird_spread_04.png",
+  "text": "Hummingbirds! There are more than species of hummingbirds. They live in North America and South America. and many of them migrate south in the winter. RUBY-THROATED HUMMINGBIRD this short-legged hummingbird is the only species regularly spotted in most of the eastern United States. you you need to decide: Which kind of hummingbird are you? BEE HUMMINGBIRD Not just the smallest hummingbird. but actually the smallest bird in the world. about two inches long. weighs less than a dime. and lives only in Cuba. ANNA'S HUMMINGBIRD Named for an Italian duchess. it has feathers that are bright and iridescent. which means that when light hits them at a certain angle. they appear to change color. WIRE-CRESTED THORNTAIL With a long. pointed. blue tail and tall feathers that look like a wild hairstyle on top of its head. this small hummingbird stands out in a crowd! RUFOUS HUMMINGBIRD this fast and feisty flier will light any bird that competes with for food. It can migrate huge distances-up to miles! MARVELOUS SPATULETAIL this rare hummingbird has a long and unique tail made up of four feathers BLUE-THROATED HILLSTAR Discovered in in the Andes Mountains of Ecuador. this beautiful blue bird can survive in cold temperatures. unlike most other species. Ecuador has about 'hummingbird species Why so many? Hummingbirds thrive in places with biociversity. or many kinds of climates and habitats. this South American country has warm tropical rain forests. cool coastal areas. and the tall Andes Mountains! Many hummingbird species are endangered. which means only a few of the birds remain in the wild. and these species are at risk of becoming extinct. or disappearing forever. GIANT HUMMINGBIRD this is the largest and slowest-flying hummingbird. At about eight inches long. it's the size of a cardinal and has dull green or brown CALLIOPE HUMMINGBIRD Named for the ancient Greek muse of epic poetry. this itty-bitty hummingbird has a short biu and tail and is the smallest bird in the United States and Canada",
+  "width": 2964,
+  "height": 2160,
+  "words": [
+    {
+      "text": "Hummingbirds!",
+      "x": 244,
+      "y": 292,
+      "width": 448,
+      "height": 67
+    },
+    {
+      "text": "There",
+      "x": 243,
+      "y": 388,
+      "width": 77,
+      "height": 24
+    },
+    {
+      "text": "are",
+      "x": 329,
+      "y": 394,
+      "width": 42,
+      "height": 18
+    },
+    {
+      "text": "more",
+      "x": 379,
+      "y": 394,
+      "width": 69,
+      "height": 18
+    },
+    {
+      "text": "than",
+      "x": 455,
+      "y": 388,
+      "width": 59,
+      "height": 24
+    },
+    {
+      "text": "species",
+      "x": 584,
+      "y": 388,
+      "width": 101,
+      "height": 29
+    },
+    {
+      "text": "of",
+      "x": 693,
+      "y": 388,
+      "width": 27,
+      "height": 24
+    },
+    {
+      "text": "hummingbirds.",
+      "x": 243,
+      "y": 426,
+      "width": 199,
+      "height": 29
+    },
+    {
+      "text": "They",
+      "x": 450,
+      "y": 426,
+      "width": 67,
+      "height": 29
+    },
+    {
+      "text": "live",
+      "x": 524,
+      "y": 426,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 578,
+      "y": 426,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "North",
+      "x": 611,
+      "y": 426,
+      "width": 74,
+      "height": 24
+    },
+    {
+      "text": "America",
+      "x": 693,
+      "y": 426,
+      "width": 111,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 244,
+      "y": 465,
+      "width": 49,
+      "height": 23
+    },
+    {
+      "text": "South",
+      "x": 301,
+      "y": 464,
+      "width": 77,
+      "height": 24
+    },
+    {
+      "text": "America.",
+      "x": 387,
+      "y": 464,
+      "width": 118,
+      "height": 26
+    },
+    {
+      "text": "and",
+      "x": 514,
+      "y": 464,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "many",
+      "x": 573,
+      "y": 470,
+      "width": 72,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 652,
+      "y": 464,
+      "width": 27,
+      "height": 24
+    },
+    {
+      "text": "them",
+      "x": 686,
+      "y": 465,
+      "width": 67,
+      "height": 23
+    },
+    {
+      "text": "migrate",
+      "x": 243,
+      "y": 502,
+      "width": 101,
+      "height": 30
+    },
+    {
+      "text": "south",
+      "x": 352,
+      "y": 503,
+      "width": 75,
+      "height": 23
+    },
+    {
+      "text": "in",
+      "x": 436,
+      "y": 502,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 468,
+      "y": 503,
+      "width": 42,
+      "height": 23
+    },
+    {
+      "text": "winter.",
+      "x": 517,
+      "y": 503,
+      "width": 90,
+      "height": 23
+    },
+    {
+      "text": "RUBY-THROATED",
+      "x": 240,
+      "y": 924,
+      "width": 340,
+      "height": 37
+    },
+    {
+      "text": "HUMMINGBIRD",
+      "x": 240,
+      "y": 968,
+      "width": 305,
+      "height": 38
+    },
+    {
+      "text": "this",
+      "x": 239,
+      "y": 1022,
+      "width": 59,
+      "height": 24
+    },
+    {
+      "text": "short-legged",
+      "x": 307,
+      "y": 1022,
+      "width": 182,
+      "height": 29
+    },
+    {
+      "text": "hummingbird",
+      "x": 499,
+      "y": 1022,
+      "width": 187,
+      "height": 29
+    },
+    {
+      "text": "is",
+      "x": 696,
+      "y": 1022,
+      "width": 21,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 239,
+      "y": 1060,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "only",
+      "x": 293,
+      "y": 1060,
+      "width": 61,
+      "height": 29
+    },
+    {
+      "text": "species",
+      "x": 363,
+      "y": 1060,
+      "width": 106,
+      "height": 29
+    },
+    {
+      "text": "regularly",
+      "x": 478,
+      "y": 1060,
+      "width": 127,
+      "height": 29
+    },
+    {
+      "text": "spotted",
+      "x": 612,
+      "y": 1060,
+      "width": 108,
+      "height": 29
+    },
+    {
+      "text": "in",
+      "x": 730,
+      "y": 1060,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "text": "most",
+      "x": 240,
+      "y": 1100,
+      "width": 70,
+      "height": 22
+    },
+    {
+      "text": "of",
+      "x": 318,
+      "y": 1098,
+      "width": 28,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 355,
+      "y": 1098,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "eastern",
+      "x": 409,
+      "y": 1101,
+      "width": 105,
+      "height": 21
+    },
+    {
+      "text": "United",
+      "x": 524,
+      "y": 1098,
+      "width": 94,
+      "height": 24
+    },
+    {
+      "text": "States.",
+      "x": 628,
+      "y": 1098,
+      "width": 94,
+      "height": 24
+    },
+    {
+      "text": "you",
+      "x": 1273,
+      "y": 183,
+      "width": 51,
+      "height": 23
+    },
+    {
+      "text": "you",
+      "x": 1409,
+      "y": 184,
+      "width": 51,
+      "height": 22
+    },
+    {
+      "text": "need",
+      "x": 1139,
+      "y": 211,
+      "width": 61,
+      "height": 22
+    },
+    {
+      "text": "to",
+      "x": 1207,
+      "y": 210,
+      "width": 31,
+      "height": 24
+    },
+    {
+      "text": "decide:",
+      "x": 1244,
+      "y": 210,
+      "width": 92,
+      "height": 23
+    },
+    {
+      "text": "Which",
+      "x": 1343,
+      "y": 209,
+      "width": 87,
+      "height": 24
+    },
+    {
+      "text": "kind",
+      "x": 1438,
+      "y": 210,
+      "width": 52,
+      "height": 23
+    },
+    {
+      "text": "of",
+      "x": 1147,
+      "y": 243,
+      "width": 32,
+      "height": 23
+    },
+    {
+      "text": "hummingbird",
+      "x": 1185,
+      "y": 243,
+      "width": 173,
+      "height": 30
+    },
+    {
+      "text": "are",
+      "x": 1365,
+      "y": 248,
+      "width": 44,
+      "height": 18
+    },
+    {
+      "text": "you?",
+      "x": 1417,
+      "y": 242,
+      "width": 66,
+      "height": 30
+    },
+    {
+      "text": "BEE",
+      "x": 827,
+      "y": 924,
+      "width": 62,
+      "height": 37
+    },
+    {
+      "text": "HUMMINGBIRD",
+      "x": 908,
+      "y": 924,
+      "width": 286,
+      "height": 37
+    },
+    {
+      "text": "Not",
+      "x": 826,
+      "y": 978,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "just",
+      "x": 880,
+      "y": 978,
+      "width": 50,
+      "height": 29
+    },
+    {
+      "text": "the",
+      "x": 936,
+      "y": 979,
+      "width": 45,
+      "height": 23
+    },
+    {
+      "text": "smallest",
+      "x": 989,
+      "y": 978,
+      "width": 110,
+      "height": 24
+    },
+    {
+      "text": "hummingbird.",
+      "x": 1106,
+      "y": 978,
+      "width": 185,
+      "height": 29
+    },
+    {
+      "text": "but",
+      "x": 1300,
+      "y": 978,
+      "width": 44,
+      "height": 24
+    },
+    {
+      "text": "actually",
+      "x": 825,
+      "y": 1017,
+      "width": 106,
+      "height": 29
+    },
+    {
+      "text": "the",
+      "x": 936,
+      "y": 1017,
+      "width": 45,
+      "height": 23
+    },
+    {
+      "text": "smallest",
+      "x": 989,
+      "y": 1017,
+      "width": 110,
+      "height": 23
+    },
+    {
+      "text": "bird",
+      "x": 1106,
+      "y": 1017,
+      "width": 52,
+      "height": 23
+    },
+    {
+      "text": "in",
+      "x": 1167,
+      "y": 1017,
+      "width": 22,
+      "height": 23
+    },
+    {
+      "text": "the",
+      "x": 1198,
+      "y": 1017,
+      "width": 44,
+      "height": 23
+    },
+    {
+      "text": "world.",
+      "x": 1249,
+      "y": 1017,
+      "width": 83,
+      "height": 25
+    },
+    {
+      "text": "about",
+      "x": 872,
+      "y": 1055,
+      "width": 76,
+      "height": 23
+    },
+    {
+      "text": "two",
+      "x": 955,
+      "y": 1057,
+      "width": 51,
+      "height": 21
+    },
+    {
+      "text": "inches",
+      "x": 1014,
+      "y": 1055,
+      "width": 86,
+      "height": 23
+    },
+    {
+      "text": "long.",
+      "x": 1108,
+      "y": 1055,
+      "width": 66,
+      "height": 29
+    },
+    {
+      "text": "weighs",
+      "x": 1181,
+      "y": 1055,
+      "width": 96,
+      "height": 29
+    },
+    {
+      "text": "less",
+      "x": 1285,
+      "y": 1055,
+      "width": 52,
+      "height": 23
+    },
+    {
+      "text": "than",
+      "x": 825,
+      "y": 1093,
+      "width": 59,
+      "height": 23
+    },
+    {
+      "text": "a",
+      "x": 894,
+      "y": 1098,
+      "width": 14,
+      "height": 18
+    },
+    {
+      "text": "dime.",
+      "x": 916,
+      "y": 1093,
+      "width": 73,
+      "height": 26
+    },
+    {
+      "text": "and",
+      "x": 998,
+      "y": 1093,
+      "width": 49,
+      "height": 23
+    },
+    {
+      "text": "lives",
+      "x": 1057,
+      "y": 1093,
+      "width": 58,
+      "height": 23
+    },
+    {
+      "text": "only",
+      "x": 1123,
+      "y": 1093,
+      "width": 58,
+      "height": 29
+    },
+    {
+      "text": "in",
+      "x": 1188,
+      "y": 1093,
+      "width": 23,
+      "height": 23
+    },
+    {
+      "text": "Cuba.",
+      "x": 1219,
+      "y": 1092,
+      "width": 79,
+      "height": 25
+    },
+    {
+      "text": "ANNA'S",
+      "x": 243,
+      "y": 1577,
+      "width": 144,
+      "height": 37
+    },
+    {
+      "text": "HUMMINGBIRD",
+      "x": 242,
+      "y": 1621,
+      "width": 287,
+      "height": 37
+    },
+    {
+      "text": "Named",
+      "x": 243,
+      "y": 1675,
+      "width": 96,
+      "height": 23
+    },
+    {
+      "text": "for",
+      "x": 348,
+      "y": 1675,
+      "width": 37,
+      "height": 24
+    },
+    {
+      "text": "an",
+      "x": 392,
+      "y": 1680,
+      "width": 32,
+      "height": 18
+    },
+    {
+      "text": "Italian",
+      "x": 434,
+      "y": 1674,
+      "width": 79,
+      "height": 24
+    },
+    {
+      "text": "duchess.",
+      "x": 244,
+      "y": 1713,
+      "width": 117,
+      "height": 25
+    },
+    {
+      "text": "it",
+      "x": 369,
+      "y": 1713,
+      "width": 17,
+      "height": 23
+    },
+    {
+      "text": "has",
+      "x": 394,
+      "y": 1713,
+      "width": 46,
+      "height": 23
+    },
+    {
+      "text": "feathers",
+      "x": 448,
+      "y": 1713,
+      "width": 111,
+      "height": 24
+    },
+    {
+      "text": "that",
+      "x": 243,
+      "y": 1751,
+      "width": 52,
+      "height": 24
+    },
+    {
+      "text": "are",
+      "x": 304,
+      "y": 1756,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "bright",
+      "x": 355,
+      "y": 1751,
+      "width": 77,
+      "height": 29
+    },
+    {
+      "text": "and",
+      "x": 441,
+      "y": 1751,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "iridescent.",
+      "x": 243,
+      "y": 1789,
+      "width": 139,
+      "height": 26
+    },
+    {
+      "text": "which",
+      "x": 389,
+      "y": 1789,
+      "width": 78,
+      "height": 24
+    },
+    {
+      "text": "means",
+      "x": 477,
+      "y": 1794,
+      "width": 88,
+      "height": 19
+    },
+    {
+      "text": "that",
+      "x": 243,
+      "y": 1828,
+      "width": 52,
+      "height": 23
+    },
+    {
+      "text": "when",
+      "x": 302,
+      "y": 1828,
+      "width": 73,
+      "height": 23
+    },
+    {
+      "text": "light",
+      "x": 385,
+      "y": 1827,
+      "width": 57,
+      "height": 29
+    },
+    {
+      "text": "hits",
+      "x": 451,
+      "y": 1827,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "them",
+      "x": 505,
+      "y": 1828,
+      "width": 69,
+      "height": 23
+    },
+    {
+      "text": "at",
+      "x": 244,
+      "y": 1867,
+      "width": 25,
+      "height": 22
+    },
+    {
+      "text": "a",
+      "x": 276,
+      "y": 1870,
+      "width": 15,
+      "height": 19
+    },
+    {
+      "text": "certain",
+      "x": 301,
+      "y": 1865,
+      "width": 91,
+      "height": 24
+    },
+    {
+      "text": "angle.",
+      "x": 400,
+      "y": 1865,
+      "width": 80,
+      "height": 29
+    },
+    {
+      "text": "they",
+      "x": 489,
+      "y": 1866,
+      "width": 59,
+      "height": 28
+    },
+    {
+      "text": "appear",
+      "x": 243,
+      "y": 1908,
+      "width": 95,
+      "height": 24
+    },
+    {
+      "text": "to",
+      "x": 345,
+      "y": 1905,
+      "width": 27,
+      "height": 22
+    },
+    {
+      "text": "change",
+      "x": 379,
+      "y": 1904,
+      "width": 98,
+      "height": 29
+    },
+    {
+      "text": "color.",
+      "x": 486,
+      "y": 1904,
+      "width": 73,
+      "height": 23
+    },
+    {
+      "text": "WIRE-CRESTED",
+      "x": 620,
+      "y": 1615,
+      "width": 282,
+      "height": 37
+    },
+    {
+      "text": "THORNTAIL",
+      "x": 620,
+      "y": 1659,
+      "width": 220,
+      "height": 37
+    },
+    {
+      "text": "With",
+      "x": 618,
+      "y": 1713,
+      "width": 62,
+      "height": 23
+    },
+    {
+      "text": "a",
+      "x": 688,
+      "y": 1718,
+      "width": 16,
+      "height": 19
+    },
+    {
+      "text": "long.",
+      "x": 712,
+      "y": 1713,
+      "width": 67,
+      "height": 29
+    },
+    {
+      "text": "pointed.",
+      "x": 787,
+      "y": 1713,
+      "width": 109,
+      "height": 29
+    },
+    {
+      "text": "blue",
+      "x": 904,
+      "y": 1713,
+      "width": 58,
+      "height": 24
+    },
+    {
+      "text": "tail",
+      "x": 618,
+      "y": 1751,
+      "width": 41,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 668,
+      "y": 1751,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "tall",
+      "x": 724,
+      "y": 1751,
+      "width": 40,
+      "height": 24
+    },
+    {
+      "text": "feathers",
+      "x": 774,
+      "y": 1751,
+      "width": 109,
+      "height": 24
+    },
+    {
+      "text": "that",
+      "x": 890,
+      "y": 1751,
+      "width": 54,
+      "height": 24
+    },
+    {
+      "text": "look",
+      "x": 619,
+      "y": 1789,
+      "width": 58,
+      "height": 24
+    },
+    {
+      "text": "like",
+      "x": 685,
+      "y": 1789,
+      "width": 45,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 739,
+      "y": 1794,
+      "width": 14,
+      "height": 19
+    },
+    {
+      "text": "wild",
+      "x": 762,
+      "y": 1789,
+      "width": 54,
+      "height": 24
+    },
+    {
+      "text": "hairstyle",
+      "x": 825,
+      "y": 1789,
+      "width": 115,
+      "height": 29
+    },
+    {
+      "text": "on",
+      "x": 619,
+      "y": 1832,
+      "width": 34,
+      "height": 19
+    },
+    {
+      "text": "top",
+      "x": 660,
+      "y": 1829,
+      "width": 44,
+      "height": 27
+    },
+    {
+      "text": "of",
+      "x": 712,
+      "y": 1827,
+      "width": 28,
+      "height": 24
+    },
+    {
+      "text": "its",
+      "x": 748,
+      "y": 1827,
+      "width": 29,
+      "height": 24
+    },
+    {
+      "text": "head.",
+      "x": 787,
+      "y": 1827,
+      "width": 74,
+      "height": 25
+    },
+    {
+      "text": "this",
+      "x": 868,
+      "y": 1828,
+      "width": 48,
+      "height": 23
+    },
+    {
+      "text": "small",
+      "x": 619,
+      "y": 1866,
+      "width": 69,
+      "height": 23
+    },
+    {
+      "text": "hummingbird",
+      "x": 698,
+      "y": 1865,
+      "width": 175,
+      "height": 29
+    },
+    {
+      "text": "stands",
+      "x": 619,
+      "y": 1903,
+      "width": 88,
+      "height": 24
+    },
+    {
+      "text": "out",
+      "x": 715,
+      "y": 1905,
+      "width": 45,
+      "height": 22
+    },
+    {
+      "text": "in",
+      "x": 768,
+      "y": 1903,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 800,
+      "y": 1908,
+      "width": 15,
+      "height": 19
+    },
+    {
+      "text": "crowd!",
+      "x": 823,
+      "y": 1903,
+      "width": 88,
+      "height": 24
+    },
+    {
+      "text": "RUFOUS",
+      "x": 1004,
+      "y": 1577,
+      "width": 150,
+      "height": 37
+    },
+    {
+      "text": "HUMMINGBIRD",
+      "x": 1005,
+      "y": 1621,
+      "width": 285,
+      "height": 37
+    },
+    {
+      "text": "this",
+      "x": 1004,
+      "y": 1674,
+      "width": 55,
+      "height": 24
+    },
+    {
+      "text": "fast",
+      "x": 1067,
+      "y": 1675,
+      "width": 51,
+      "height": 23
+    },
+    {
+      "text": "and",
+      "x": 1125,
+      "y": 1675,
+      "width": 49,
+      "height": 23
+    },
+    {
+      "text": "feisty",
+      "x": 1183,
+      "y": 1674,
+      "width": 74,
+      "height": 30
+    },
+    {
+      "text": "flier",
+      "x": 1263,
+      "y": 1675,
+      "width": 52,
+      "height": 23
+    },
+    {
+      "text": "will",
+      "x": 1004,
+      "y": 1713,
+      "width": 45,
+      "height": 23
+    },
+    {
+      "text": "light",
+      "x": 1056,
+      "y": 1713,
+      "width": 62,
+      "height": 29
+    },
+    {
+      "text": "any",
+      "x": 1126,
+      "y": 1718,
+      "width": 47,
+      "height": 24
+    },
+    {
+      "text": "bird",
+      "x": 1182,
+      "y": 1713,
+      "width": 50,
+      "height": 24
+    },
+    {
+      "text": "that",
+      "x": 1241,
+      "y": 1713,
+      "width": 53,
+      "height": 23
+    },
+    {
+      "text": "competes",
+      "x": 1005,
+      "y": 1753,
+      "width": 131,
+      "height": 27
+    },
+    {
+      "text": "with",
+      "x": 1143,
+      "y": 1751,
+      "width": 55,
+      "height": 24
+    },
+    {
+      "text": "for",
+      "x": 1232,
+      "y": 1751,
+      "width": 37,
+      "height": 24
+    },
+    {
+      "text": "food.",
+      "x": 1276,
+      "y": 1751,
+      "width": 68,
+      "height": 24
+    },
+    {
+      "text": "It",
+      "x": 1005,
+      "y": 1789,
+      "width": 17,
+      "height": 23
+    },
+    {
+      "text": "can",
+      "x": 1030,
+      "y": 1794,
+      "width": 47,
+      "height": 19
+    },
+    {
+      "text": "migrate",
+      "x": 1087,
+      "y": 1790,
+      "width": 100,
+      "height": 28
+    },
+    {
+      "text": "huge",
+      "x": 1195,
+      "y": 1789,
+      "width": 69,
+      "height": 29
+    },
+    {
+      "text": "distances-up",
+      "x": 1005,
+      "y": 1827,
+      "width": 186,
+      "height": 29
+    },
+    {
+      "text": "to",
+      "x": 1199,
+      "y": 1829,
+      "width": 28,
+      "height": 22
+    },
+    {
+      "text": "miles!",
+      "x": 1093,
+      "y": 1865,
+      "width": 77,
+      "height": 24
+    },
+    {
+      "text": "MARVELOUS",
+      "x": 1612,
+      "y": 581,
+      "width": 237,
+      "height": 38
+    },
+    {
+      "text": "SPATULETAIL",
+      "x": 1869,
+      "y": 582,
+      "width": 243,
+      "height": 37
+    },
+    {
+      "text": "this",
+      "x": 1612,
+      "y": 635,
+      "width": 55,
+      "height": 25
+    },
+    {
+      "text": "rare",
+      "x": 1676,
+      "y": 641,
+      "width": 52,
+      "height": 19
+    },
+    {
+      "text": "hummingbird",
+      "x": 1738,
+      "y": 636,
+      "width": 175,
+      "height": 29
+    },
+    {
+      "text": "has",
+      "x": 1923,
+      "y": 636,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 1978,
+      "y": 641,
+      "width": 14,
+      "height": 19
+    },
+    {
+      "text": "long",
+      "x": 2002,
+      "y": 636,
+      "width": 57,
+      "height": 29
+    },
+    {
+      "text": "and",
+      "x": 2068,
+      "y": 636,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "unique",
+      "x": 1613,
+      "y": 674,
+      "width": 90,
+      "height": 29
+    },
+    {
+      "text": "tail",
+      "x": 1711,
+      "y": 674,
+      "width": 41,
+      "height": 23
+    },
+    {
+      "text": "made",
+      "x": 1760,
+      "y": 674,
+      "width": 74,
+      "height": 24
+    },
+    {
+      "text": "up",
+      "x": 1844,
+      "y": 679,
+      "width": 33,
+      "height": 23
+    },
+    {
+      "text": "of",
+      "x": 1885,
+      "y": 674,
+      "width": 28,
+      "height": 24
+    },
+    {
+      "text": "four",
+      "x": 1918,
+      "y": 674,
+      "width": 56,
+      "height": 24
+    },
+    {
+      "text": "feathers",
+      "x": 1979,
+      "y": 674,
+      "width": 138,
+      "height": 24
+    },
+    {
+      "text": "BLUE-THROATED",
+      "x": 1611,
+      "y": 1142,
+      "width": 309,
+      "height": 37
+    },
+    {
+      "text": "HILLSTAR",
+      "x": 1938,
+      "y": 1142,
+      "width": 175,
+      "height": 37
+    },
+    {
+      "text": "Discovered",
+      "x": 1612,
+      "y": 1196,
+      "width": 149,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 1770,
+      "y": 1196,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 1874,
+      "y": 1196,
+      "width": 22,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 1904,
+      "y": 1196,
+      "width": 44,
+      "height": 24
+    },
+    {
+      "text": "Andes",
+      "x": 1956,
+      "y": 1196,
+      "width": 85,
+      "height": 24
+    },
+    {
+      "text": "Mountains",
+      "x": 1612,
+      "y": 1234,
+      "width": 141,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 1761,
+      "y": 1234,
+      "width": 26,
+      "height": 24
+    },
+    {
+      "text": "Ecuador.",
+      "x": 1795,
+      "y": 1234,
+      "width": 115,
+      "height": 26
+    },
+    {
+      "text": "this",
+      "x": 1918,
+      "y": 1234,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "beautiful",
+      "x": 1974,
+      "y": 1234,
+      "width": 118,
+      "height": 24
+    },
+    {
+      "text": "blue",
+      "x": 1613,
+      "y": 1272,
+      "width": 57,
+      "height": 24
+    },
+    {
+      "text": "bird",
+      "x": 1678,
+      "y": 1272,
+      "width": 52,
+      "height": 24
+    },
+    {
+      "text": "can",
+      "x": 1739,
+      "y": 1278,
+      "width": 46,
+      "height": 18
+    },
+    {
+      "text": "survive",
+      "x": 1795,
+      "y": 1272,
+      "width": 95,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 1899,
+      "y": 1272,
+      "width": 22,
+      "height": 24
+    },
+    {
+      "text": "cold",
+      "x": 1931,
+      "y": 1272,
+      "width": 55,
+      "height": 24
+    },
+    {
+      "text": "temperatures.",
+      "x": 1612,
+      "y": 1312,
+      "width": 186,
+      "height": 27
+    },
+    {
+      "text": "unlike",
+      "x": 1806,
+      "y": 1311,
+      "width": 80,
+      "height": 23
+    },
+    {
+      "text": "most",
+      "x": 1895,
+      "y": 1312,
+      "width": 66,
+      "height": 22
+    },
+    {
+      "text": "other",
+      "x": 1969,
+      "y": 1310,
+      "width": 71,
+      "height": 24
+    },
+    {
+      "text": "species.",
+      "x": 1613,
+      "y": 1348,
+      "width": 108,
+      "height": 29
+    },
+    {
+      "text": "Ecuador",
+      "x": 1600,
+      "y": 1442,
+      "width": 175,
+      "height": 36
+    },
+    {
+      "text": "has",
+      "x": 1788,
+      "y": 1444,
+      "width": 77,
+      "height": 34
+    },
+    {
+      "text": "about",
+      "x": 1878,
+      "y": 1444,
+      "width": 125,
+      "height": 36
+    },
+    {
+      "text": "'hummingbird",
+      "x": 1684,
+      "y": 1489,
+      "width": 279,
+      "height": 49
+    },
+    {
+      "text": "species",
+      "x": 1600,
+      "y": 1540,
+      "width": 169,
+      "height": 43
+    },
+    {
+      "text": "Why",
+      "x": 1788,
+      "y": 1542,
+      "width": 93,
+      "height": 41
+    },
+    {
+      "text": "so",
+      "x": 1894,
+      "y": 1553,
+      "width": 49,
+      "height": 23
+    },
+    {
+      "text": "many?",
+      "x": 1959,
+      "y": 1542,
+      "width": 136,
+      "height": 41
+    },
+    {
+      "text": "Hummingbirds",
+      "x": 1600,
+      "y": 1604,
+      "width": 196,
+      "height": 29
+    },
+    {
+      "text": "thrive",
+      "x": 1804,
+      "y": 1604,
+      "width": 76,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 1888,
+      "y": 1604,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "text": "places",
+      "x": 1921,
+      "y": 1604,
+      "width": 84,
+      "height": 29
+    },
+    {
+      "text": "with",
+      "x": 2013,
+      "y": 1604,
+      "width": 57,
+      "height": 23
+    },
+    {
+      "text": "biociversity.",
+      "x": 1600,
+      "y": 1641,
+      "width": 169,
+      "height": 30
+    },
+    {
+      "text": "or",
+      "x": 1777,
+      "y": 1648,
+      "width": 28,
+      "height": 18
+    },
+    {
+      "text": "many",
+      "x": 1812,
+      "y": 1648,
+      "width": 72,
+      "height": 23
+    },
+    {
+      "text": "kinds",
+      "x": 1893,
+      "y": 1642,
+      "width": 71,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 1972,
+      "y": 1642,
+      "width": 27,
+      "height": 24
+    },
+    {
+      "text": "climates",
+      "x": 1600,
+      "y": 1680,
+      "width": 111,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 1719,
+      "y": 1680,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "habitats.",
+      "x": 1777,
+      "y": 1680,
+      "width": 113,
+      "height": 24
+    },
+    {
+      "text": "this",
+      "x": 1899,
+      "y": 1680,
+      "width": 55,
+      "height": 24
+    },
+    {
+      "text": "South",
+      "x": 1962,
+      "y": 1680,
+      "width": 78,
+      "height": 24
+    },
+    {
+      "text": "American",
+      "x": 1599,
+      "y": 1718,
+      "width": 128,
+      "height": 24
+    },
+    {
+      "text": "country",
+      "x": 1735,
+      "y": 1720,
+      "width": 103,
+      "height": 28
+    },
+    {
+      "text": "has",
+      "x": 1845,
+      "y": 1718,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "warm",
+      "x": 1600,
+      "y": 1762,
+      "width": 73,
+      "height": 18
+    },
+    {
+      "text": "tropical",
+      "x": 1682,
+      "y": 1756,
+      "width": 100,
+      "height": 29
+    },
+    {
+      "text": "rain",
+      "x": 1790,
+      "y": 1756,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "forests.",
+      "x": 1600,
+      "y": 1794,
+      "width": 100,
+      "height": 26
+    },
+    {
+      "text": "cool",
+      "x": 1708,
+      "y": 1795,
+      "width": 55,
+      "height": 23
+    },
+    {
+      "text": "coastal",
+      "x": 1772,
+      "y": 1794,
+      "width": 94,
+      "height": 24
+    },
+    {
+      "text": "areas.",
+      "x": 1600,
+      "y": 1838,
+      "width": 81,
+      "height": 20
+    },
+    {
+      "text": "and",
+      "x": 1690,
+      "y": 1833,
+      "width": 48,
+      "height": 23
+    },
+    {
+      "text": "the",
+      "x": 1747,
+      "y": 1833,
+      "width": 42,
+      "height": 23
+    },
+    {
+      "text": "tall",
+      "x": 1797,
+      "y": 1833,
+      "width": 40,
+      "height": 23
+    },
+    {
+      "text": "Andes",
+      "x": 1599,
+      "y": 1871,
+      "width": 87,
+      "height": 23
+    },
+    {
+      "text": "Mountains!",
+      "x": 1694,
+      "y": 1871,
+      "width": 146,
+      "height": 23
+    },
+    {
+      "text": "Many",
+      "x": 2233,
+      "y": 228,
+      "width": 73,
+      "height": 29
+    },
+    {
+      "text": "hummingbird",
+      "x": 2312,
+      "y": 228,
+      "width": 178,
+      "height": 29
+    },
+    {
+      "text": "species",
+      "x": 2498,
+      "y": 228,
+      "width": 100,
+      "height": 29
+    },
+    {
+      "text": "are",
+      "x": 2609,
+      "y": 233,
+      "width": 41,
+      "height": 19
+    },
+    {
+      "text": "endangered.",
+      "x": 2232,
+      "y": 266,
+      "width": 175,
+      "height": 29
+    },
+    {
+      "text": "which",
+      "x": 2413,
+      "y": 266,
+      "width": 79,
+      "height": 24
+    },
+    {
+      "text": "means",
+      "x": 2502,
+      "y": 271,
+      "width": 87,
+      "height": 19
+    },
+    {
+      "text": "only",
+      "x": 2598,
+      "y": 266,
+      "width": 56,
+      "height": 29
+    },
+    {
+      "text": "a",
+      "x": 2661,
+      "y": 271,
+      "width": 16,
+      "height": 19
+    },
+    {
+      "text": "few",
+      "x": 2232,
+      "y": 304,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 2288,
+      "y": 304,
+      "width": 27,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2322,
+      "y": 304,
+      "width": 42,
+      "height": 24
+    },
+    {
+      "text": "birds",
+      "x": 2374,
+      "y": 304,
+      "width": 66,
+      "height": 24
+    },
+    {
+      "text": "remain",
+      "x": 2448,
+      "y": 304,
+      "width": 91,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 2548,
+      "y": 304,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2579,
+      "y": 304,
+      "width": 43,
+      "height": 24
+    },
+    {
+      "text": "wild.",
+      "x": 2629,
+      "y": 304,
+      "width": 64,
+      "height": 26
+    },
+    {
+      "text": "and",
+      "x": 2233,
+      "y": 342,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "these",
+      "x": 2290,
+      "y": 342,
+      "width": 75,
+      "height": 24
+    },
+    {
+      "text": "species",
+      "x": 2373,
+      "y": 342,
+      "width": 100,
+      "height": 29
+    },
+    {
+      "text": "are",
+      "x": 2482,
+      "y": 347,
+      "width": 42,
+      "height": 19
+    },
+    {
+      "text": "at",
+      "x": 2533,
+      "y": 344,
+      "width": 25,
+      "height": 22
+    },
+    {
+      "text": "risk",
+      "x": 2566,
+      "y": 342,
+      "width": 46,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 2620,
+      "y": 342,
+      "width": 27,
+      "height": 24
+    },
+    {
+      "text": "becoming",
+      "x": 2233,
+      "y": 380,
+      "width": 131,
+      "height": 29
+    },
+    {
+      "text": "extinct.",
+      "x": 2373,
+      "y": 379,
+      "width": 102,
+      "height": 28
+    },
+    {
+      "text": "or",
+      "x": 2484,
+      "y": 385,
+      "width": 28,
+      "height": 19
+    },
+    {
+      "text": "disappearing",
+      "x": 2519,
+      "y": 380,
+      "width": 174,
+      "height": 30
+    },
+    {
+      "text": "forever.",
+      "x": 2232,
+      "y": 418,
+      "width": 101,
+      "height": 24
+    },
+    {
+      "text": "GIANT",
+      "x": 2185,
+      "y": 1150,
+      "width": 121,
+      "height": 37
+    },
+    {
+      "text": "HUMMINGBIRD",
+      "x": 2325,
+      "y": 1150,
+      "width": 286,
+      "height": 37
+    },
+    {
+      "text": "this",
+      "x": 2183,
+      "y": 1204,
+      "width": 55,
+      "height": 24
+    },
+    {
+      "text": "is",
+      "x": 2247,
+      "y": 1204,
+      "width": 21,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2276,
+      "y": 1204,
+      "width": 42,
+      "height": 24
+    },
+    {
+      "text": "largest",
+      "x": 2328,
+      "y": 1204,
+      "width": 91,
+      "height": 29
+    },
+    {
+      "text": "and",
+      "x": 2427,
+      "y": 1204,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "slowest-flying",
+      "x": 2485,
+      "y": 1204,
+      "width": 184,
+      "height": 30
+    },
+    {
+      "text": "hummingbird.",
+      "x": 2184,
+      "y": 1242,
+      "width": 184,
+      "height": 30
+    },
+    {
+      "text": "At",
+      "x": 2376,
+      "y": 1242,
+      "width": 29,
+      "height": 24
+    },
+    {
+      "text": "about",
+      "x": 2414,
+      "y": 1242,
+      "width": 77,
+      "height": 24
+    },
+    {
+      "text": "eight",
+      "x": 2500,
+      "y": 1242,
+      "width": 67,
+      "height": 29
+    },
+    {
+      "text": "inches",
+      "x": 2576,
+      "y": 1243,
+      "width": 85,
+      "height": 23
+    },
+    {
+      "text": "long.",
+      "x": 2184,
+      "y": 1280,
+      "width": 66,
+      "height": 29
+    },
+    {
+      "text": "it's",
+      "x": 2258,
+      "y": 1280,
+      "width": 37,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2303,
+      "y": 1281,
+      "width": 42,
+      "height": 23
+    },
+    {
+      "text": "size",
+      "x": 2354,
+      "y": 1280,
+      "width": 51,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 2414,
+      "y": 1280,
+      "width": 26,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 2448,
+      "y": 1286,
+      "width": 15,
+      "height": 18
+    },
+    {
+      "text": "cardinal",
+      "x": 2471,
+      "y": 1281,
+      "width": 106,
+      "height": 23
+    },
+    {
+      "text": "and",
+      "x": 2585,
+      "y": 1281,
+      "width": 49,
+      "height": 23
+    },
+    {
+      "text": "has",
+      "x": 2644,
+      "y": 1281,
+      "width": 46,
+      "height": 23
+    },
+    {
+      "text": "dull",
+      "x": 2184,
+      "y": 1319,
+      "width": 47,
+      "height": 23
+    },
+    {
+      "text": "green",
+      "x": 2239,
+      "y": 1324,
+      "width": 79,
+      "height": 24
+    },
+    {
+      "text": "or",
+      "x": 2326,
+      "y": 1324,
+      "width": 28,
+      "height": 18
+    },
+    {
+      "text": "brown",
+      "x": 2362,
+      "y": 1319,
+      "width": 82,
+      "height": 23
+    },
+    {
+      "text": "CALLIOPE",
+      "x": 2185,
+      "y": 1737,
+      "width": 189,
+      "height": 38
+    },
+    {
+      "text": "HUMMINGBIRD",
+      "x": 2394,
+      "y": 1737,
+      "width": 288,
+      "height": 38
+    },
+    {
+      "text": "Named",
+      "x": 2186,
+      "y": 1792,
+      "width": 97,
+      "height": 24
+    },
+    {
+      "text": "for",
+      "x": 2290,
+      "y": 1792,
+      "width": 37,
+      "height": 23
+    },
+    {
+      "text": "the",
+      "x": 2334,
+      "y": 1792,
+      "width": 44,
+      "height": 24
+    },
+    {
+      "text": "ancient",
+      "x": 2387,
+      "y": 1792,
+      "width": 97,
+      "height": 23
+    },
+    {
+      "text": "Greek",
+      "x": 2491,
+      "y": 1792,
+      "width": 82,
+      "height": 23
+    },
+    {
+      "text": "muse",
+      "x": 2581,
+      "y": 1797,
+      "width": 72,
+      "height": 19
+    },
+    {
+      "text": "of",
+      "x": 2661,
+      "y": 1792,
+      "width": 28,
+      "height": 23
+    },
+    {
+      "text": "epic",
+      "x": 2185,
+      "y": 1830,
+      "width": 56,
+      "height": 28
+    },
+    {
+      "text": "poetry.",
+      "x": 2250,
+      "y": 1832,
+      "width": 92,
+      "height": 27
+    },
+    {
+      "text": "this",
+      "x": 2351,
+      "y": 1830,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "itty-bitty",
+      "x": 2407,
+      "y": 1830,
+      "width": 113,
+      "height": 29
+    },
+    {
+      "text": "hummingbird",
+      "x": 2527,
+      "y": 1830,
+      "width": 178,
+      "height": 29
+    },
+    {
+      "text": "has",
+      "x": 2186,
+      "y": 1868,
+      "width": 47,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 2242,
+      "y": 1873,
+      "width": 14,
+      "height": 19
+    },
+    {
+      "text": "short",
+      "x": 2264,
+      "y": 1868,
+      "width": 70,
+      "height": 24
+    },
+    {
+      "text": "biu",
+      "x": 2342,
+      "y": 1868,
+      "width": 36,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 2389,
+      "y": 1868,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "tail",
+      "x": 2445,
+      "y": 1868,
+      "width": 39,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 2495,
+      "y": 1868,
+      "width": 48,
+      "height": 24
+    },
+    {
+      "text": "is",
+      "x": 2552,
+      "y": 1868,
+      "width": 21,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2580,
+      "y": 1868,
+      "width": 43,
+      "height": 24
+    },
+    {
+      "text": "smallest",
+      "x": 2631,
+      "y": 1868,
+      "width": 111,
+      "height": 24
+    },
+    {
+      "text": "bird",
+      "x": 2186,
+      "y": 1906,
+      "width": 51,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 2247,
+      "y": 1906,
+      "width": 22,
+      "height": 23
+    },
+    {
+      "text": "the",
+      "x": 2278,
+      "y": 1906,
+      "width": 43,
+      "height": 24
+    },
+    {
+      "text": "United",
+      "x": 2329,
+      "y": 1906,
+      "width": 87,
+      "height": 24
+    },
+    {
+      "text": "States",
+      "x": 2426,
+      "y": 1906,
+      "width": 83,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 2517,
+      "y": 1906,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "Canada",
+      "x": 2575,
+      "y": 1906,
+      "width": 109,
+      "height": 24
+    }
+  ]
+}

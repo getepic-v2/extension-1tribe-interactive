@@ -1,0 +1,701 @@
+{
+  "image": "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230\\word-hotspots\\hummingbird_spread_12.png",
+  "text": "TO You're a gold-star student with a great memory. Your brain is about the size of a grain of rice. You have a large hippocampus. which is the part of the brain that focuses on memory and learning. You remember everything. including where humans place hummingbird feeders in their backyards. You even recognize the humans who refill them! You can recall every flower you've visited. and you know how long it will take before they're full of nectar again You migrate thousands of miles each year and remember your route. You even stop for food at the same places",
+  "width": 2964,
+  "height": 2160,
+  "words": [
+    {
+      "text": "TO",
+      "x": 2168,
+      "y": 822,
+      "width": 112,
+      "height": 75
+    },
+    {
+      "text": "You're",
+      "x": 1962,
+      "y": 934,
+      "width": 144,
+      "height": 42
+    },
+    {
+      "text": "a",
+      "x": 2123,
+      "y": 946,
+      "width": 30,
+      "height": 29
+    },
+    {
+      "text": "gold-star",
+      "x": 2169,
+      "y": 934,
+      "width": 221,
+      "height": 55
+    },
+    {
+      "text": "student",
+      "x": 2406,
+      "y": 934,
+      "width": 179,
+      "height": 43
+    },
+    {
+      "text": "with",
+      "x": 1966,
+      "y": 996,
+      "width": 99,
+      "height": 43
+    },
+    {
+      "text": "a",
+      "x": 2079,
+      "y": 1008,
+      "width": 30,
+      "height": 30
+    },
+    {
+      "text": "great",
+      "x": 2125,
+      "y": 1000,
+      "width": 128,
+      "height": 52
+    },
+    {
+      "text": "memory.",
+      "x": 2267,
+      "y": 1005,
+      "width": 202,
+      "height": 43
+    },
+    {
+      "text": "Your",
+      "x": 2006,
+      "y": 1079,
+      "width": 62,
+      "height": 24
+    },
+    {
+      "text": "brain",
+      "x": 2077,
+      "y": 1079,
+      "width": 66,
+      "height": 24
+    },
+    {
+      "text": "is",
+      "x": 2153,
+      "y": 1079,
+      "width": 20,
+      "height": 24
+    },
+    {
+      "text": "about",
+      "x": 2182,
+      "y": 1079,
+      "width": 78,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2268,
+      "y": 1079,
+      "width": 42,
+      "height": 24
+    },
+    {
+      "text": "size",
+      "x": 2319,
+      "y": 1079,
+      "width": 51,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 2379,
+      "y": 1079,
+      "width": 27,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 2413,
+      "y": 1085,
+      "width": 16,
+      "height": 18
+    },
+    {
+      "text": "grain",
+      "x": 2437,
+      "y": 1078,
+      "width": 70,
+      "height": 30
+    },
+    {
+      "text": "of",
+      "x": 2516,
+      "y": 1079,
+      "width": 28,
+      "height": 24
+    },
+    {
+      "text": "rice.",
+      "x": 2552,
+      "y": 1078,
+      "width": 56,
+      "height": 25
+    },
+    {
+      "text": "You",
+      "x": 2006,
+      "y": 1134,
+      "width": 52,
+      "height": 24
+    },
+    {
+      "text": "have",
+      "x": 2066,
+      "y": 1134,
+      "width": 63,
+      "height": 24
+    },
+    {
+      "text": "a",
+      "x": 2138,
+      "y": 1139,
+      "width": 16,
+      "height": 19
+    },
+    {
+      "text": "large",
+      "x": 2162,
+      "y": 1134,
+      "width": 68,
+      "height": 29
+    },
+    {
+      "text": "hippocampus.",
+      "x": 2237,
+      "y": 1133,
+      "width": 196,
+      "height": 30
+    },
+    {
+      "text": "which",
+      "x": 2441,
+      "y": 1134,
+      "width": 79,
+      "height": 24
+    },
+    {
+      "text": "is",
+      "x": 2529,
+      "y": 1134,
+      "width": 21,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2558,
+      "y": 1134,
+      "width": 42,
+      "height": 24
+    },
+    {
+      "text": "part",
+      "x": 2610,
+      "y": 1136,
+      "width": 54,
+      "height": 27
+    },
+    {
+      "text": "of",
+      "x": 2672,
+      "y": 1134,
+      "width": 26,
+      "height": 24
+    },
+    {
+      "text": "the",
+      "x": 2006,
+      "y": 1172,
+      "width": 44,
+      "height": 24
+    },
+    {
+      "text": "brain",
+      "x": 2058,
+      "y": 1172,
+      "width": 68,
+      "height": 24
+    },
+    {
+      "text": "that",
+      "x": 2133,
+      "y": 1172,
+      "width": 54,
+      "height": 24
+    },
+    {
+      "text": "focuses",
+      "x": 2194,
+      "y": 1172,
+      "width": 104,
+      "height": 24
+    },
+    {
+      "text": "on",
+      "x": 2307,
+      "y": 1178,
+      "width": 33,
+      "height": 18
+    },
+    {
+      "text": "memory",
+      "x": 2348,
+      "y": 1178,
+      "width": 112,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 2468,
+      "y": 1172,
+      "width": 50,
+      "height": 24
+    },
+    {
+      "text": "learning.",
+      "x": 2526,
+      "y": 1172,
+      "width": 116,
+      "height": 30
+    },
+    {
+      "text": "You",
+      "x": 2005,
+      "y": 1227,
+      "width": 55,
+      "height": 24
+    },
+    {
+      "text": "remember",
+      "x": 2067,
+      "y": 1227,
+      "width": 143,
+      "height": 24
+    },
+    {
+      "text": "everything.",
+      "x": 2218,
+      "y": 1226,
+      "width": 158,
+      "height": 30
+    },
+    {
+      "text": "including",
+      "x": 2384,
+      "y": 1226,
+      "width": 123,
+      "height": 30
+    },
+    {
+      "text": "where",
+      "x": 2514,
+      "y": 1227,
+      "width": 83,
+      "height": 24
+    },
+    {
+      "text": "humans",
+      "x": 2608,
+      "y": 1227,
+      "width": 105,
+      "height": 24
+    },
+    {
+      "text": "place",
+      "x": 2008,
+      "y": 1266,
+      "width": 71,
+      "height": 28
+    },
+    {
+      "text": "hummingbird",
+      "x": 2088,
+      "y": 1265,
+      "width": 178,
+      "height": 29
+    },
+    {
+      "text": "feeders",
+      "x": 2273,
+      "y": 1265,
+      "width": 103,
+      "height": 24
+    },
+    {
+      "text": "in",
+      "x": 2384,
+      "y": 1265,
+      "width": 22,
+      "height": 24
+    },
+    {
+      "text": "their",
+      "x": 2416,
+      "y": 1265,
+      "width": 62,
+      "height": 24
+    },
+    {
+      "text": "backyards.",
+      "x": 2485,
+      "y": 1265,
+      "width": 146,
+      "height": 30
+    },
+    {
+      "text": "You",
+      "x": 2639,
+      "y": 1265,
+      "width": 51,
+      "height": 24
+    },
+    {
+      "text": "even",
+      "x": 2006,
+      "y": 1309,
+      "width": 66,
+      "height": 19
+    },
+    {
+      "text": "recognize",
+      "x": 2080,
+      "y": 1303,
+      "width": 131,
+      "height": 30
+    },
+    {
+      "text": "the",
+      "x": 2218,
+      "y": 1304,
+      "width": 45,
+      "height": 23
+    },
+    {
+      "text": "humans",
+      "x": 2271,
+      "y": 1304,
+      "width": 105,
+      "height": 24
+    },
+    {
+      "text": "who",
+      "x": 2384,
+      "y": 1304,
+      "width": 58,
+      "height": 24
+    },
+    {
+      "text": "refill",
+      "x": 2450,
+      "y": 1304,
+      "width": 57,
+      "height": 24
+    },
+    {
+      "text": "them!",
+      "x": 2516,
+      "y": 1303,
+      "width": 76,
+      "height": 24
+    },
+    {
+      "text": "You",
+      "x": 2006,
+      "y": 1358,
+      "width": 52,
+      "height": 24
+    },
+    {
+      "text": "can",
+      "x": 2066,
+      "y": 1363,
+      "width": 47,
+      "height": 19
+    },
+    {
+      "text": "recall",
+      "x": 2123,
+      "y": 1358,
+      "width": 72,
+      "height": 24
+    },
+    {
+      "text": "every",
+      "x": 2203,
+      "y": 1364,
+      "width": 75,
+      "height": 24
+    },
+    {
+      "text": "flower",
+      "x": 2284,
+      "y": 1358,
+      "width": 85,
+      "height": 24
+    },
+    {
+      "text": "you've",
+      "x": 2377,
+      "y": 1359,
+      "width": 88,
+      "height": 28
+    },
+    {
+      "text": "visited.",
+      "x": 2472,
+      "y": 1358,
+      "width": 98,
+      "height": 26
+    },
+    {
+      "text": "and",
+      "x": 2576,
+      "y": 1358,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "you",
+      "x": 2634,
+      "y": 1364,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "know",
+      "x": 2008,
+      "y": 1397,
+      "width": 72,
+      "height": 23
+    },
+    {
+      "text": "how",
+      "x": 2086,
+      "y": 1397,
+      "width": 60,
+      "height": 23
+    },
+    {
+      "text": "long",
+      "x": 2154,
+      "y": 1397,
+      "width": 60,
+      "height": 29
+    },
+    {
+      "text": "it",
+      "x": 2223,
+      "y": 1395,
+      "width": 17,
+      "height": 26
+    },
+    {
+      "text": "will",
+      "x": 2249,
+      "y": 1396,
+      "width": 47,
+      "height": 24
+    },
+    {
+      "text": "take",
+      "x": 2304,
+      "y": 1397,
+      "width": 61,
+      "height": 23
+    },
+    {
+      "text": "before",
+      "x": 2373,
+      "y": 1397,
+      "width": 88,
+      "height": 24
+    },
+    {
+      "text": "they're",
+      "x": 2469,
+      "y": 1397,
+      "width": 92,
+      "height": 29
+    },
+    {
+      "text": "full",
+      "x": 2569,
+      "y": 1396,
+      "width": 40,
+      "height": 25
+    },
+    {
+      "text": "of",
+      "x": 2617,
+      "y": 1397,
+      "width": 28,
+      "height": 24
+    },
+    {
+      "text": "nectar",
+      "x": 2008,
+      "y": 1437,
+      "width": 85,
+      "height": 22
+    },
+    {
+      "text": "again",
+      "x": 2102,
+      "y": 1435,
+      "width": 79,
+      "height": 29
+    },
+    {
+      "text": "You",
+      "x": 2006,
+      "y": 1490,
+      "width": 52,
+      "height": 23
+    },
+    {
+      "text": "migrate",
+      "x": 2067,
+      "y": 1490,
+      "width": 101,
+      "height": 29
+    },
+    {
+      "text": "thousands",
+      "x": 2176,
+      "y": 1490,
+      "width": 140,
+      "height": 24
+    },
+    {
+      "text": "of",
+      "x": 2324,
+      "y": 1490,
+      "width": 28,
+      "height": 23
+    },
+    {
+      "text": "miles",
+      "x": 2359,
+      "y": 1490,
+      "width": 71,
+      "height": 23
+    },
+    {
+      "text": "each",
+      "x": 2438,
+      "y": 1490,
+      "width": 63,
+      "height": 23
+    },
+    {
+      "text": "year",
+      "x": 2508,
+      "y": 1495,
+      "width": 60,
+      "height": 24
+    },
+    {
+      "text": "and",
+      "x": 2576,
+      "y": 1490,
+      "width": 49,
+      "height": 24
+    },
+    {
+      "text": "remember",
+      "x": 2007,
+      "y": 1528,
+      "width": 143,
+      "height": 24
+    },
+    {
+      "text": "your",
+      "x": 2158,
+      "y": 1534,
+      "width": 62,
+      "height": 23
+    },
+    {
+      "text": "route.",
+      "x": 2228,
+      "y": 1530,
+      "width": 81,
+      "height": 22
+    },
+    {
+      "text": "You",
+      "x": 2317,
+      "y": 1528,
+      "width": 50,
+      "height": 24
+    },
+    {
+      "text": "even",
+      "x": 2376,
+      "y": 1534,
+      "width": 65,
+      "height": 18
+    },
+    {
+      "text": "stop",
+      "x": 2449,
+      "y": 1530,
+      "width": 58,
+      "height": 27
+    },
+    {
+      "text": "for",
+      "x": 2516,
+      "y": 1528,
+      "width": 37,
+      "height": 24
+    },
+    {
+      "text": "food",
+      "x": 2561,
+      "y": 1528,
+      "width": 61,
+      "height": 24
+    },
+    {
+      "text": "at",
+      "x": 2630,
+      "y": 1530,
+      "width": 25,
+      "height": 22
+    },
+    {
+      "text": "the",
+      "x": 2664,
+      "y": 1528,
+      "width": 43,
+      "height": 24
+    },
+    {
+      "text": "same",
+      "x": 2007,
+      "y": 1572,
+      "width": 72,
+      "height": 18
+    },
+    {
+      "text": "places",
+      "x": 2088,
+      "y": 1566,
+      "width": 93,
+      "height": 29
+    }
+  ]
+}
