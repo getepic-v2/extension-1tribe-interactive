@@ -44,10 +44,12 @@ import {
   type RiveAction,
 } from './readerCommands'
 import {
+  auditReadAlongWords,
   cleanupReadAlongDebugState,
   clearReadAlongButtonHighlight,
   configureReadAlong,
   ensureEpicPlaybackFollowForCurrentPage,
+  exportReadAlongTranscript,
   getReadAlongDebugStatus,
   getReadAlongButtonWordAliases,
   getTribeReadAlongSnapshot,
@@ -74,6 +76,7 @@ import {
   getFirstSimpleRivePage,
   getNavigationDirectionFromClick,
   getNavigationDirectionFromPayload,
+  getNavigationSourceFromPayload,
   getReaderPageFromPayload,
   getRiveAnimationInputNameCandidates,
   getSimpleRiveAnimationEntry,
@@ -114,6 +117,7 @@ interface CommandHarnessPreviewLayer {
   canvas: HTMLCanvasElement
   file: CommandHarnessPreviewFile
   index: number
+  initialStateMachineStarted: boolean
   loaded: boolean
   renderSize: WordHotspotRenderSize | null
   rive: Rive | null
@@ -201,11 +205,15 @@ interface TribeDebugApi {
 type TribeDebugWindow = Window &
   typeof globalThis & {
     TribeDebug?: TribeDebugApi
+    tribeActiveHotspotPageAudit?: () => Record<string, unknown>
     tribeCommandHarnessNextPage?: () => boolean
     tribeCommandHarnessPreviousPage?: () => boolean
     tribeCommandHarnessCompletionDebug?: () => Record<string, unknown>
     tribeCommandHarnessReleaseForCompletion?: (reason?: string) => Record<string, unknown>
     tribeCommandHarnessRestoreOverlay?: (reason?: string) => Record<string, unknown>
+    tribeCommandHarnessSetCanvasBleed?: (xPct?: number, yPct?: number) => Record<string, unknown>
+    tribeCommandHarnessSetPreviewFit?: (fit?: string) => Record<string, unknown>
+    tribeCheckEpicPageLayout?: (startPage?: number, endPage?: number) => Promise<Record<string, unknown>>
     tribeDebugStatus?: () => Record<string, unknown>
     tribeLookupWord?: (word: string) => boolean
     tribeClickWordHotspot?: (word?: string) => boolean
@@ -217,6 +225,9 @@ type TribeDebugWindow = Window &
     tribeProbeReadAlongAudioAlignment?: (page?: number) => Promise<Record<string, unknown>>
     tribeProbeReadAlongAudioUrl?: (page?: number) => Promise<Record<string, unknown>>
     tribeProbeReadAlongTimings?: (page?: number) => Promise<Record<string, unknown>>
+    tribeAuditReadAlongWords?: (startPage?: number, endPage?: number) => Promise<Record<string, unknown>>
+    tribeExportReadAlongTranscript?: (startPage?: number, endPage?: number) => Promise<Record<string, unknown>>
+    tribeExportFullReadAlongTranscript?: (startPage?: number, endPage?: number) => Promise<Record<string, unknown>>
     tribePreviewReadAlongAtTime?: (time?: number, page?: number) => Promise<Record<string, unknown>>
     tribeStartReadAlongAudio?: (page?: number) => Promise<Record<string, unknown>>
     tribePauseReadAlongAudio?: () => Record<string, unknown>
@@ -248,6 +259,7 @@ interface WordHotspotManifest {
   files?: WordHotspotFile[]
   render?: {
     contentBounds?: WordHotspotBounds
+    contentBoundsByPage?: Record<string, WordHotspotBounds>
     width?: number
     height?: number
   }
@@ -255,14 +267,18 @@ interface WordHotspotManifest {
 
 interface WordHotspotFile {
   contentBounds?: WordHotspotBounds
+  contentBoundsByPage?: Record<string, WordHotspotBounds>
   file: string
   ocr?: string
-  pages?: number[]
+  pages?: number[] | number
   render?: {
     contentBounds?: WordHotspotBounds
+    contentBoundsByPage?: Record<string, WordHotspotBounds>
     width?: number
     height?: number
   }
+  source?: string
+  sourceDetail?: Record<string, unknown>
   text?: string
   words?: WordHotspotWord[]
 }
@@ -285,6 +301,12 @@ interface WordHotspotOcrFile {
 }
 
 interface WordHotspotOcrWord {
+  bbox?: {
+    height?: number
+    width?: number
+    x?: number
+    y?: number
+  } | null
   height?: number
   text?: string
   width?: number
@@ -297,7 +319,11 @@ interface ActiveWordHotspot {
   height: number
   page: number
   reason: string
+  sourceHeight?: number
   sourceWord: string
+  sourceWidth?: number
+  sourceX?: number
+  sourceY?: number
   width: number
   word: string
   x: number
@@ -433,6 +459,7 @@ const RIVE_WASM_FALLBACK_SOURCE = new URL('rive/rive_fallback.wasm', extensionSc
 const urlParams = new URL(extensionScriptUrl).searchParams
 const pageUrlParams = new URLSearchParams(window.location.search)
 const STATIC_PREVIEW_ANIMATION = '__1tribe_static_preview__'
+const COMMAND_HARNESS_DEBUG_BUILD_LABEL = 'creepy-overlap-readalong-20260620-01'
 function getStableEpicDefaultParam(name: string): string | null {
   const isDisabled =
     urlParams.get('tribeStablePreset') === '0' ||
@@ -540,11 +567,31 @@ function getNumberParam(name: string, fallback: number): number {
   return Number.isFinite(value) && value > 0 ? value : fallback
 }
 
+function getNonNegativeNumberParam(name: string, fallback: number): number {
+  const value = Number(getStringParam(name))
+  return Number.isFinite(value) && value >= 0 ? value : fallback
+}
+
+function getSignedNumberParam(name: string, fallback: number): number {
+  const rawValue = getStringParam(name)
+  if (rawValue === null) return fallback
+
+  const value = Number(rawValue)
+  return Number.isFinite(value) ? value : fallback
+}
+
+const readAlongHotspotRoots = new Set<ShadowRoot>()
+
+function getReadAlongHotspotSearchRoots(): Array<Document | ShadowRoot> {
+  return [document, ...Array.from(readAlongHotspotRoots)]
+}
+
 configureReadAlong({
   getNumberParam,
   getStringParam,
   shouldUseReadAlong,
   getExtensionScriptUrl: () => extensionScriptUrl,
+  getHotspotSearchRoots: getReadAlongHotspotSearchRoots,
 })
 configureSimpleRiveFiles({
   getBooleanParam,
@@ -848,6 +895,422 @@ function getWordLookupDismissGuardDebugState(): Record<string, unknown> {
   }
 }
 
+function getActiveWordHotspotPageAudit(
+  activeWordHotspots: ActiveWordHotspot[] = [],
+  buttons: HTMLButtonElement[] = [],
+): Record<string, unknown> {
+  const pageCounts: Record<string, number> = {}
+  const sampleByPage: Record<string, Array<Record<string, unknown>>> = {}
+
+  for (const hotspot of activeWordHotspots) {
+    const pageKey = String(hotspot.page)
+    pageCounts[pageKey] = (pageCounts[pageKey] || 0) + 1
+    const pageSample = sampleByPage[pageKey] || []
+    if (pageSample.length < 12) {
+      pageSample.push({
+        fileName: hotspot.fileName,
+        height: Number(hotspot.height.toFixed(5)),
+        reason: hotspot.reason,
+        sourceWord: hotspot.sourceWord,
+        width: Number(hotspot.width.toFixed(5)),
+        word: hotspot.word,
+        x: Number(hotspot.x.toFixed(5)),
+        y: Number(hotspot.y.toFixed(5)),
+      })
+      sampleByPage[pageKey] = pageSample
+    }
+  }
+
+  const buttonPageCounts: Record<string, number> = {}
+  const buttonSampleByPage: Record<string, Array<Record<string, unknown>>> = {}
+  let buttonsWithoutPage = 0
+  for (const button of buttons) {
+    const pageKey = button.dataset.hotspotPage || 'missing'
+    buttonPageCounts[pageKey] = (buttonPageCounts[pageKey] || 0) + 1
+    if (pageKey === 'missing') buttonsWithoutPage += 1
+
+    const pageSample = buttonSampleByPage[pageKey] || []
+    if (pageSample.length < 12) {
+      pageSample.push({
+        aliases: button.dataset.lookupAliases || null,
+        lookupWord: button.dataset.lookupWord || null,
+        sourceWord: button.dataset.sourceWord || null,
+        spreadPage: button.dataset.hotspotSpreadPage || null,
+        pages: button.dataset.hotspotPages || null,
+      })
+      buttonSampleByPage[pageKey] = pageSample
+    }
+  }
+
+  return {
+    activeCount: activeWordHotspots.length,
+    buttonCount: buttons.length,
+    buttonsWithoutPage,
+    buttonPageCounts,
+    buttonSampleByPage,
+    pageCounts,
+    sampleByPage,
+  }
+}
+
+function getSmallestActiveWordHotspotAtPoint(
+  activeWordHotspots: ActiveWordHotspot[],
+  x: number,
+  y: number,
+): ActiveWordHotspot | null {
+  let bestHotspot: ActiveWordHotspot | null = null
+  let bestArea = Number.POSITIVE_INFINITY
+
+  for (const hotspot of activeWordHotspots) {
+    if (x < hotspot.x || x > hotspot.x + hotspot.width || y < hotspot.y || y > hotspot.y + hotspot.height) {
+      continue
+    }
+
+    const area = hotspot.width * hotspot.height
+    if (area < bestArea) {
+      bestArea = area
+      bestHotspot = hotspot
+    }
+  }
+
+  return bestHotspot
+}
+
+function getDebugWordHotspotButtons(context: ExtensionContext): HTMLButtonElement[] {
+  const readingRoot = context.slots.get('reading-area')
+  const roots: Array<Document | ShadowRoot> = readingRoot ? [readingRoot, document] : [document]
+  const seen = new Set<HTMLButtonElement>()
+  const buttons: HTMLButtonElement[] = []
+
+  for (const root of roots) {
+    for (const button of Array.from(
+      root.querySelectorAll<HTMLButtonElement>('.tribe-word-hotspot-button, .tribe-standalone-word-hotspot-button'),
+    )) {
+      if (seen.has(button)) continue
+      seen.add(button)
+      buttons.push(button)
+    }
+  }
+
+  return buttons
+}
+
+function getDebugEpicTribeBookConfig(context: ExtensionContext): EpicTribeBookConfig | null {
+  const requestedBookId = Number(getStringParam('tribeCommandHarnessBookId'))
+  return (
+    getEpicTribeBookConfig(Number.isFinite(requestedBookId) ? requestedBookId : null) ||
+    getEpicTribeBookConfig(context.data.getBookId()) ||
+    getEpicTribeBookConfig()
+  )
+}
+
+function getPreviewFilePages(file: CommandHarnessPreviewFile): number[] {
+  const start = Math.trunc(Number(file.readerStart))
+  const end = Math.trunc(Number(file.readerEnd))
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return []
+
+  const first = Math.min(start, end)
+  const last = Math.max(start, end)
+  return Array.from({ length: last - first + 1 }, (_item, index) => first + index)
+}
+
+function getExactPreviewFilesForPage(
+  previewFiles: CommandHarnessPreviewFile[],
+  page: number,
+): Array<CommandHarnessPreviewFile & { index: number }> {
+  return previewFiles
+    .map((file, index) => ({ ...file, index }))
+    .filter((file) => page >= file.readerStart && page <= file.readerEnd)
+}
+
+function getFallbackPreviewFileForPage(
+  previewFiles: CommandHarnessPreviewFile[],
+  page: number,
+): (CommandHarnessPreviewFile & { index: number }) | null {
+  const exactMatches = getExactPreviewFilesForPage(previewFiles, page)
+  if (exactMatches.length) return exactMatches[0]
+  if (!previewFiles.length) return null
+
+  const firstFile = previewFiles[0]
+  if (page < firstFile.readerStart) return { ...firstFile, index: 0 }
+
+  let fallbackIndex = -1
+  previewFiles.forEach((file, index) => {
+    if (page >= file.readerStart) fallbackIndex = index
+  })
+  if (fallbackIndex < 0) return null
+
+  return { ...previewFiles[fallbackIndex], index: fallbackIndex }
+}
+
+async function checkEpicPageLayout(
+  context: ExtensionContext,
+  startPage?: number,
+  endPage?: number,
+): Promise<Record<string, unknown>> {
+  const bookData = context.data.getBookData()
+  const bookId = context.data.getBookId()
+  const currentPage = context.data.getCurrentPage()
+  const activeBookConfig = getDebugEpicTribeBookConfig(context)
+  const previewFiles = activeBookConfig?.previewFiles || []
+  const pageCount = Number(bookData?.numPages)
+  const configuredMaxPage = previewFiles.reduce(
+    (maxPage, file) => Math.max(maxPage, Number(file.readerEnd), Number(file.readerStart)),
+    0,
+  )
+  const maxBookPage =
+    Number.isFinite(pageCount) && pageCount > 0 ? Math.max(0, Math.trunc(pageCount) - 1) : configuredMaxPage
+  const layoutMaxPage = Math.max(maxBookPage, configuredMaxPage)
+  const requestedStart = Number(startPage)
+  const requestedEnd = Number(endPage)
+  const rawStart = Number.isFinite(requestedStart) ? Math.trunc(requestedStart) : 0
+  const rawEnd = Number.isFinite(requestedEnd) ? Math.trunc(requestedEnd) : layoutMaxPage
+  const probeStart = Math.max(0, Math.min(rawStart, rawEnd, layoutMaxPage))
+  const probeEnd = Math.max(0, Math.min(Math.max(rawStart, rawEnd), layoutMaxPage))
+
+  const coverage = new Map<number, Array<CommandHarnessPreviewFile & { index: number }>>()
+  previewFiles.forEach((file, index) => {
+    for (const page of getPreviewFilePages(file)) {
+      const pageFiles = coverage.get(page) || []
+      pageFiles.push({ ...file, index })
+      coverage.set(page, pageFiles)
+    }
+  })
+  const debugWindow = window as TribeDebugWindow
+  const activeHotspotAudit = getActiveWordHotspotPageAudit(
+    debugWindow.tribeWordHotspots || [],
+    getDebugWordHotspotButtons(context),
+  )
+  const activeHotspotPageCounts =
+    activeHotspotAudit.pageCounts && typeof activeHotspotAudit.pageCounts === 'object'
+      ? (activeHotspotAudit.pageCounts as Record<string, number>)
+      : {}
+  const activeHotspotSamplesByPage =
+    activeHotspotAudit.sampleByPage && typeof activeHotspotAudit.sampleByPage === 'object'
+      ? (activeHotspotAudit.sampleByPage as Record<string, Array<Record<string, unknown>>>)
+      : {}
+
+  const gaps: number[] = []
+  const overlaps: Array<{ files: string[]; page: number }> = []
+  for (let page = 0; page <= layoutMaxPage; page += 1) {
+    const pageFiles = coverage.get(page) || []
+    if (!pageFiles.length) gaps.push(page)
+    if (pageFiles.length > 1) {
+      overlaps.push({
+        page,
+        files: pageFiles.map((file) => file.file),
+      })
+    }
+  }
+
+  const rangeIssues = previewFiles.flatMap((file, index) => {
+    const previous = previewFiles[index - 1]
+    if (!previous) return []
+
+    if (file.readerStart > previous.readerEnd + 1) {
+      return [
+        {
+          issue: 'gap-between-files',
+          previousFile: previous.file,
+          previousReaderEnd: previous.readerEnd,
+          file: file.file,
+          readerStart: file.readerStart,
+          missingPages: getPreviewFilePages({
+            ...file,
+            readerStart: previous.readerEnd + 1,
+            readerEnd: file.readerStart - 1,
+          }),
+        },
+      ]
+    }
+
+    if (file.readerStart <= previous.readerEnd) {
+      return [
+        {
+          issue: 'overlap-between-files',
+          previousFile: previous.file,
+          previousReaderEnd: previous.readerEnd,
+          file: file.file,
+          readerStart: file.readerStart,
+        },
+      ]
+    }
+
+    return []
+  })
+
+  const pageProbes: Array<Record<string, unknown>> = []
+  for (let page = probeStart; page <= probeEnd; page += 1) {
+    const exactFiles = getExactPreviewFilesForPage(previewFiles, page)
+    const fallbackFile = getFallbackPreviewFileForPage(previewFiles, page)
+    const audioUrl =
+      typeof context.data.getPageAudioUrl === 'function' ? context.data.getPageAudioUrl(page) || null : null
+    let timingWordCount: number | null = null
+    let timingFirstWords: string[] = []
+    let timingError: string | null = null
+
+    if (typeof context.data.getWordTimingData === 'function') {
+      try {
+        const wordData = await context.data.getWordTimingData(page)
+        const wordRows = Array.isArray(wordData?.word_data) ? wordData.word_data : []
+        timingWordCount = wordRows.length
+        timingFirstWords = wordRows
+          .slice(0, 8)
+          .map((word) => String(word.text || word.word || '').trim())
+          .filter(Boolean)
+      } catch (error) {
+        timingError = String(error)
+      }
+    }
+
+    pageProbes.push({
+      page,
+      parity: page % 2 === 0 ? 'even' : 'odd',
+      activeHotspotCount: activeHotspotPageCounts[String(page)] || 0,
+      activeHotspotFirstWords: (activeHotspotSamplesByPage[String(page)] || [])
+        .map((item) => String(item.word || ''))
+        .filter(Boolean)
+        .slice(0, 8),
+      exactFileCount: exactFiles.length,
+      expectedFile: exactFiles[0]?.file || null,
+      expectedIndex: exactFiles[0]?.index ?? null,
+      expectedLabel: exactFiles[0]?.label || null,
+      expectedReaderRange: exactFiles[0] ? [exactFiles[0].readerStart, exactFiles[0].readerEnd] : null,
+      fallbackFile: fallbackFile?.file || null,
+      fallbackIndex: fallbackFile?.index ?? null,
+      hasAudio: Boolean(audioUrl),
+      audioUrl,
+      timingWordCount,
+      timingFirstWords,
+      timingError,
+      issue: !exactFiles.length
+        ? 'unmapped-page'
+        : exactFiles.length > 1
+          ? 'overlapped-page'
+          : timingError
+            ? 'timing-error'
+            : null,
+    })
+  }
+
+  const pagesWithAudio = pageProbes
+    .filter((probe) => Boolean(probe.hasAudio))
+    .map((probe) => Number(probe.page))
+    .filter((page) => Number.isFinite(page))
+  const pagesWithTiming = pageProbes
+    .filter((probe) => Number(probe.timingWordCount) > 0)
+    .map((probe) => Number(probe.page))
+    .filter((page) => Number.isFinite(page))
+  const mappedPagesMissingTiming = pageProbes
+    .filter((probe) => probe.expectedFile && !(Number(probe.timingWordCount) > 0))
+    .map((probe) => Number(probe.page))
+    .filter((page) => Number.isFinite(page))
+  const unmappedPagesWithTiming = pageProbes
+    .filter((probe) => !probe.expectedFile && Number(probe.timingWordCount) > 0)
+    .map((probe) => Number(probe.page))
+    .filter((page) => Number.isFinite(page))
+  const summaryRows = pageProbes.map((probe) => {
+    const page = String(probe.page).padStart(2, '0')
+    const timingWordCount = Number(probe.timingWordCount)
+    const timingText = Number.isFinite(timingWordCount) ? String(timingWordCount).padStart(3, ' ') : '  ?'
+    const firstWords = Array.isArray(probe.timingFirstWords)
+      ? probe.timingFirstWords.filter(Boolean).slice(0, 6).join(' ')
+      : ''
+    return [
+      `p${page}`,
+      `${probe.parity}`,
+      `file=${probe.expectedFile || 'UNMAPPED'}`,
+      `range=${Array.isArray(probe.expectedReaderRange) ? probe.expectedReaderRange.join('-') : '-'}`,
+      `audio=${probe.hasAudio ? 'Y' : 'N'}`,
+      `timing=${timingText}`,
+      `hotspots=${probe.activeHotspotCount ?? 0}`,
+      firstWords ? `words="${firstWords}"` : '',
+      probe.issue ? `issue=${probe.issue}` : '',
+    ]
+      .filter(Boolean)
+      .join(' | ')
+  })
+  const summaryText = [
+    `1Tribe page layout audit for book ${bookId ?? 'unknown'} (${activeBookConfig?.title || bookData?.title || 'untitled'})`,
+    `currentPage=${currentPage}; configuredFiles=${previewFiles.length}; probeRange=${probeStart}-${probeEnd}`,
+    `gaps=${gaps.length ? gaps.join(',') : 'none'}`,
+    `overlaps=${overlaps.length ? overlaps.map((overlap) => overlap.page).join(',') : 'none'}`,
+    `pagesWithAudio=${pagesWithAudio.length ? pagesWithAudio.join(',') : 'none'}`,
+    `pagesWithTiming=${pagesWithTiming.length ? pagesWithTiming.join(',') : 'none'}`,
+    `mappedPagesMissingTiming=${mappedPagesMissingTiming.length ? mappedPagesMissingTiming.join(',') : 'none'}`,
+    `unmappedPagesWithTiming=${unmappedPagesWithTiming.length ? unmappedPagesWithTiming.join(',') : 'none'}`,
+    '',
+    ...summaryRows,
+  ].join('\n')
+
+  const currentExactFiles = getExactPreviewFilesForPage(previewFiles, currentPage)
+  const currentFallbackFile = getFallbackPreviewFileForPage(previewFiles, currentPage)
+  const report = {
+    activeBookConfig: activeBookConfig
+      ? {
+          bookId: activeBookConfig.bookId,
+          title: activeBookConfig.title,
+          riveFolder: activeBookConfig.riveFolder,
+          wordHotspotFolder: activeBookConfig.wordHotspotFolder,
+        }
+      : null,
+    bookData: {
+      id: bookData?.id,
+      title: bookData?.title,
+      numPages: Number.isFinite(pageCount) ? Math.trunc(pageCount) : null,
+      aspectRatio: bookData?.aspectRatio ?? null,
+    },
+    bookId,
+    currentPage,
+    currentMapping: {
+      exactFiles: currentExactFiles.map((file) => ({
+        file: file.file,
+        index: file.index,
+        label: file.label,
+        readerRange: [file.readerStart, file.readerEnd],
+        stateMachine: file.stateMachine,
+      })),
+      fallbackFile: currentFallbackFile
+        ? {
+            file: currentFallbackFile.file,
+            index: currentFallbackFile.index,
+            label: currentFallbackFile.label,
+            readerRange: [currentFallbackFile.readerStart, currentFallbackFile.readerEnd],
+            stateMachine: currentFallbackFile.stateMachine,
+          }
+        : null,
+    },
+    activeHotspotAudit,
+    gaps,
+    mappedPagesMissingTiming,
+    overlaps,
+    pageProbes,
+    pagesWithAudio,
+    pagesWithTiming,
+    probeRange: [probeStart, probeEnd],
+    rangeIssues,
+    scriptUrl: extensionScriptUrl,
+    summaryRows,
+    summaryText,
+    unmappedPagesWithTiming,
+    pageUrl: window.location.href,
+    previewFiles: previewFiles.map((file, index) => ({
+      file: file.file,
+      index,
+      label: file.label,
+      pages: getPreviewFilePages(file),
+      readerEnd: file.readerEnd,
+      readerStart: file.readerStart,
+      stateMachine: file.stateMachine,
+    })),
+  }
+
+  console.info('[1Tribe page layout] Epic/Rive page layout audit.', report)
+  console.info(summaryText)
+  console.table(pageProbes)
+  return report
+}
+
 function isLocalDebugExtensionScript(): boolean {
   try {
     const url = new URL(extensionScriptUrl, window.location.href)
@@ -857,8 +1320,14 @@ function isLocalDebugExtensionScript(): boolean {
   }
 }
 
+function shouldExposeDebugGlobals(): boolean {
+  // Production builds only expose console helpers when an explicit debug flag is present.
+  // The localhost exception keeps QA/dev bundles usable without shipping globals by default.
+  return getBooleanParam('tribeDebugCommands', false) || getBooleanParam('tribeDebug', false) || isLocalDebugExtensionScript()
+}
+
 function installDebugCommands(context: ExtensionContext): () => void {
-  if (!getBooleanParam('tribeDebugCommands', false) && !isLocalDebugExtensionScript()) return () => {}
+  if (!shouldExposeDebugGlobals()) return () => {}
 
   const debugWindow = window as TribeDebugWindow
   const debugApi: TribeDebugApi = {
@@ -914,6 +1383,19 @@ function installDebugCommands(context: ExtensionContext): () => void {
   const readAlongAudioProbe = (page?: number) => probeReadAlongAudio(context, page)
   const readAlongAudioUrlProbe = (page?: number) => probeReadAlongAudioUrl(context, page)
   const readAlongAudioAlignmentProbe = (page?: number) => probeReadAlongAudioAlignment(context, page)
+  const readAlongTranscriptExport = (startPage?: number, endPage?: number) =>
+    exportReadAlongTranscript(context, startPage, endPage)
+  const readAlongWordAudit = async (startPage?: number, endPage?: number) => {
+    const result = await auditReadAlongWords(context, startPage, endPage)
+    const audit = result.audit && typeof result.audit === 'object' ? (result.audit as Record<string, unknown>) : null
+    const summaryRowsValue = audit?.summaryRows
+    const summaryRows = Array.isArray(summaryRowsValue) ? summaryRowsValue : []
+
+    console.info('[1Tribe read-along] Native transcript and callable word audit.', result)
+    if (summaryRows.length) console.table(summaryRows)
+
+    return result
+  }
   const readAlongTimePreview = (time?: number, page?: number) => previewReadAlongAtTime(context, time, page)
   const readAlongPlaybackStart = (page?: number) => startReadAlongPlayback(context, page)
   const readAlongPlaybackPause = () => pauseReadAlongPlayback()
@@ -922,6 +1404,10 @@ function installDebugCommands(context: ExtensionContext): () => void {
   const epicPlaybackFollowStart = (page?: number) => startFollowingEpicPlayback(context, page)
   const epicPlaybackFollowStop = () => stopFollowingEpicPlayback()
   const readAlongStatusTracker = () => getReadAlongDebugStatus(context, extensionScriptUrl)
+  const epicPageLayoutCheck = (startPage?: number, endPage?: number) =>
+    checkEpicPageLayout(context, startPage, endPage)
+  const activeHotspotPageAudit = () =>
+    getActiveWordHotspotPageAudit(debugWindow.tribeWordHotspots || [], getDebugWordHotspotButtons(context))
 
   const fallbackClickWordHotspot = (word = '') => {
     console.warn('[1Tribe debug] No active word hotspots are registered yet.', {
@@ -948,6 +1434,7 @@ function installDebugCommands(context: ExtensionContext): () => void {
     currentPage: context.data.getCurrentPage(),
     pageUrl: window.location.href,
     scriptUrl: extensionScriptUrl,
+    pageAudit: activeHotspotPageAudit(),
     simpleRiveOverlay: getBooleanParam('simpleRiveOverlay', false),
     standaloneWordHotspots: shouldUseStandaloneWordHotspots(),
     wordHotspotTest: getBooleanParam('tribeWordHotspotTest', false),
@@ -956,6 +1443,8 @@ function installDebugCommands(context: ExtensionContext): () => void {
   })
 
   debugWindow.tribeClickWordHotspot = debugWindow.tribeClickWordHotspot || fallbackClickWordHotspot
+  debugWindow.tribeActiveHotspotPageAudit =
+    debugWindow.tribeActiveHotspotPageAudit || activeHotspotPageAudit
   debugWindow.tribeForceWordHotspotPage =
     debugWindow.tribeForceWordHotspotPage || fallbackForceWordHotspotPage
   debugWindow.tribeWordHotspotDebug = debugWindow.tribeWordHotspotDebug || fallbackWordHotspotDebug
@@ -965,6 +1454,12 @@ function installDebugCommands(context: ExtensionContext): () => void {
   debugWindow.tribeProbeReadAlongAudioUrl =
     debugWindow.tribeProbeReadAlongAudioUrl || readAlongAudioUrlProbe
   debugWindow.tribeProbeReadAlongTimings = debugWindow.tribeProbeReadAlongTimings || readAlongTimingProbe
+  debugWindow.tribeAuditReadAlongWords =
+    debugWindow.tribeAuditReadAlongWords || readAlongWordAudit
+  debugWindow.tribeExportReadAlongTranscript =
+    debugWindow.tribeExportReadAlongTranscript || readAlongTranscriptExport
+  debugWindow.tribeExportFullReadAlongTranscript =
+    debugWindow.tribeExportFullReadAlongTranscript || readAlongTranscriptExport
   debugWindow.tribePreviewReadAlongAtTime =
     debugWindow.tribePreviewReadAlongAtTime || readAlongTimePreview
   debugWindow.tribeStartReadAlongAudio = debugWindow.tribeStartReadAlongAudio || readAlongPlaybackStart
@@ -976,6 +1471,7 @@ function installDebugCommands(context: ExtensionContext): () => void {
   debugWindow.tribeStopEpicPlaybackFollow =
     debugWindow.tribeStopEpicPlaybackFollow || epicPlaybackFollowStop
   debugWindow.tribeReadAlongStatus = debugWindow.tribeReadAlongStatus || readAlongStatusTracker
+  debugWindow.tribeCheckEpicPageLayout = debugWindow.tribeCheckEpicPageLayout || epicPageLayoutCheck
   debugWindow.tribeDebugStatus = () => ({
     bookId: context.data.getBookId(),
     currentPage: context.data.getCurrentPage(),
@@ -986,11 +1482,12 @@ function installDebugCommands(context: ExtensionContext): () => void {
     riveFolder: getStringParam('riveFolder'),
     riveWordHotspots: getBooleanParam('riveWordHotspots', false) || getBooleanParam('wordHotspots', false),
     activeWordHotspots: debugWindow.tribeWordHotspots?.length || 0,
+    activeHotspotPageAudit: debugWindow.tribeActiveHotspotPageAudit?.(),
     readAlong: debugWindow.tribeReadAlongStatus?.(),
     wordLookupDismissGuard: getWordLookupDismissGuardDebugState(),
   })
   console.info(
-    '[1Tribe debug] Console helpers enabled: tribeLookupWord("doorbell"), tribeNextPage(), tribePreviousPage(), tribeWordHotspotDebug(), tribeProbeReadAlongTimings(), tribeProbeEpicPlayback(), tribeStartEpicPlaybackFollow(), tribeStopEpicPlaybackFollow(), tribeReadAlongStatus(), tribeDebugStatus()',
+    '[1Tribe debug] Console helpers enabled: tribeLookupWord("doorbell"), tribeNextPage(), tribePreviousPage(), tribeWordHotspotDebug(), tribeActiveHotspotPageAudit(), tribeCheckEpicPageLayout(), tribeProbeReadAlongTimings(), tribeExportFullReadAlongTranscript(), tribeAuditReadAlongWords(), tribeProbeEpicPlayback(), tribeStartEpicPlaybackFollow(), tribeStopEpicPlaybackFollow(), tribeReadAlongStatus(), tribeDebugStatus()',
   )
   const epicPlaybackPageChangeCleanup = context.events.on('pageChange', () => {
     if (shouldUseReadAlong()) {
@@ -1015,6 +1512,9 @@ function installDebugCommands(context: ExtensionContext): () => void {
     if (debugWindow.tribeClickWordHotspot === fallbackClickWordHotspot) {
       delete debugWindow.tribeClickWordHotspot
     }
+    if (debugWindow.tribeActiveHotspotPageAudit === activeHotspotPageAudit) {
+      delete debugWindow.tribeActiveHotspotPageAudit
+    }
     if (debugWindow.tribeForceWordHotspotPage === fallbackForceWordHotspotPage) {
       delete debugWindow.tribeForceWordHotspotPage
     }
@@ -1032,6 +1532,15 @@ function installDebugCommands(context: ExtensionContext): () => void {
     }
     if (debugWindow.tribeProbeReadAlongTimings === readAlongTimingProbe) {
       delete debugWindow.tribeProbeReadAlongTimings
+    }
+    if (debugWindow.tribeAuditReadAlongWords === readAlongWordAudit) {
+      delete debugWindow.tribeAuditReadAlongWords
+    }
+    if (debugWindow.tribeExportReadAlongTranscript === readAlongTranscriptExport) {
+      delete debugWindow.tribeExportReadAlongTranscript
+    }
+    if (debugWindow.tribeExportFullReadAlongTranscript === readAlongTranscriptExport) {
+      delete debugWindow.tribeExportFullReadAlongTranscript
     }
     if (debugWindow.tribePreviewReadAlongAtTime === readAlongTimePreview) {
       delete debugWindow.tribePreviewReadAlongAtTime
@@ -1057,17 +1566,24 @@ function installDebugCommands(context: ExtensionContext): () => void {
     if (debugWindow.tribeReadAlongStatus === readAlongStatusTracker) {
       delete debugWindow.tribeReadAlongStatus
     }
+    if (debugWindow.tribeCheckEpicPageLayout === epicPageLayoutCheck) {
+      delete debugWindow.tribeCheckEpicPageLayout
+    }
     epicPlaybackPageChangeCleanup()
     cleanupReadAlongDebugState()
     delete debugWindow.tribeDebugStatus
   }
 }
 
-function getCssBackgroundParam(name: string, fallback: string): string {
+function getCssPropertyParam(name: string, property: string): string | null {
   const value = getStringParam(name)?.trim()
-  if (!value) return fallback
+  if (!value) return null
 
-  return window.CSS?.supports?.('background', value) ? value : fallback
+  return window.CSS?.supports?.(property, value) ? value : null
+}
+
+function getCssBackgroundParam(name: string, fallback: string): string {
+  return getCssPropertyParam(name, 'background') || fallback
 }
 
 const disableRiveRuntime = getBooleanParam('disableRive', false)
@@ -1169,22 +1685,13 @@ function injectStyle(root: ShadowRoot, css: string, id: string): HTMLStyleElemen
   return style
 }
 
-function injectDocumentStyle(css: string, id: string): HTMLStyleElement {
-  const existing = document.getElementById(id)
-  if (existing instanceof HTMLStyleElement) {
-    return existing
-  }
-
-  const style = document.createElement('style')
-  style.id = id
-  style.textContent = css
-  document.head.append(style)
-  return style
-}
-
 function activateCommandHarness(context: ExtensionContext): () => void {
   const readingRoot = context.slots.get('reading-area')
-  const activeBookConfig = getEpicTribeBookConfig(context.data.getBookId()) || getEpicTribeBookConfig()
+  const requestedBookId = Number(getStringParam('tribeCommandHarnessBookId'))
+  const activeBookConfig =
+    getEpicTribeBookConfig(Number.isFinite(requestedBookId) ? requestedBookId : null) ||
+    getEpicTribeBookConfig(context.data.getBookId()) ||
+    getEpicTribeBookConfig()
   if (!activeBookConfig) {
     console.warn('[1Tribe reader integration] No configured book integration is available for this Epic book.', {
       bookId: context.data.getBookId(),
@@ -1206,11 +1713,16 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const previewCanvasPreload = document.createElement('canvas')
   const edgeBackGutter = document.createElement('button')
   const edgeNextGutter = document.createElement('button')
+  const previewLoading = document.createElement('div')
+  const previewLoadingSpinner = document.createElement('span')
+  const previewLoadingText = document.createElement('span')
+  const previewDebugBadge = document.createElement('div')
   const previewStatus = document.createElement('p')
   const status = document.createElement('p')
   let previewRive: Rive | null = null
   let previewStateMachine: string | null = null
   let previewLoadSerial = 0
+  let previewLoadingFadeTimer: number | null = null
   let previewSwapHoldUntil = 0
   let pendingPreviewSwapTimer: number | null = null
   const shouldUseTakeover = getBooleanParam('tribeCommandHarnessTakeover', false)
@@ -1219,6 +1731,10 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     isPreviewEnabled && getBooleanParam('tribeCommandHarnessUseOwnBookFrame', false)
   const shouldFitToEpicBookFrame =
     isPreviewEnabled && !shouldUseOwnBookFrame && getBooleanParam('tribeCommandHarnessUseEpicBookFrame', false)
+  const shouldUsePageEdgeFrame =
+    isPreviewEnabled && getBooleanParam('tribeCommandHarnessUsePageEdgeFrame', false)
+  const ownBookFrameBorder = getCssPropertyParam('tribeCommandHarnessBookFrameBorder', 'border')
+  const ownBookFrameShadow = getCssPropertyParam('tribeCommandHarnessBookFrameShadow', 'box-shadow')
   const ownBookFrameAspectParam = getStringParam('tribeCommandHarnessOwnBookFrameAspect')
   const ownBookFrameAspect = ownBookFrameAspectParam === null ? null : getNumberParam('tribeCommandHarnessOwnBookFrameAspect', 1216 / 837)
   const requestedEpicBookFrameInsetPx = Number(getStringParam('tribeCommandHarnessEpicBookFrameInsetPx'))
@@ -1238,6 +1754,32 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const shouldPlayPreviewPageBack = getBooleanParam('tribeCommandHarnessPageBack', isPreviewEnabled)
   const previewPageBackAnimation = getStringParam('tribeCommandHarnessPageBackAnimation') || 'Page_go back'
   const previewBackIdleAnimation = getStringParam('tribeCommandHarnessBackIdleAnimation') || 'Page_idle'
+  const getCommandHarnessPreviewFit = (value: string | null): Fit => {
+    switch ((value || '').trim().toLowerCase()) {
+      case 'cover':
+        return Fit.Cover
+      case 'fill':
+        return Fit.Fill
+      case 'fitheight':
+      case 'fit-height':
+      case 'fit_height':
+        return Fit.FitHeight
+      case 'fitwidth':
+      case 'fit-width':
+      case 'fit_width':
+        return Fit.FitWidth
+      case 'none':
+        return Fit.None
+      case 'scaledown':
+      case 'scale-down':
+      case 'scale_down':
+        return Fit.ScaleDown
+      case 'contain':
+      default:
+        return Fit.Contain
+    }
+  }
+  let previewFit = getCommandHarnessPreviewFit(getStringParam('tribeCommandHarnessPreviewFit'))
   const shouldKeepSpread02OnPageIn = getBooleanParam('tribeCommandHarnessSpread02StayOnPageIn', false)
   const shouldRunPreviewIdleAfterPageInAllSpreads = getBooleanParam('tribeCommandHarnessIdleAfterPageIn', false)
   const shouldResumeStateMachineAfterPageIdle = getBooleanParam(
@@ -1259,6 +1801,19 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   )
   const previewInputResetMs = getNumberParam('tribeCommandHarnessInputResetMs', previewAnimationHoldMs)
   const edgeNavRatio = Math.max(0, Math.min(24, getNumberParam('tribeCommandHarnessEdgeNavPct', 5))) / 100
+  const shouldShowCommandHarnessDebugBadge =
+    isPreviewEnabled && getBooleanParam('tribeCommandHarnessDebugBadge', shouldExposeDebugGlobals())
+  const clampCommandHarnessCanvasBleedPct = (value: number, fallback = 0) =>
+    Number.isFinite(value) ? Math.max(0, Math.min(40, value)) : fallback
+  const initialCanvasBleedXPct = clampCommandHarnessCanvasBleedPct(
+    getNumberParam('tribeCommandHarnessCanvasBleedXPct', 0),
+  )
+  const initialCanvasBleedYPct =
+    getStringParam('tribeCommandHarnessCanvasBleedYPct') === null
+      ? initialCanvasBleedXPct
+      : clampCommandHarnessCanvasBleedPct(getNumberParam('tribeCommandHarnessCanvasBleedYPct', 0))
+  let canvasBleedXPct = initialCanvasBleedXPct
+  let canvasBleedYPct = initialCanvasBleedYPct
   const shouldShowCommandHarnessControls = getBooleanParam('tribeCommandHarnessShowControls', false)
   let armedEdgeGutterDirection: CommandHarnessEdgeDirection | null = null
   let lastEdgeGutterNavigationAt = 0
@@ -1267,6 +1822,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const lastPreviewFile = previewFiles[previewFiles.length - 1] || null
   const lastPreviewReaderStart = lastPreviewFile?.readerStart ?? 24
   const lastPreviewReaderEnd = lastPreviewFile?.readerEnd ?? 25
+  const nativePassthroughLeftPages = activeBookConfig.nativePassthroughLeftPages || [0]
+  const nativePassthroughRightPages = activeBookConfig.nativePassthroughRightPages || [lastPreviewReaderEnd]
   let commandHarnessCompletionHandoff = false
   let commandHarnessCompletionReason: string | null = null
   let commandHarnessCompletionSince: number | null = null
@@ -1331,8 +1888,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
 
     const sides = new Set<CommandHarnessNativePassthroughSide>()
-    if (visiblePages.has(0)) sides.add('left')
-    if (visiblePages.has(25)) sides.add('right')
+    if (nativePassthroughLeftPages.some((page) => visiblePages.has(page))) sides.add('left')
+    if (nativePassthroughRightPages.some((page) => visiblePages.has(page))) sides.add('right')
     return sides
   }
 
@@ -1398,6 +1955,65 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       layer.canvas.style.pointerEvents = getCommandHarnessCanvasPointerEvents(layer.role, activeSides)
     }
     return activeSides
+  }
+
+  const applyCommandHarnessCanvasBleed = (canvas: HTMLCanvasElement) => {
+    canvas.style.left = `${-canvasBleedXPct}%`
+    canvas.style.top = `${-canvasBleedYPct}%`
+    canvas.style.right = 'auto'
+    canvas.style.bottom = 'auto'
+    canvas.style.width = `${100 + canvasBleedXPct * 2}%`
+    canvas.style.height = `${100 + canvasBleedYPct * 2}%`
+    canvas.dataset.commandHarnessCanvasBleedX = String(canvasBleedXPct)
+    canvas.dataset.commandHarnessCanvasBleedY = String(canvasBleedYPct)
+  }
+
+  const getCommandHarnessCanvasBleedDebug = () => ({
+    canvasBleedXPct,
+    canvasBleedYPct,
+    canvases: [previewCanvas, previewCanvasAlt, previewCanvasPreload].map((canvas) => {
+      const rect = canvas.getBoundingClientRect()
+      return {
+        ariaLabel: canvas.getAttribute('aria-label'),
+        height: rect.height,
+        left: canvas.style.left,
+        top: canvas.style.top,
+        width: rect.width,
+        x: rect.x,
+        y: rect.y,
+      }
+    }),
+  })
+
+  const setCommandHarnessCanvasBleed = (xPct = canvasBleedXPct, yPct = xPct) => {
+    canvasBleedXPct = clampCommandHarnessCanvasBleedPct(Number(xPct), canvasBleedXPct)
+    canvasBleedYPct = clampCommandHarnessCanvasBleedPct(Number(yPct), canvasBleedYPct)
+    for (const canvas of [previewCanvas, previewCanvasAlt, previewCanvasPreload]) {
+      applyCommandHarnessCanvasBleed(canvas)
+    }
+    resizePreview()
+    return getCommandHarnessCanvasBleedDebug()
+  }
+
+  const createCommandHarnessPreviewLayout = () =>
+    new Layout({
+      fit: previewFit,
+      alignment: Alignment.Center,
+    })
+
+  const setCommandHarnessPreviewFit = (fit = String(previewFit)) => {
+    previewFit = getCommandHarnessPreviewFit(fit)
+    for (const layer of [previewActiveLayer, previewNextLayer, previewPreloadLayer]) {
+      if (!layer?.rive) continue
+      layer.rive.layout = createCommandHarnessPreviewLayout()
+      layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+    }
+    if (previewRive) {
+      previewRive.layout = createCommandHarnessPreviewLayout()
+      previewRive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+    }
+    resizePreview()
+    return getCommandHarnessNativePassthroughDebug()
   }
 
   const getCommandHarnessNavigationState = () => {
@@ -1468,13 +2084,74 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
   }
 
+  const serializeCommandHarnessRect = (rect: DOMRect | null) =>
+    rect
+      ? {
+          height: rect.height,
+          width: rect.width,
+          x: rect.x,
+          y: rect.y,
+        }
+      : null
+
+  const getCommandHarnessPageEdgeFrameRect = (sourceRect: DOMRect): DOMRect | null => {
+    const edgeElements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '#read-flip-book > .page-edge, #read-flip-book .page-edge',
+      ),
+    )
+    const edgeRects = edgeElements
+      .map((element) => ({
+        element,
+        rect: getCommandHarnessVisibleElementRect(element),
+      }))
+      .filter((item): item is { element: HTMLElement; rect: DOMRect } => {
+        if (!item.rect) return false
+        const verticalOverlap =
+          Math.min(item.rect.bottom, sourceRect.bottom) - Math.max(item.rect.top, sourceRect.top)
+        return verticalOverlap > Math.min(sourceRect.height, item.rect.height) * 0.4
+      })
+
+    if (edgeRects.length < 2) return null
+
+    const leftEdges = edgeRects.filter(({ element }) => element.classList.contains('left'))
+    const rightEdges = edgeRects.filter(({ element }) => element.classList.contains('right'))
+    const sourceCenterX = sourceRect.left + sourceRect.width / 2
+    const leftEdge =
+      leftEdges
+        .filter(({ rect }) => rect.left < sourceCenterX)
+        .sort((a, b) => b.rect.right - a.rect.right)[0] ||
+      edgeRects.filter(({ rect }) => rect.left < sourceCenterX).sort((a, b) => b.rect.right - a.rect.right)[0]
+    const rightEdge =
+      rightEdges
+        .filter(({ rect }) => rect.right > sourceCenterX)
+        .sort((a, b) => a.rect.left - b.rect.left)[0] ||
+      edgeRects.filter(({ rect }) => rect.right > sourceCenterX).sort((a, b) => a.rect.left - b.rect.left)[0]
+
+    if (!leftEdge || !rightEdge) return null
+
+    const left = Math.max(sourceRect.left, leftEdge.rect.right)
+    const right = Math.min(sourceRect.right, rightEdge.rect.left)
+    const top = Math.max(sourceRect.top, Math.min(leftEdge.rect.top, rightEdge.rect.top))
+    const bottom = Math.min(sourceRect.bottom, Math.max(leftEdge.rect.bottom, rightEdge.rect.bottom))
+    if (right - left <= sourceRect.width * 0.4 || bottom - top <= sourceRect.height * 0.4) return null
+
+    return new DOMRect(left, top, right - left, bottom - top)
+  }
+
   const getCommandHarnessEpicPageEdgesDebug = () => {
     const edges = Array.from(document.querySelectorAll<HTMLElement>('#read-flip-book > .page-edge')).map(
       describeCommandHarnessPageEdgeElement,
     )
+    const flipBookRect = context.data.getFlipBookRect()
+    const sourceRect = flipBookRect
+      ? new DOMRect(flipBookRect.x, flipBookRect.y, flipBookRect.width, flipBookRect.height)
+      : null
     return {
       count: edges.length,
       edges,
+      pageEdgeFrameEnabled: shouldUsePageEdgeFrame,
+      pageEdgeFrameRect: sourceRect ? serializeCommandHarnessRect(getCommandHarnessPageEdgeFrameRect(sourceRect)) : null,
       nativeShellEnabled: shouldUseEpicNativeShell,
       skipPageRenderEnabled: isEpicDebugSkipPageRenderEnabled,
     }
@@ -1562,14 +2239,32 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (!sourceRect || sourceRect.width <= 1 || sourceRect.height <= 1) return null
 
     const rect = new DOMRect(sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height)
+    const pageEdgeFrameRect = shouldUsePageEdgeFrame ? getCommandHarnessPageEdgeFrameRect(rect) : null
+    if (pageEdgeFrameRect) return pageEdgeFrameRect
+
     return ownBookFrameAspect ? getCommandHarnessContainedRectForAspect(rect, ownBookFrameAspect) : rect
+  }
+
+  const getCommandHarnessOwnBookFrameSource = () => {
+    if (!shouldUseOwnBookFrame) return null
+
+    const flipBookRect = context.data.getFlipBookRect()
+    const host = readingRoot.host
+    const hostRect = host instanceof HTMLElement ? host.getBoundingClientRect() : null
+    const sourceRect = flipBookRect || hostRect
+    if (!sourceRect || sourceRect.width <= 1 || sourceRect.height <= 1) return null
+
+    const rect = new DOMRect(sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height)
+    if (shouldUsePageEdgeFrame && getCommandHarnessPageEdgeFrameRect(rect)) return 'page-edge-frame'
+    return ownBookFrameAspect ? 'own-book-frame-aspect' : 'own-book-frame'
   }
 
   const getCommandHarnessReaderFrameRect = () =>
     getCommandHarnessOwnBookFrameRect() || getCommandHarnessEpicBookFrameRect() || context.data.getFlipBookRect()
 
   const getCommandHarnessReaderFrameSource = () => {
-    if (getCommandHarnessOwnBookFrameRect()) return ownBookFrameAspect ? 'own-book-frame-aspect' : 'own-book-frame'
+    const ownBookFrameSource = getCommandHarnessOwnBookFrameSource()
+    if (ownBookFrameSource) return ownBookFrameSource
     if (getCommandHarnessEpicBookFrameRect()) return 'epic-book-frame'
     return context.data.getFlipBookRect() ? 'flip-book-rect' : null
   }
@@ -1710,6 +2405,18 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     return null
   }
 
+  const isCommandHarnessPrecompletionElement = (element: Element | null) =>
+    Boolean(
+      element?.closest(
+        [
+          'epic-book-precompletion-page',
+          '.book-precompletion-page-container',
+          '.almost-done-container',
+          '.almost-done',
+        ].join(','),
+      ),
+    )
+
   const isCommandHarnessCompletionEligible = () => {
     const currentPage = context.data.getCurrentPage()
     return currentPage >= lastPreviewReaderStart
@@ -1806,9 +2513,13 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
 
     const visibleCompletionElement = findVisibleEpicCompletionElement()
-    if (visibleCompletionElement && commandHarnessCompletionHandoff) {
+    if (
+      visibleCompletionElement &&
+      (commandHarnessCompletionHandoff || !isCommandHarnessPrecompletionElement(visibleCompletionElement))
+    ) {
       setCommandHarnessCompletionHandoff(true, reason, {
         visibleElement: getCommandHarnessElementSummary(visibleCompletionElement),
+        trigger: commandHarnessCompletionHandoff ? 'completion-visible-refresh' : 'completion-visible',
       })
       return true
     }
@@ -2112,6 +2823,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       mode: shouldUseTakeover ? 'command-harness-takeover' : 'command-harness',
       nativePassthroughSuspended: shouldSuspendCommandHarnessNativePassthrough(),
       previewIndex,
+      previewFit,
       root: {
         className: root.className,
         dataset: {
@@ -2119,6 +2831,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         },
       },
       stage: {
+        canvasBleed: getCommandHarnessCanvasBleedDebug(),
         className: previewStage.className,
         clipPath: window.getComputedStyle(previewStage).clipPath,
         dataset: {
@@ -2127,9 +2840,13 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         frameFit: {
           enabled: shouldUseOwnBookFrame || shouldFitToEpicBookFrame,
           mode: shouldUseOwnBookFrame ? 'own-book-frame' : shouldFitToEpicBookFrame ? 'epic-book-frame' : 'off',
+          border: ownBookFrameBorder,
+          canvasBleedXPct,
+          canvasBleedYPct,
           epicFrameInsetPx: shouldFitToEpicBookFrame ? epicBookFrameInsetPx : null,
           epicNativeShell: shouldUseEpicNativeShell,
           ownFrameAspect: ownBookFrameAspect,
+          shadow: ownBookFrameShadow,
           resolvedRect: frameRect
             ? {
                 height: frameRect.height,
@@ -2162,7 +2879,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   root.classList.toggle('is-epic-book-frame-fit', shouldFitToEpicBookFrame)
   root.setAttribute('data-reader-navigation-ignore', 'true')
   title.className = 'tribe-command-harness__title'
-  title.textContent = 'Command harness'
+  title.textContent = `Command harness: ${activeBookConfig.title}`
   controls.className = 'tribe-command-harness__controls'
   backButton.className = 'tribe-command-harness__button'
   backButton.type = 'button'
@@ -2179,13 +2896,36 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   previewStage.dataset.ownBookFrame = shouldUseOwnBookFrame ? 'true' : 'false'
   previewStage.dataset.epicBookFrameFit = shouldFitToEpicBookFrame ? 'true' : 'false'
   previewStage.dataset.epicNativeShell = shouldUseEpicNativeShell ? 'true' : 'false'
+  if (ownBookFrameBorder !== null) {
+    previewStage.style.setProperty('--tribe-command-harness-book-frame-border', ownBookFrameBorder)
+  }
+  if (ownBookFrameShadow !== null) {
+    previewStage.style.setProperty('--tribe-command-harness-book-frame-shadow', ownBookFrameShadow)
+  }
   previewStage.setAttribute('data-reader-navigation-ignore', 'true')
   previewCanvas.className = 'tribe-command-harness__canvas'
   previewCanvasAlt.className = 'tribe-command-harness__canvas'
   previewCanvasPreload.className = 'tribe-command-harness__canvas'
+  applyCommandHarnessCanvasBleed(previewCanvas)
+  applyCommandHarnessCanvasBleed(previewCanvasAlt)
+  applyCommandHarnessCanvasBleed(previewCanvasPreload)
   previewCanvas.setAttribute('aria-label', 'Rive preview layer A')
   previewCanvasAlt.setAttribute('aria-label', 'Rive preview layer B')
   previewCanvasPreload.setAttribute('aria-label', 'Rive preview preload layer')
+  previewLoading.className = 'tribe-command-harness__loading'
+  previewLoading.hidden = true
+  previewLoading.setAttribute('role', 'status')
+  previewLoading.setAttribute('aria-live', 'polite')
+  previewLoading.setAttribute('data-reader-navigation-ignore', 'true')
+  previewLoadingSpinner.className = 'tribe-command-harness__loading-spinner'
+  previewLoadingSpinner.setAttribute('aria-hidden', 'true')
+  previewLoadingText.className = 'tribe-command-harness__loading-text'
+  previewLoadingText.textContent = 'Loading Interactive Pages'
+  previewLoading.append(previewLoadingSpinner, previewLoadingText)
+  previewDebugBadge.className = 'tribe-command-harness__debug-badge'
+  previewDebugBadge.hidden = !shouldShowCommandHarnessDebugBadge
+  previewDebugBadge.textContent = `1Tribe ${COMMAND_HARNESS_DEBUG_BUILD_LABEL}`
+  previewDebugBadge.setAttribute('data-reader-navigation-ignore', 'true')
   edgeBackGutter.className = 'tribe-command-harness__edge-gutter tribe-command-harness__edge-gutter--back'
   edgeBackGutter.type = 'button'
   edgeBackGutter.hidden = true
@@ -2201,27 +2941,68 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   status.className = 'tribe-command-harness__status'
   status.textContent = `Ready on page ${context.data.getCurrentPage()}: previousPage / nextPage`
 
+  const setCommandHarnessLoadingIndicator = (isLoading: boolean) => {
+    previewStage.classList.toggle('is-loading', isLoading)
+    previewLoadingText.textContent = 'Loading Interactive Pages'
+
+    if (isLoading) {
+      if (previewLoadingFadeTimer !== null) {
+        window.clearTimeout(previewLoadingFadeTimer)
+        previewLoadingFadeTimer = null
+      }
+      previewLoading.classList.remove('is-fading')
+      previewLoading.hidden = false
+      return
+    }
+
+    if (previewLoading.hidden || previewLoadingFadeTimer !== null) return
+    previewLoading.classList.add('is-fading')
+    previewLoadingFadeTimer = window.setTimeout(() => {
+      previewLoading.hidden = true
+      previewLoading.classList.remove('is-fading')
+      previewLoadingFadeTimer = null
+    }, 1000)
+  }
+
+  const syncCommandHarnessLoadingIndicator = () => {
+    if (!isPreviewEnabled) {
+      setCommandHarnessLoadingIndicator(false)
+      return
+    }
+
+    const activeLayerReady = Boolean(previewActiveLayer?.loaded && previewActiveLayer.initialStateMachineStarted)
+    setCommandHarnessLoadingIndicator(!activeLayerReady && !previewRive)
+  }
+
+  const setCommandHarnessDebugBadge = (message: string) => {
+    if (!shouldShowCommandHarnessDebugBadge) return
+    previewDebugBadge.hidden = false
+    previewDebugBadge.textContent = `1Tribe ${COMMAND_HARNESS_DEBUG_BUILD_LABEL} - ${message}`
+  }
+
   const setStatusForPageChange = (payload: unknown, source: string) => {
     const page = getReaderPageFromPayload(payload, context.data.getCurrentPage())
     const payloadDirection = getNavigationDirectionFromPayload(payload)
+    const payloadSource = getNavigationSourceFromPayload(payload)
+    const eventSource = payloadSource ? `${source}:${payloadSource}` : source
     const inferredDirection = page > lastReaderPage ? 1 : page < lastReaderPage ? -1 : null
-    const direction = payloadDirection || inferredDirection
+    const direction = payloadDirection ?? inferredDirection
     lastReaderPage = page
     const directionLabel = direction === 1 ? 'forward' : direction === -1 ? 'back' : 'same'
-    status.textContent = `Epic page ${page} (${directionLabel}, ${source}).`
+    status.textContent = `Epic page ${page} (${directionLabel}, ${eventSource}).`
     console.info('[1Tribe command harness] pageChange', {
       payload,
       page,
       direction,
-      source,
+      source: eventSource,
     })
 
-    checkCommandHarnessCompletionHandoff(`${source}: pageChange`)
+    checkCommandHarnessCompletionHandoff(`${eventSource}: pageChange`)
     if (commandHarnessCompletionHandoff) return
 
     if (isPreviewEnabled) {
-      alignTwoLayerPreviewToReaderPage(page, source, direction)
-      scheduleCommandHarnessFrameResizeSync(`${source}: pageChange`)
+      alignTwoLayerPreviewToReaderPage(page, eventSource, direction)
+      scheduleCommandHarnessFrameResizeSync(`${eventSource}: pageChange`)
     }
   }
 
@@ -2501,12 +3282,14 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (shouldPreloadForwardNeighbor) {
       previewStage.append(previewCanvasPreload)
     }
-    previewStage.append(previewCanvasAlt, previewCanvas)
+    previewStage.append(previewCanvasAlt, previewCanvas, previewDebugBadge)
+    setCommandHarnessDebugBadge(`boot p${context.data.getCurrentPage()}`)
     previewStatus.textContent = 'Rive overlay is loading.'
+    setCommandHarnessLoadingIndicator(true)
     if (shouldShowCommandHarnessControls) {
       root.append(previewStatus)
     }
-    readingRoot.append(previewStage)
+    readingRoot.append(previewStage, previewLoading)
     readingRoot.append(edgeBackGutter, edgeNextGutter)
   }
   if (shouldShowCommandHarnessControls) {
@@ -2658,6 +3441,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     clearPreviewStateMachineAfterIdle(layer)
     layer.rive?.cleanup()
     layer.rive = null
+    layer.initialStateMachineStarted = false
     layer.loaded = false
     layer.renderSize = null
     layer.canvas.getContext('2d')?.clearRect(0, 0, layer.canvas.width, layer.canvas.height)
@@ -2702,23 +3486,155 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
   const resolveCommandHarnessStateMachine = (
     instance: Rive | null,
-    requestedName: string,
+    file: CommandHarnessPreviewFile,
   ): CommandHarnessStateMachineResolution => {
-    const requestedKey = normalizeRiveNameForMatch(requestedName)
     const artboards = instance?.contents?.artboards || []
-
-    for (const artboard of artboards) {
-      const stateMachine = (artboard.stateMachines || []).find((machine) => normalizeRiveNameForMatch(machine.name) === requestedKey)
-      if (stateMachine) {
-        return {
-          artboard: artboard.name,
-          stateMachine: stateMachine.name,
-        }
+    const entries = artboards.flatMap((artboard) =>
+      (artboard.stateMachines || []).map((stateMachine) => ({
+        artboard: artboard.name,
+        stateMachine: stateMachine.name,
+      })),
+    )
+    const addCandidate = (candidates: string[], value: string | null | undefined) => {
+      const candidate = String(value || '').trim()
+      if (candidate && !candidates.includes(candidate)) candidates.push(candidate)
+    }
+    const fileBaseName = (() => {
+      try {
+        return decodeURIComponent(file.file).split(/[\\/]/).pop()?.replace(/\.riv$/i, '') || ''
+      } catch {
+        return file.file.split(/[\\/]/).pop()?.replace(/\.riv$/i, '') || ''
       }
+    })()
+    const start = String(file.readerStart).padStart(2, '0')
+    const end = String(file.readerEnd).padStart(2, '0')
+    const candidates: string[] = []
+
+    addCandidate(candidates, file.stateMachine)
+    addCandidate(candidates, fileBaseName)
+    addCandidate(candidates, fileBaseName.replace(/^creepy_cafetorium_/i, 'Creepy_Cafetorium_'))
+    addCandidate(candidates, fileBaseName.replace(/^hummingbird_/i, 'HummingBird_'))
+    addCandidate(candidates, fileBaseName.replace(/^hummingbird_/i, 'Hummingbird_'))
+    addCandidate(candidates, `Creepy_Cafetorium_spread_${start}`)
+    addCandidate(candidates, `HummingBird_spread_${start}`)
+    addCandidate(candidates, `Hummingbird_spread_${start}`)
+    addCandidate(candidates, `Page_${start}`)
+    if (file.readerStart !== file.readerEnd) {
+      addCandidate(candidates, `Creepy_Cafetorium_spread_${start}&${end}`)
+      addCandidate(candidates, `Creepy_Cafetorium_spread_${start}_${end}`)
+      addCandidate(candidates, `Creepy_Cafetorium_spread_${start}-${end}`)
+      addCandidate(candidates, `HummingBird_spread_${start}&${end}`)
+      addCandidate(candidates, `HummingBird_spread_${start}_${end}`)
+      addCandidate(candidates, `Hummingbird_spread_${start}&${end}`)
+      addCandidate(candidates, `Hummingbird_spread_${start}_${end}`)
+      addCandidate(candidates, `Page_${start}_${end}`)
+      addCandidate(candidates, `Page_${start}&${end}`)
+      addCandidate(candidates, `Page_${start}-${end}`)
+    }
+
+    const candidateKeys = candidates.map(normalizeRiveNameForMatch)
+    for (const key of candidateKeys) {
+      const exact = entries.find((entry) => normalizeRiveNameForMatch(entry.stateMachine) === key)
+      if (exact) return exact
+    }
+
+    const matchingPagePair = entries.find((entry) => {
+      const key = normalizeRiveNameForMatch(`${entry.artboard} ${entry.stateMachine}`)
+      return key.includes(start) && (file.readerStart === file.readerEnd || key.includes(end))
+    })
+    if (matchingPagePair) return matchingPagePair
+
+    const matchingStartPage = entries.find((entry) => {
+      const key = normalizeRiveNameForMatch(`${entry.artboard} ${entry.stateMachine}`)
+      return key.includes(start)
+    })
+    if (matchingStartPage) return matchingStartPage
+
+    if (entries[0]) {
+      return entries[0]
     }
 
     return {
-      stateMachine: requestedName,
+      stateMachine: file.stateMachine,
+    }
+  }
+
+  const getCommandHarnessStateMachineDebugNames = (instance: Rive | null): string[] => {
+    const artboards = instance?.contents?.artboards || []
+    return artboards.flatMap((artboard) =>
+      (artboard.stateMachines || []).map((stateMachine) => `${artboard.name} / ${stateMachine.name}`),
+    )
+  }
+
+  const startCommandHarnessStateMachine = (layer: CommandHarnessPreviewLayer, label: string) => {
+    const entry = resolveCommandHarnessStateMachine(layer.rive, layer.file)
+    console.info('[1Tribe command harness] start state machine request', {
+      label,
+      requestedStateMachine: layer.file.stateMachine,
+      resolvedStateMachine: entry.stateMachine,
+      artboard: entry.artboard || '(current/default)',
+      file: layer.file.file,
+      availableStateMachines: getCommandHarnessStateMachineDebugNames(layer.rive),
+    })
+
+    if (!layer.rive) return entry
+
+    layer.rive.reset({
+      artboard: entry.artboard,
+      stateMachines: entry.stateMachine,
+      autoplay: true,
+      autoBind: true,
+    })
+    layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+    layer.rive.play(entry.stateMachine)
+    return entry
+  }
+
+  const startCommandHarnessStateMachineWithoutReset = (layer: CommandHarnessPreviewLayer, label: string) => {
+    const entry = resolveCommandHarnessStateMachine(layer.rive, layer.file)
+    console.info('[1Tribe command harness] start state machine without reset request', {
+      label,
+      requestedStateMachine: layer.file.stateMachine,
+      resolvedStateMachine: entry.stateMachine,
+      artboard: entry.artboard || '(current/default)',
+      file: layer.file.file,
+      playingAnimationsBefore: layer.rive?.playingAnimationNames || [],
+      playingStateMachinesBefore: layer.rive?.playingStateMachineNames || [],
+      availableStateMachines: getCommandHarnessStateMachineDebugNames(layer.rive),
+    })
+
+    if (!layer.rive) return entry
+
+    layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+    layer.rive.play(entry.stateMachine)
+    console.info('[1Tribe command harness] started state machine without reset', {
+      file: layer.file.file,
+      spread: layer.file.label,
+      stateMachine: entry.stateMachine,
+      playingAnimationsAfter: layer.rive.playingAnimationNames || [],
+      playingStateMachinesAfter: layer.rive.playingStateMachineNames || [],
+    })
+    return entry
+  }
+
+  const startCommandHarnessInitialStateMachine = (layer: CommandHarnessPreviewLayer, label: string) => {
+    if (!layer.rive) return null
+
+    try {
+      if (layer.role === 'active') {
+        return startCommandHarnessStateMachine(layer, label)
+      }
+
+      return startCommandHarnessStateMachineWithoutReset(layer, label)
+    } catch (error) {
+      console.warn('[1Tribe command harness] Could not start initial state machine after file load.', {
+        file: layer.file.file,
+        label,
+        requestedStateMachine: layer.file.stateMachine,
+        availableStateMachines: getCommandHarnessStateMachineDebugNames(layer.rive),
+        error,
+      })
+      return null
     }
   }
 
@@ -2751,55 +3667,6 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     })
     layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
     layer.rive.play(entry.animation)
-    return entry
-  }
-
-  const startCommandHarnessStateMachine = (layer: CommandHarnessPreviewLayer, label: string) => {
-    const entry = resolveCommandHarnessStateMachine(layer.rive, layer.file.stateMachine)
-    console.info('[1Tribe command harness] start state machine request', {
-      label,
-      requestedStateMachine: layer.file.stateMachine,
-      resolvedStateMachine: entry.stateMachine,
-      artboard: entry.artboard || '(current/default)',
-      file: layer.file.file,
-    })
-
-    if (!layer.rive) return entry
-
-    layer.rive.reset({
-      artboard: entry.artboard,
-      stateMachines: entry.stateMachine,
-      autoplay: true,
-      autoBind: true,
-    })
-    layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
-    layer.rive.play(entry.stateMachine)
-    return entry
-  }
-
-  const startCommandHarnessStateMachineWithoutReset = (layer: CommandHarnessPreviewLayer, label: string) => {
-    const entry = resolveCommandHarnessStateMachine(layer.rive, layer.file.stateMachine)
-    console.info('[1Tribe command harness] start state machine without reset request', {
-      label,
-      requestedStateMachine: layer.file.stateMachine,
-      resolvedStateMachine: entry.stateMachine,
-      artboard: entry.artboard || '(current/default)',
-      file: layer.file.file,
-      playingAnimationsBefore: layer.rive?.playingAnimationNames || [],
-      playingStateMachinesBefore: layer.rive?.playingStateMachineNames || [],
-    })
-
-    if (!layer.rive) return entry
-
-    layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
-    layer.rive.play(entry.stateMachine)
-    console.info('[1Tribe command harness] started state machine without reset', {
-      file: layer.file.file,
-      spread: layer.file.label,
-      stateMachine: entry.stateMachine,
-      playingAnimationsAfter: layer.rive.playingAnimationNames || [],
-      playingStateMachinesAfter: layer.rive.playingStateMachineNames || [],
-    })
     return entry
   }
 
@@ -2970,6 +3837,75 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     return renderSize
   }
 
+  const isCommandHarnessLayerCurrent = (layer: CommandHarnessPreviewLayer) =>
+    layer === previewActiveLayer || layer === previewNextLayer || layer === previewPreloadLayer
+
+  const scheduleCommandHarnessInitialStateMachineStart = (
+    layer: CommandHarnessPreviewLayer,
+    label: string,
+  ) => {
+    if (!isPreviewEnabled || !layer.rive || layer.initialStateMachineStarted) return
+
+    const rive = layer.rive
+    const delays = [0, 32, 80, 160, 320, 640]
+    const run = (attempt: number) => {
+      if (layer.rive !== rive || !isCommandHarnessLayerCurrent(layer) || layer.initialStateMachineStarted) return
+
+      positionCommandHarnessPreviewStage()
+      const ratio = getEffectivePixelRatio(previewStage)
+      resizeCanvasToOwnBounds(layer.canvas, ratio)
+
+      const stageRect = previewStage.getBoundingClientRect()
+      const canvasRect = layer.canvas.getBoundingClientRect()
+      const hasStableFrame =
+        stageRect.width >= 32 &&
+        stageRect.height >= 32 &&
+        canvasRect.width >= 32 &&
+        canvasRect.height >= 32 &&
+        layer.canvas.width >= 32 &&
+        layer.canvas.height >= 32
+
+      if (!hasStableFrame && attempt < delays.length - 1) {
+        if (layer.role === 'active') {
+          setCommandHarnessDebugBadge(`waiting for canvas ${layer.file.label} ${attempt + 1}`)
+        }
+        window.setTimeout(() => run(attempt + 1), delays[attempt + 1])
+        return
+      }
+
+      layer.initialStateMachineStarted = true
+      resizeTwoLayerPreview()
+      const entry = startCommandHarnessInitialStateMachine(layer, label)
+      rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+      rive.drawFrame()
+      syncCommandHarnessLayerRenderSize(layer)
+
+      if (layer.role === 'active') {
+        syncCommandHarnessLoadingIndicator()
+        setCommandHarnessDebugBadge(`started ${layer.file.label} ${entry?.stateMachine || 'state-machine'}`)
+      }
+      console.info('[1Tribe command harness] Initial Rive start after stable canvas.', {
+        attempt,
+        canvas: {
+          cssHeight: canvasRect.height,
+          cssWidth: canvasRect.width,
+          height: layer.canvas.height,
+          width: layer.canvas.width,
+        },
+        file: layer.file.file,
+        label,
+        role: layer.role,
+        stage: {
+          height: stageRect.height,
+          width: stageRect.width,
+        },
+        stateMachine: entry?.stateMachine || null,
+      })
+    }
+
+    window.setTimeout(() => run(0), delays[0])
+  }
+
   const markPreviewLayerLoaded = (layer: CommandHarnessPreviewLayer, label: string, serial: number) => {
     if (
       serial !== previewLayerLoadSerial &&
@@ -3004,6 +3940,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       const queuedLabel = previewNextLayer.role === 'previous' ? 'previous' : 'next'
       previewStatus.textContent = `Ready. Active ${previewActiveLayer.file.label}; ${queuedLabel} ${previewNextLayer.file.label}.`
     }
+    syncCommandHarnessLoadingIndicator()
     updateCommandButtons()
 
     if (commandHarnessReadAgainRestorePending && layer.index === 0) {
@@ -3043,6 +3980,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       canvas,
       file,
       index,
+      initialStateMachineStarted: false,
       loaded: false,
       renderSize: null,
       rive: null,
@@ -3051,25 +3989,26 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     const serial = ++previewLayerLoadSerial
     setPreviewCanvasRole(layer, role)
     resizeCanvasToOwnBounds(canvas, getEffectivePixelRatio(previewStage))
+    if (role === 'active' && !previewActiveLayer?.loaded) {
+      setCommandHarnessLoadingIndicator(true)
+    }
 
     try {
       layer.rive = new Rive({
         src: new URL(file.file, extensionScriptUrl).href,
         canvas,
-        stateMachines: file.stateMachine,
-        autoplay: true,
+        autoplay: false,
         autoBind: true,
         automaticallyHandleEvents: true,
         enableRiveAssetCDN: false,
-        layout: new Layout({
-          fit: Fit.Contain,
-          alignment: Alignment.Center,
-        }),
+        layout: createCommandHarnessPreviewLayout(),
         onLoad() {
           markPreviewLayerLoaded(layer, `${role} ${file.label}`, serial)
+          scheduleCommandHarnessInitialStateMachineStart(layer, `${role} ${file.label} loaded`)
         },
         onLoadError(event) {
           previewStatus.textContent = `Failed to load ${file.label}: ${String(event?.data || 'unknown error')}`
+          if (role === 'active') setCommandHarnessLoadingIndicator(true)
           console.warn('[1Tribe command harness] Rive layer failed.', {
             file: file.file,
             index,
@@ -3667,6 +4606,9 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         'PageBack',
         'Page_prev',
         'Page_Prev',
+        'Page_Prev02',
+        'Page_Prev_02',
+        'PagePrev02',
       ],
       `back outgoing ${outgoingLayer.file.label}`,
     )
@@ -4009,31 +4951,26 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     previewStateMachine = null
     previewCanvas.getContext('2d')?.clearRect(0, 0, previewCanvas.width, previewCanvas.height)
     previewStatus.textContent = `Loading ${previewFile.label}...`
+    setCommandHarnessLoadingIndicator(true)
     resizeCanvasToOwnBounds(previewCanvas, getEffectivePixelRatio(previewStage))
 
     try {
       const instance = new Rive({
         src: new URL(previewFile.file, extensionScriptUrl).href,
         canvas: previewCanvas,
-        autoplay: true,
+        autoplay: false,
         autoBind: true,
         automaticallyHandleEvents: false,
         enableRiveAssetCDN: false,
-        stateMachines: previewFile.stateMachine,
-        layout: new Layout({
-          fit: Fit.Contain,
-          alignment: Alignment.Center,
-        }),
+        layout: createCommandHarnessPreviewLayout(),
         onLoad() {
           if (serial !== previewLoadSerial) return
           previewRive = instance
           resizePreview()
           bindPreviewViewModelInstance(instance)
-          const stateMachineNames = instance.stateMachineNames || []
-          const stateMachine =
-            stateMachineNames.find((name) => normalizeRiveNameForMatch(name) === normalizeRiveNameForMatch(previewFile.stateMachine)) ||
-            stateMachineNames[0] ||
-            null
+          const stateMachineEntry = resolveCommandHarnessStateMachine(instance, previewFile)
+          const stateMachineNames = getCommandHarnessStateMachineDebugNames(instance)
+          const stateMachine = stateMachineEntry.stateMachine || null
           if (stateMachine) instance.play(stateMachine)
           previewStateMachine = stateMachine
           const pageInInput =
@@ -4068,6 +5005,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
             : backIdleAnimation
               ? `Showing ${previewFile.label}; played ${backIdleAnimation}.`
               : `Showing ${previewFile.label}.`
+          setCommandHarnessLoadingIndicator(false)
           console.info('[1Tribe command harness] Rive preview loaded.', {
             file: previewFile.file,
             index: previewIndex,
@@ -4076,6 +5014,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
             requestedStateMachine: previewFile.stateMachine,
             stateMachine,
             stateMachineNames,
+            stateMachineEntry,
             requestedPageInAnimation: previewPageInAnimation,
             pageInInput,
             pageInAnimation,
@@ -4085,6 +5024,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         },
         onLoadError(event) {
           previewStatus.textContent = `Rive preview failed: ${String(event?.data || 'unknown error')}`
+          setCommandHarnessLoadingIndicator(true)
           console.warn('[1Tribe command harness] Rive preview failed.', {
             file: previewFile.file,
             index: previewIndex,
@@ -4098,6 +5038,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       previewRive = instance
     } catch (error) {
       previewStatus.textContent = `Rive preview failed: ${String(error)}`
+      setCommandHarnessLoadingIndicator(true)
       console.warn('[1Tribe command harness] Could not create passive Rive preview.', error)
     }
   }
@@ -4163,14 +5104,21 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   window.addEventListener('resize', resizePreview)
 
   const debugWindow = window as TribeDebugWindow
-  debugWindow.tribeCommandHarnessNextPage = runNextPage
-  debugWindow.tribeCommandHarnessPreviousPage = runPreviousPage
-  debugWindow.tribeEpicNativePassthroughDebug = getCommandHarnessNativePassthroughDebug
-  debugWindow.tribeCommandHarnessCompletionDebug = getCommandHarnessCompletionDebug
-  debugWindow.tribeCommandHarnessReleaseForCompletion = (reason = 'manual completion handoff') =>
+  const shouldExposeCommandHarnessDebugGlobals = shouldExposeDebugGlobals()
+  const releaseCommandHarnessForCompletion = (reason = 'manual completion handoff') =>
     setCommandHarnessCompletionHandoff(true, reason, { trigger: 'manual' })
-  debugWindow.tribeCommandHarnessRestoreOverlay = (reason = 'manual restore') =>
+  const restoreCommandHarnessOverlay = (reason = 'manual restore') =>
     setCommandHarnessCompletionHandoff(false, reason, { trigger: 'manual' })
+  if (shouldExposeCommandHarnessDebugGlobals) {
+    debugWindow.tribeCommandHarnessNextPage = runNextPage
+    debugWindow.tribeCommandHarnessPreviousPage = runPreviousPage
+    debugWindow.tribeCommandHarnessSetCanvasBleed = setCommandHarnessCanvasBleed
+    debugWindow.tribeCommandHarnessSetPreviewFit = setCommandHarnessPreviewFit
+    debugWindow.tribeEpicNativePassthroughDebug = getCommandHarnessNativePassthroughDebug
+    debugWindow.tribeCommandHarnessCompletionDebug = getCommandHarnessCompletionDebug
+    debugWindow.tribeCommandHarnessReleaseForCompletion = releaseCommandHarnessForCompletion
+    debugWindow.tribeCommandHarnessRestoreOverlay = restoreCommandHarnessOverlay
+  }
   document.addEventListener('click', handleCommandHarnessCompletionClick, true)
   startCommandHarnessCompletionObserver()
   scheduleCommandHarnessCompletionCheck('initial completion scan', 500)
@@ -4179,11 +5127,21 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   })
 
   context.analytics.log('1tribe_command_harness_activated', {
+    activeBookId: activeBookConfig.bookId,
+    activeBookTitle: activeBookConfig.title,
     bookId: context.data.getBookId(),
     page: context.data.getCurrentPage(),
+    previewFileCount: previewFiles.length,
   })
   console.info(
-    '[1Tribe command harness] Ready. Run tribeCommandHarnessNextPage(), tribeCommandHarnessPreviousPage(), or click a button.',
+    shouldExposeCommandHarnessDebugGlobals
+      ? '[1Tribe command harness] Ready. Run tribeCommandHarnessNextPage(), tribeCommandHarnessPreviousPage(), or click a button.'
+      : '[1Tribe command harness] Ready.',
+    {
+      activeBookId: activeBookConfig.bookId,
+      activeBookTitle: activeBookConfig.title,
+      previewFileCount: previewFiles.length,
+    },
   )
 
   return () => {
@@ -4193,14 +5151,24 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (debugWindow.tribeCommandHarnessPreviousPage === runPreviousPage) {
       delete debugWindow.tribeCommandHarnessPreviousPage
     }
+    if (debugWindow.tribeCommandHarnessSetCanvasBleed === setCommandHarnessCanvasBleed) {
+      delete debugWindow.tribeCommandHarnessSetCanvasBleed
+    }
+    if (debugWindow.tribeCommandHarnessSetPreviewFit === setCommandHarnessPreviewFit) {
+      delete debugWindow.tribeCommandHarnessSetPreviewFit
+    }
     if (debugWindow.tribeEpicNativePassthroughDebug === getCommandHarnessNativePassthroughDebug) {
       delete debugWindow.tribeEpicNativePassthroughDebug
     }
     if (debugWindow.tribeCommandHarnessCompletionDebug === getCommandHarnessCompletionDebug) {
       delete debugWindow.tribeCommandHarnessCompletionDebug
     }
-    delete debugWindow.tribeCommandHarnessReleaseForCompletion
-    delete debugWindow.tribeCommandHarnessRestoreOverlay
+    if (debugWindow.tribeCommandHarnessReleaseForCompletion === releaseCommandHarnessForCompletion) {
+      delete debugWindow.tribeCommandHarnessReleaseForCompletion
+    }
+    if (debugWindow.tribeCommandHarnessRestoreOverlay === restoreCommandHarnessOverlay) {
+      delete debugWindow.tribeCommandHarnessRestoreOverlay
+    }
     document.removeEventListener('click', handleCommandHarnessCompletionClick, true)
     if (commandHarnessCompletionCheckTimer !== null) {
       window.clearTimeout(commandHarnessCompletionCheckTimer)
@@ -4220,6 +5188,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     cleanupBackEdgeGutterListeners()
     cleanupNextEdgeGutterListeners()
     clearPendingPreviewSwapTimer()
+    if (previewLoadingFadeTimer !== null) window.clearTimeout(previewLoadingFadeTimer)
+    previewLoadingFadeTimer = null
     if (previewSettleTimer !== null) window.clearTimeout(previewSettleTimer)
     previewSettleTimer = null
     pendingPreviewTurn = null
@@ -4239,6 +5209,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     cleanupPageChange()
     edgeBackGutter.remove()
     edgeNextGutter.remove()
+    previewLoading.remove()
     previewStage.remove()
     root.remove()
   }
@@ -4431,6 +5402,19 @@ function getWordHotspotOcrUrl(hotspotFile: WordHotspotFile, manifestUrl: string)
   }
 }
 
+function normalizeWordHotspotPages(pages: WordHotspotFile['pages']): number[] {
+  const values = Array.isArray(pages) ? pages : pages === undefined || pages === null ? [] : [pages]
+
+  return Array.from(
+    new Set(
+      values
+        .map((page) => Number(page))
+        .filter((page) => Number.isFinite(page))
+        .map((page) => Math.trunc(page)),
+    ),
+  ).sort((first, second) => first - second)
+}
+
 function convertOcrToWordHotspotFile(
   ocr: WordHotspotOcrFile,
   hotspotFile: WordHotspotFile,
@@ -4443,10 +5427,10 @@ function convertOcrToWordHotspotFile(
   const words = (ocr.words || [])
     .map((word): WordHotspotWord | null => {
       const text = String(word.text || '').trim()
-      const x = Number(word.x)
-      const y = Number(word.y)
-      const wordWidth = Number(word.width)
-      const wordHeight = Number(word.height)
+      const x = Number(word.x ?? word.bbox?.x)
+      const y = Number(word.y ?? word.bbox?.y)
+      const wordWidth = Number(word.width ?? word.bbox?.width)
+      const wordHeight = Number(word.height ?? word.bbox?.height)
       if (!text) return null
       if (
         !Number.isFinite(x) ||
@@ -4475,6 +5459,12 @@ function convertOcrToWordHotspotFile(
 
   return {
     ...hotspotFile,
+    source: 'ocr-sidecar',
+    sourceDetail: {
+      height,
+      width,
+      words: words.length,
+    },
     text: ocr.text || words.map((word) => word.text).filter(Boolean).join(' '),
     words,
   }
@@ -4485,11 +5475,9 @@ async function getWordHotspotFileWithOcrSidecar(
   manifest: WordHotspotManifest,
   manifestUrl: string,
   signal: AbortSignal,
-): Promise<WordHotspotFile> {
-  if (!getBooleanParam('riveWordHotspotUseOcrJson', false)) return hotspotFile
-
+): Promise<WordHotspotFile | null> {
   const ocrUrl = getWordHotspotOcrUrl(hotspotFile, manifestUrl)
-  if (!ocrUrl) return hotspotFile
+  if (!ocrUrl) return null
 
   try {
     const response = await fetch(`${ocrUrl}${ocrUrl.includes('?') ? '&' : '?'}ts=${Date.now()}`, {
@@ -4498,12 +5486,12 @@ async function getWordHotspotFileWithOcrSidecar(
     })
     if (!response.ok) {
       console.info(`[1Tribe word hotspots] OCR sidecar not available: ${ocrUrl} HTTP ${response.status}`)
-      return hotspotFile
+      return null
     }
 
     const ocr = (await response.json()) as WordHotspotOcrFile
     const ocrHotspotFile = convertOcrToWordHotspotFile(ocr, hotspotFile, manifest)
-    if (!ocrHotspotFile) return hotspotFile
+    if (!ocrHotspotFile) return null
 
     console.info('[1Tribe word hotspots] Using OCR sidecar for word hotspots.', {
       file: hotspotFile.file,
@@ -4515,8 +5503,65 @@ async function getWordHotspotFileWithOcrSidecar(
     if (!signal.aborted) {
       console.warn(`[1Tribe word hotspots] Unable to load OCR sidecar ${ocrUrl}: ${String(error)}`)
     }
-    return hotspotFile
+    return null
   }
+}
+
+function getPageRange(startPage: number, endPage: number): number[] {
+  const start = Math.trunc(Math.min(startPage, endPage))
+  const end = Math.trunc(Math.max(startPage, endPage))
+  const pages: number[] = []
+  for (let page = start; page <= end; page += 1) {
+    pages.push(page)
+  }
+  return pages
+}
+
+function getManifestFileByName(manifest: WordHotspotManifest, fileName: string): WordHotspotFile | null {
+  const normalizedFileName = normalizeWordHotspotFileName(fileName)
+  return (
+    manifest.files?.find((file) => normalizeWordHotspotFileName(String(file.file || '')) === normalizedFileName) ||
+    null
+  )
+}
+
+function getConfiguredWordHotspotFileForPage(
+  context: ExtensionContext,
+  page: number,
+  manifest: WordHotspotManifest,
+): WordHotspotFile | null {
+  const bookConfig = getEpicTribeBookConfig(context.data.getBookId())
+  const previewFile = bookConfig?.previewFiles.find((file) => page >= file.readerStart && page <= file.readerEnd)
+  if (!previewFile) return null
+
+  const fileName = normalizeWordHotspotFileName(previewFile.file)
+  const manifestFile = getManifestFileByName(manifest, fileName)
+  const manifestPages = normalizeWordHotspotPages(manifestFile?.pages)
+  return {
+    ...(manifestFile || {}),
+    file: fileName,
+    pages: manifestPages.length ? manifestPages : getPageRange(previewFile.readerStart, previewFile.readerEnd),
+    render: manifestFile?.render || manifest.render,
+  }
+}
+
+function getFiniteWordHotspotBounds(bounds: WordHotspotBounds | undefined): Required<WordHotspotBounds> | null {
+  const x = Number(bounds?.x)
+  const y = Number(bounds?.y)
+  const width = Number(bounds?.width)
+  const height = Number(bounds?.height)
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null
+  }
+
+  return { x, y, width, height }
 }
 
 function getAdjustedWordHotspotBounds(
@@ -4552,6 +5597,85 @@ function getAdjustedWordHotspotBounds(
     width: width / contentWidth,
     height: height / contentHeight,
   }
+}
+
+function clampWordHotspotBoundsToUnitFrame(bounds: Required<WordHotspotBounds>): Required<WordHotspotBounds> | null {
+  const left = Math.max(0, Number(bounds.x))
+  const top = Math.max(0, Number(bounds.y))
+  const right = Math.min(1, Number(bounds.x) + Number(bounds.width))
+  const bottom = Math.min(1, Number(bounds.y) + Number(bounds.height))
+  const width = right - left
+  const height = bottom - top
+  if (
+    !Number.isFinite(left) ||
+    !Number.isFinite(top) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null
+  }
+
+  return { x: left, y: top, width, height }
+}
+
+function transformWordHotspotBounds(
+  bounds: Required<WordHotspotBounds>,
+  transform: {
+    offsetX: number
+    offsetY: number
+    frameScaleX: number
+    frameScaleY: number
+    scaleX: number
+    scaleY: number
+  },
+): Required<WordHotspotBounds> | null {
+  const frameScaleX = Number.isFinite(transform.frameScaleX) && transform.frameScaleX > 0 ? transform.frameScaleX : 1
+  const frameScaleY = Number.isFinite(transform.frameScaleY) && transform.frameScaleY > 0 ? transform.frameScaleY : 1
+  const scaleX = Number.isFinite(transform.scaleX) && transform.scaleX > 0 ? transform.scaleX : 1
+  const scaleY = Number.isFinite(transform.scaleY) && transform.scaleY > 0 ? transform.scaleY : 1
+  const offsetX = Number.isFinite(transform.offsetX) ? transform.offsetX : 0
+  const offsetY = Number.isFinite(transform.offsetY) ? transform.offsetY : 0
+  const frameScaledBounds = clampWordHotspotBoundsToUnitFrame({
+    x: 0.5 + (bounds.x - 0.5) * frameScaleX + offsetX,
+    y: 0.5 + (bounds.y - 0.5) * frameScaleY + offsetY,
+    width: bounds.width * frameScaleX,
+    height: bounds.height * frameScaleY,
+  })
+  if (!frameScaledBounds) return null
+
+  const centerX = frameScaledBounds.x + frameScaledBounds.width / 2
+  const centerY = frameScaledBounds.y + frameScaledBounds.height / 2
+  const width = frameScaledBounds.width * scaleX
+  const height = frameScaledBounds.height * scaleY
+
+  return clampWordHotspotBoundsToUnitFrame({
+    x: centerX - width / 2,
+    y: centerY - height / 2,
+    width,
+    height,
+  })
+}
+
+function isLargeWordHotspotBounds(bounds: Required<WordHotspotBounds>): boolean {
+  return bounds.width >= 0.18 || bounds.height >= 0.08
+}
+
+function getWordHotspotContentBoundsForPage(
+  hotspotFile: WordHotspotFile,
+  manifest: WordHotspotManifest,
+  page: number,
+): WordHotspotBounds | undefined {
+  const pageKey = String(Math.trunc(page))
+  return (
+    hotspotFile.contentBoundsByPage?.[pageKey] ||
+    hotspotFile.render?.contentBoundsByPage?.[pageKey] ||
+    manifest.render?.contentBoundsByPage?.[pageKey] ||
+    hotspotFile.contentBounds ||
+    hotspotFile.render?.contentBounds ||
+    manifest.render?.contentBounds
+  )
 }
 
 function getWordHotspotRenderSize(
@@ -4614,6 +5738,107 @@ function getContainedRectForRenderSize(
     y: frameRect.y + (frameRect.height - containedHeight) / 2,
     width: frameRect.width,
     height: containedHeight,
+  }
+}
+
+function getCoveredRectForRenderSize(
+  frameRect: DOMRect,
+  renderSize: WordHotspotRenderSize,
+): { x: number; y: number; width: number; height: number } {
+  const renderWidth = Number(renderSize.width)
+  const renderHeight = Number(renderSize.height)
+  if (
+    !Number.isFinite(renderWidth) ||
+    !Number.isFinite(renderHeight) ||
+    renderWidth <= 0 ||
+    renderHeight <= 0 ||
+    frameRect.width <= 0 ||
+    frameRect.height <= 0
+  ) {
+    return {
+      x: frameRect.x,
+      y: frameRect.y,
+      width: frameRect.width,
+      height: frameRect.height,
+    }
+  }
+
+  const renderAspect = renderWidth / renderHeight
+  const frameAspect = frameRect.width / frameRect.height
+  if (frameAspect > renderAspect) {
+    const coveredHeight = frameRect.width / renderAspect
+    return {
+      x: frameRect.x,
+      y: frameRect.y + (frameRect.height - coveredHeight) / 2,
+      width: frameRect.width,
+      height: coveredHeight,
+    }
+  }
+
+  const coveredWidth = frameRect.height * renderAspect
+  return {
+    x: frameRect.x + (frameRect.width - coveredWidth) / 2,
+    y: frameRect.y,
+    width: coveredWidth,
+    height: frameRect.height,
+  }
+}
+
+function getFittedRectForRenderSize(
+  frameRect: DOMRect,
+  renderSize: WordHotspotRenderSize,
+  fit: string | null | undefined,
+): { x: number; y: number; width: number; height: number } {
+  switch ((fit || '').trim().toLowerCase()) {
+    case 'cover':
+      return getCoveredRectForRenderSize(frameRect, renderSize)
+    case 'fill':
+      return {
+        x: frameRect.x,
+        y: frameRect.y,
+        width: frameRect.width,
+        height: frameRect.height,
+      }
+    case 'fitwidth':
+    case 'fit-width':
+    case 'fit_width': {
+      const renderWidth = Number(renderSize.width)
+      const renderHeight = Number(renderSize.height)
+      const renderAspect = renderWidth / renderHeight
+      if (!Number.isFinite(renderAspect) || renderAspect <= 0 || frameRect.width <= 0) {
+        return getContainedRectForRenderSize(frameRect, renderSize)
+      }
+      const height = frameRect.width / renderAspect
+      return {
+        x: frameRect.x,
+        y: frameRect.y + (frameRect.height - height) / 2,
+        width: frameRect.width,
+        height,
+      }
+    }
+    case 'fitheight':
+    case 'fit-height':
+    case 'fit_height': {
+      const renderWidth = Number(renderSize.width)
+      const renderHeight = Number(renderSize.height)
+      const renderAspect = renderWidth / renderHeight
+      if (!Number.isFinite(renderAspect) || renderAspect <= 0 || frameRect.height <= 0) {
+        return getContainedRectForRenderSize(frameRect, renderSize)
+      }
+      const width = frameRect.height * renderAspect
+      return {
+        x: frameRect.x + (frameRect.width - width) / 2,
+        y: frameRect.y,
+        width,
+        height: frameRect.height,
+      }
+    }
+    case 'contain':
+    case 'scaledown':
+    case 'scale-down':
+    case 'scale_down':
+    default:
+      return getContainedRectForRenderSize(frameRect, renderSize)
   }
 }
 
@@ -4711,14 +5936,33 @@ function drawWordHotspotMagnifier(
   button: HTMLElement,
   magnifier: HTMLCanvasElement,
   sourceCanvas: HTMLCanvasElement | null,
+  renderPixelScale = 1,
 ): boolean {
   if (!sourceCanvas || !isUsableWordHotspotSourceCanvas(sourceCanvas)) return false
 
   const sourceRect = sourceCanvas.getBoundingClientRect()
   const buttonRect = button.getBoundingClientRect()
   if (sourceRect.width <= 0 || sourceRect.height <= 0 || buttonRect.width <= 0 || buttonRect.height <= 0) return false
+  const sourceBounds = getWordHotspotSourceBoundsFromButton(button)
+  const parentRect = sourceBounds ? button.parentElement?.getBoundingClientRect() || null : null
+  const cropRect =
+    sourceBounds && parentRect && parentRect.width > 0 && parentRect.height > 0
+      ? {
+          left: parentRect.left + sourceBounds.x * parentRect.width,
+          top: parentRect.top + sourceBounds.y * parentRect.height,
+          width: sourceBounds.width * parentRect.width,
+          height: sourceBounds.height * parentRect.height,
+        }
+      : {
+          left: buttonRect.left,
+          top: buttonRect.top,
+          width: buttonRect.width,
+          height: buttonRect.height,
+        }
+  if (cropRect.width <= 0 || cropRect.height <= 0) return false
 
-  const targetRatio = Math.max(1, Math.min(3, window.devicePixelRatio || 1))
+  const pixelScale = Math.max(1, Math.min(3, renderPixelScale))
+  const targetRatio = Math.max(1, Math.min(6, (window.devicePixelRatio || 1) * pixelScale))
   const targetWidth = Math.max(1, Math.round(buttonRect.width * targetRatio))
   const targetHeight = Math.max(1, Math.round(buttonRect.height * targetRatio))
   if (magnifier.width !== targetWidth) magnifier.width = targetWidth
@@ -4726,14 +5970,18 @@ function drawWordHotspotMagnifier(
 
   const sourceScaleX = sourceCanvas.width / sourceRect.width
   const sourceScaleY = sourceCanvas.height / sourceRect.height
-  const sourceX = (buttonRect.left - sourceRect.left) * sourceScaleX
-  const sourceY = (buttonRect.top - sourceRect.top) * sourceScaleY
-  const sourceWidth = buttonRect.width * sourceScaleX
-  const sourceHeight = buttonRect.height * sourceScaleY
+  const sourceX = (cropRect.left - sourceRect.left) * sourceScaleX
+  const sourceY = (cropRect.top - sourceRect.top) * sourceScaleY
+  const sourceWidth = cropRect.width * sourceScaleX
+  const sourceHeight = cropRect.height * sourceScaleY
   const clampedX = Math.max(0, Math.min(sourceCanvas.width - 1, sourceX))
   const clampedY = Math.max(0, Math.min(sourceCanvas.height - 1, sourceY))
   const clampedWidth = Math.max(1, Math.min(sourceCanvas.width - clampedX, sourceWidth))
   const clampedHeight = Math.max(1, Math.min(sourceCanvas.height - clampedY, sourceHeight))
+  const targetCropWidth = Math.max(1, Math.round(cropRect.width * targetRatio))
+  const targetCropHeight = Math.max(1, Math.round(cropRect.height * targetRatio))
+  const targetCropX = Math.round((targetWidth - targetCropWidth) / 2)
+  const targetCropY = Math.round((targetHeight - targetCropHeight) / 2)
   const context = magnifier.getContext('2d')
   if (!context) return false
 
@@ -4741,7 +5989,17 @@ function drawWordHotspotMagnifier(
     context.clearRect(0, 0, targetWidth, targetHeight)
     context.imageSmoothingEnabled = true
     context.imageSmoothingQuality = 'high'
-    context.drawImage(sourceCanvas, clampedX, clampedY, clampedWidth, clampedHeight, 0, 0, targetWidth, targetHeight)
+    context.drawImage(
+      sourceCanvas,
+      clampedX,
+      clampedY,
+      clampedWidth,
+      clampedHeight,
+      targetCropX,
+      targetCropY,
+      targetCropWidth,
+      targetCropHeight,
+    )
     return true
   } catch (error) {
     console.warn('[1Tribe word hotspots] Unable to draw word magnifier.', error)
@@ -4749,14 +6007,43 @@ function drawWordHotspotMagnifier(
   }
 }
 
+function getWordHotspotSourceBoundsFromButton(button: HTMLElement): Required<WordHotspotBounds> | null {
+  const x = Number(button.dataset.sourceX)
+  const y = Number(button.dataset.sourceY)
+  const width = Number(button.dataset.sourceWidth)
+  const height = Number(button.dataset.sourceHeight)
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null
+  }
+
+  return { x, y, width, height }
+}
+
+function setWordHotspotSourceBounds(button: HTMLButtonElement, bounds: Required<WordHotspotBounds>): void {
+  button.dataset.sourceX = String(bounds.x)
+  button.dataset.sourceY = String(bounds.y)
+  button.dataset.sourceWidth = String(bounds.width)
+  button.dataset.sourceHeight = String(bounds.height)
+}
+
 function attachWordHotspotMagnifier(
   button: HTMLButtonElement,
   magnifier: HTMLCanvasElement,
   getSourceCanvas: () => HTMLCanvasElement | null,
+  renderPixelScale = 1,
 ): void {
   magnifier.style.visibility = 'hidden'
   const refresh = () => {
-    magnifier.style.visibility = drawWordHotspotMagnifier(button, magnifier, getSourceCanvas()) ? 'visible' : 'hidden'
+    magnifier.style.visibility = drawWordHotspotMagnifier(button, magnifier, getSourceCanvas(), renderPixelScale)
+      ? 'visible'
+      : 'hidden'
   }
 
   button.addEventListener('pointerenter', refresh)
@@ -4768,7 +6055,6 @@ function attachWordHotspotMagnifier(
 
 function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => void {
   const readingRoot = context.slots.get('reading-area')
-  const overlayParent = document.body || document.documentElement
   const root = document.createElement('div')
   const frame = document.createElement('div')
   const status = document.createElement('div')
@@ -4778,14 +6064,60 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   const paddingYRatio = getNumberParam('riveWordHotspotPaddingYPct', paddingRatio)
   const strokeWidthPx = Math.max(1, getNumberParam('riveWordHotspotStrokePx', 3))
   const magnifyScale = Math.max(1, getNumberParam('riveWordHotspotMagnifyScale', 1.16))
+  const magnifierPixelScale = Math.max(
+    1,
+    Math.min(3, getNumberParam('riveWordHotspotMagnifierPixelScale', magnifyScale)),
+  )
   const outlineScaleX = Math.max(1, getNumberParam('riveWordHotspotOutlineScaleX', 1.16))
   const outlineScaleY = Math.max(1, getNumberParam('riveWordHotspotOutlineScaleY', 1.2))
+  const shadowXPx = getNonNegativeNumberParam('riveWordHotspotShadowXPx', 5)
+  const shadowYPx = getNonNegativeNumberParam('riveWordHotspotShadowYPx', 5)
+  const boundsTransform = {
+    offsetX: getSignedNumberParam(
+      'riveWordHotspotBoundsOffsetXPct',
+      getSignedNumberParam(
+        'riveWordHotspotOffsetXPct',
+        getSignedNumberParam('tribeWordHotspotBoundsOffsetXPct', 0),
+      ),
+    ),
+    offsetY: getSignedNumberParam(
+      'riveWordHotspotBoundsOffsetYPct',
+      getSignedNumberParam(
+        'riveWordHotspotOffsetYPct',
+        getSignedNumberParam('tribeWordHotspotBoundsOffsetYPct', 0),
+      ),
+    ),
+    frameScaleX: getNumberParam(
+      'riveWordHotspotFrameScaleX',
+      getNumberParam('tribeWordHotspotFrameScaleX', 1),
+    ),
+    frameScaleY: getNumberParam(
+      'riveWordHotspotFrameScaleY',
+      getNumberParam('tribeWordHotspotFrameScaleY', 1),
+    ),
+    scaleX: getNumberParam(
+      'riveWordHotspotBoundsScaleX',
+      getNumberParam('riveWordHotspotScaleX', getNumberParam('tribeWordHotspotBoundsScaleX', 1)),
+    ),
+    scaleY: getNumberParam(
+      'riveWordHotspotBoundsScaleY',
+      getNumberParam('riveWordHotspotScaleY', getNumberParam('tribeWordHotspotBoundsScaleY', 1)),
+    ),
+  }
+  const shouldUseWordHotspotMagnifier = magnifyScale > 1.001
   const shouldHideSuspect = getBooleanParam('riveWordHotspotHideSuspect', false)
+  const shouldShowWordHotspotBoxes = getBooleanParam('riveWordHotspotShowBoxes', false)
   const shouldShowWordHotspotStatus = getBooleanParam('tribeCommandHarnessShowControls', false)
+  const defaultWordHotspotFrameMode = 'rive-artboard'
   const requestedWordHotspotFrameMode =
-    (getStringParam('tribeWordHotspotFrameMode') || getStringParam('riveWordHotspotFrameMode') || 'rive-artboard')
+    (getStringParam('tribeWordHotspotFrameMode') || getStringParam('riveWordHotspotFrameMode') || defaultWordHotspotFrameMode)
       .trim()
       .toLowerCase()
+  const wordHotspotFrameFit =
+    getStringParam('tribeWordHotspotFrameFit') ||
+    getStringParam('riveWordHotspotFrameFit') ||
+    getStringParam('tribeCommandHarnessPreviewFit') ||
+    'contain'
   const wordHotspotFrameMode =
     requestedWordHotspotFrameMode === 'canvas' || requestedWordHotspotFrameMode === 'contain'
       ? requestedWordHotspotFrameMode
@@ -4804,6 +6136,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   let lastFrameRect: Record<string, number> | null = null
   let lastFrameSource = 'unknown'
   let lastSourceCanvasRect: Record<string, number> | null = null
+  let lastSourceStageRect: Record<string, number> | null = null
   let lastSourceRiveRenderSize: WordHotspotRenderSize | null = null
   let lastSourceRenderSize: WordHotspotRenderSize | null = null
   let lastFrameProjectionKey = ''
@@ -4821,12 +6154,14 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     mode: 'standalone',
     message: 'Standalone word hotspots are booting.',
   }
+  const shouldExposeStandaloneDebugGlobals = shouldExposeDebugGlobals()
 
-  injectDocumentStyle(standaloneWordHotspotStyles, 'tribe-standalone-word-hotspot-styles')
+  injectStyle(readingRoot, standaloneWordHotspotStyles, 'tribe-standalone-word-hotspot-styles')
 
   root.className = 'tribe-standalone-word-hotspot-root'
   root.setAttribute('data-reader-navigation-ignore', 'true')
   frame.className = 'tribe-standalone-word-hotspot-frame'
+  frame.classList.toggle('is-debug-visible', shouldShowWordHotspotBoxes)
   frame.setAttribute('data-reader-navigation-ignore', 'true')
   status.className = 'tribe-standalone-word-hotspot-status'
   status.textContent = 'Word hotspots: loading'
@@ -4834,7 +6169,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     frame.append(status)
   }
   root.append(frame)
-  overlayParent.append(root)
+  readingRoot.append(root)
 
   const setStatus = (message: string) => {
     status.textContent = message
@@ -4895,7 +6230,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     }
 
     const contextPage = context.data.getCurrentPage()
-    const hasContextPage = manifest.files?.some((file) => file.pages?.includes(contextPage))
+    const hasContextPage = manifest.files?.some((file) => normalizeWordHotspotPages(file.pages).includes(contextPage))
     if (Number.isFinite(contextPage) && hasContextPage) return contextPage
 
     const livePageValue = new URLSearchParams(window.location.search).get('page')
@@ -4904,7 +6239,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       if (Number.isFinite(livePage)) return livePage
     }
 
-    const firstPage = manifest.files?.find((file) => file.pages?.length)?.pages?.[0]
+    const firstPage = normalizeWordHotspotPages(manifest.files?.find((file) => normalizeWordHotspotPages(file.pages).length)?.pages)[0]
     return typeof firstPage === 'number' && Number.isFinite(firstPage) ? firstPage : contextPage
   }
 
@@ -4919,8 +6254,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     }
 
     return (
-      manifest.files?.find((file) => file.pages?.includes(page)) ||
-      manifest.files?.find((file) => (file.words || []).length > 0) ||
+      manifest.files?.find((file) => normalizeWordHotspotPages(file.pages).includes(page)) ||
       null
     )
   }
@@ -4960,6 +6294,21 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
 
     return null
   }
+
+  const getCommandHarnessStageForCanvas = (canvas: HTMLCanvasElement | null): HTMLElement | null => {
+    const stage = canvas?.closest('.tribe-command-harness__stage')
+    return stage instanceof HTMLElement ? stage : null
+  }
+
+  const serializeWordHotspotDomRect = (rect: DOMRect | null): Record<string, number> | null =>
+    rect
+      ? {
+          x: Math.round(rect.x),
+          y: Math.round(rect.y),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+        }
+      : null
 
   const getStandaloneElementSummary = (element: Element | null): Record<string, unknown> | null => {
     if (!element) return null
@@ -5041,15 +6390,21 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
 
     const commandHarnessCanvas = getVisibleCommandHarnessCanvas()
     const commandHarnessCanvasRect = commandHarnessCanvas?.getBoundingClientRect() || null
+    const commandHarnessStage = getCommandHarnessStageForCanvas(commandHarnessCanvas)
+    const commandHarnessStageRect = commandHarnessStage?.getBoundingClientRect() || null
+    const commandHarnessSourceRect =
+      wordHotspotFrameMode === 'contain' && commandHarnessStageRect
+        ? commandHarnessStageRect
+        : commandHarnessCanvasRect
     const commandHarnessRiveRenderSize = getCommandHarnessCanvasRiveRenderSize(commandHarnessCanvas)
     const shouldProjectThroughRiveArtboard =
-      wordHotspotFrameMode === 'rive-artboard' && Boolean(commandHarnessCanvasRect && commandHarnessRiveRenderSize)
+      wordHotspotFrameMode === 'rive-artboard' && Boolean(commandHarnessSourceRect && commandHarnessRiveRenderSize)
     const commandHarnessRenderSize =
       shouldProjectThroughRiveArtboard && commandHarnessRiveRenderSize ? commandHarnessRiveRenderSize : activeRenderSize
-    const alignedCanvasRect = commandHarnessCanvasRect
+    const alignedCanvasRect = commandHarnessSourceRect
       ? wordHotspotFrameMode === 'canvas'
-        ? commandHarnessCanvasRect
-        : getContainedRectForRenderSize(commandHarnessCanvasRect, commandHarnessRenderSize)
+        ? commandHarnessSourceRect
+        : getFittedRectForRenderSize(commandHarnessSourceRect, commandHarnessRenderSize, wordHotspotFrameFit)
       : null
     const flipBookRect = context.data.getFlipBookRect()
     const fallbackRect =
@@ -5066,19 +6421,21 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
             : 'viewport-fallback'
     lastFrameProjectionKey = [
       lastFrameProjectionMode,
-      Math.round(commandHarnessCanvasRect?.x || 0),
-      Math.round(commandHarnessCanvasRect?.y || 0),
-      Math.round(commandHarnessCanvasRect?.width || 0),
-      Math.round(commandHarnessCanvasRect?.height || 0),
+      Math.round(commandHarnessSourceRect?.x || 0),
+      Math.round(commandHarnessSourceRect?.y || 0),
+      Math.round(commandHarnessSourceRect?.width || 0),
+      Math.round(commandHarnessSourceRect?.height || 0),
       Math.round(commandHarnessRenderSize.width),
       Math.round(commandHarnessRenderSize.height),
       Math.round(activeRenderSize.width),
       Math.round(activeRenderSize.height),
+      wordHotspotFrameFit,
     ].join('|')
     if (!rect || rect.width <= 0 || rect.height <= 0) {
       frame.style.cssText = 'position:absolute;inset:0;pointer-events:none;'
       lastFrameSource = 'viewport-fallback'
       lastSourceCanvasRect = null
+      lastSourceStageRect = null
       lastSourceRiveRenderSize = null
       lastSourceRenderSize = null
       lastFrameRect = {
@@ -5100,20 +6457,14 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     ].join(';')
     const frameRect = frame.getBoundingClientRect()
     lastFrameSource = alignedCanvasRect
-      ? `command-harness-canvas-${lastFrameProjectionMode}`
+      ? `command-harness-${wordHotspotFrameMode === 'contain' && commandHarnessStageRect ? 'stage' : 'canvas'}-${lastFrameProjectionMode}`
       : flipBookRect
         ? 'epic-flipbook'
         : 'reading-root-host'
-    lastSourceCanvasRect = commandHarnessCanvasRect
-      ? {
-          x: Math.round(commandHarnessCanvasRect.x),
-          y: Math.round(commandHarnessCanvasRect.y),
-          width: Math.round(commandHarnessCanvasRect.width),
-          height: Math.round(commandHarnessCanvasRect.height),
-        }
-      : null
-    lastSourceRiveRenderSize = commandHarnessCanvasRect ? commandHarnessRiveRenderSize : null
-    lastSourceRenderSize = commandHarnessCanvasRect ? commandHarnessRenderSize : null
+    lastSourceCanvasRect = serializeWordHotspotDomRect(commandHarnessCanvasRect)
+    lastSourceStageRect = serializeWordHotspotDomRect(commandHarnessStageRect)
+    lastSourceRiveRenderSize = commandHarnessSourceRect ? commandHarnessRiveRenderSize : null
+    lastSourceRenderSize = commandHarnessSourceRect ? commandHarnessRenderSize : null
     lastFrameRect = {
       x: Math.round(frameRect.x),
       y: Math.round(frameRect.y),
@@ -5168,17 +6519,27 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   }
 
   const syncDebugHelpers = () => {
+    if (!shouldExposeStandaloneDebugGlobals) return
+
     debugWindow.tribeWordHotspots = activeWordHotspots.slice()
     debugWindow.tribeWordHotspotDebug = () => ({
       enabled: true,
       mode: 'standalone',
       activeCount: activeWordHotspots.length,
       buttonCount: frame.querySelectorAll('.tribe-standalone-word-hotspot-button').length,
+      pageAudit: getActiveWordHotspotPageAudit(
+        activeWordHotspots,
+        Array.from(frame.querySelectorAll<HTMLButtonElement>('.tribe-standalone-word-hotspot-button')),
+      ),
       contextCurrentPage: context.data.getCurrentPage(),
       completionSuppressed,
+      showBoxes: shouldShowWordHotspotBoxes,
       visibleCompletionElement: getStandaloneElementSummary(findVisibleStandaloneEpicCompletionElement()),
       forcedPage,
       frameMode: wordHotspotFrameMode,
+      frameFit: wordHotspotFrameFit,
+      boundsTransform,
+      geometrySource: 'rive-ocr-sidecar',
       frameProjectionKey: lastFrameProjectionKey,
       frameProjectionMode: lastFrameProjectionMode,
       frameSource: lastFrameSource,
@@ -5195,6 +6556,7 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       renderSize: activeRenderSize,
       rootAttached: root.isConnected,
       sourceCanvasRect: lastSourceCanvasRect,
+      sourceStageRect: lastSourceStageRect,
       sourceRiveRenderSize: lastSourceRiveRenderSize,
       sourceRenderSize: lastSourceRenderSize,
       wordLookupDismissGuard: getWordLookupDismissGuardDebugState(),
@@ -5391,7 +6753,10 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     }
 
     const page = forcedPage ?? getRequestedPage(manifest)
-    let hotspotFile = findManifestFile(manifest, page)
+    const configuredHotspotFile = getConfiguredWordHotspotFileForPage(context, page, manifest)
+    const manifestHotspotFile = configuredHotspotFile ? null : findManifestFile(manifest, page)
+    const hotspotFileMappingSource = configuredHotspotFile ? 'book-config' : 'manifest-page'
+    let hotspotFile = configuredHotspotFile || manifestHotspotFile
     if (!hotspotFile) {
       activeWordHotspots = []
       clearButtons()
@@ -5409,7 +6774,31 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       syncDebugHelpers()
       return
     }
-    hotspotFile = await getWordHotspotFileWithOcrSidecar(hotspotFile, manifest, manifestUrl, fetchController.signal)
+    const ocrHotspotFile = await getWordHotspotFileWithOcrSidecar(
+      hotspotFile,
+      manifest,
+      manifestUrl,
+      fetchController.signal,
+    )
+    if (!ocrHotspotFile) {
+      activeWordHotspots = []
+      clearButtons()
+      lastRenderedPage = page
+      lastDebug = {
+        enabled: true,
+        file: hotspotFile.file,
+        geometrySource: 'rive-ocr-sidecar',
+        manifestUrl,
+        message: 'No valid Rive OCR sidecar geometry was available for this page.',
+        mode: 'standalone',
+        page,
+        reason,
+      }
+      setStatus(`Word hotspots: no OCR geometry for page ${page}`)
+      syncDebugHelpers()
+      return
+    }
+    hotspotFile = ocrHotspotFile
     if (isDisposed || serial !== renderSerial) return
     activeRenderSize = getWordHotspotRenderSize(manifest, hotspotFile, activeRenderSize)
     positionHotspotFrame()
@@ -5424,10 +6813,15 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     lastRenderedPage = page
     lastRenderedProjectionKey = lastFrameProjectionKey
 
-    const contentBounds = hotspotFile.contentBounds || manifest.render?.contentBounds
+    const hotspotPages = normalizeWordHotspotPages(hotspotFile.pages)
     for (const word of words) {
-      const adjustedBounds = getAdjustedWordHotspotBounds(word.normalized, contentBounds)
       const sourceWord = String(word.text || '')
+      const rawBounds = getFiniteWordHotspotBounds(word.normalized)
+      if (!rawBounds) continue
+
+      const rawHotspotPage = getWordHotspotLogicalPage(page, hotspotPages, rawBounds)
+      const contentBounds = getWordHotspotContentBoundsForPage(hotspotFile, manifest, rawHotspotPage)
+      const adjustedBounds = getAdjustedWordHotspotBounds(rawBounds, contentBounds)
       if (!adjustedBounds) continue
 
       for (const segment of getWordHotspotTextSegments(sourceWord, adjustedBounds)) {
@@ -5435,36 +6829,59 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
         if (!lookupWord) continue
 
         const projectedBounds = projectWordHotspotBoundsForCurrentFrame(segment.bounds)
-        const paddedX = projectedBounds.x - paddingXRatio
-        const paddedY = projectedBounds.y - paddingYRatio
-        const paddedWidth = projectedBounds.width + paddingXRatio * 2
-        const paddedHeight = projectedBounds.height + paddingYRatio * 2
-        const hotspotPage = getWordHotspotLogicalPage(page, hotspotFile.pages, segment.bounds)
+        const calibratedBounds = transformWordHotspotBounds(projectedBounds, boundsTransform)
+        if (!calibratedBounds) continue
+
+        const isLargeHotspot = isLargeWordHotspotBounds(calibratedBounds)
+        const paddedBounds = clampWordHotspotBoundsToUnitFrame({
+          x: calibratedBounds.x - paddingXRatio,
+          y: calibratedBounds.y - paddingYRatio,
+          width: calibratedBounds.width + paddingXRatio * 2,
+          height: calibratedBounds.height + paddingYRatio * 2,
+        })
+        if (!paddedBounds) continue
+        const displayBounds = shouldShowWordHotspotBoxes ? calibratedBounds : paddedBounds
+
+        const hotspotPage = getWordHotspotLogicalPage(page, hotspotPages, segment.bounds)
         const hotspot: ActiveWordHotspot = {
           fileName: hotspotFile.file,
-          height: paddedHeight,
+          height: displayBounds.height,
           page: hotspotPage,
           reason,
+          sourceHeight: calibratedBounds.height,
           sourceWord: segment.sourceWord,
-          width: paddedWidth,
+          sourceWidth: calibratedBounds.width,
+          sourceX: calibratedBounds.x,
+          sourceY: calibratedBounds.y,
+          width: displayBounds.width,
           word: lookupWord,
-          x: paddedX,
-          y: paddedY,
+          x: displayBounds.x,
+          y: displayBounds.y,
         }
         activeWordHotspots.push(hotspot)
 
         const button = document.createElement('button')
         button.type = 'button'
         button.className = 'tribe-standalone-word-hotspot-button'
+        button.classList.toggle('is-large-hotspot', isLargeHotspot)
         button.classList.toggle('is-suspect', isSuspectWordHotspotText(segment.sourceWord))
         button.style.left = `${hotspot.x * 100}%`
         button.style.top = `${hotspot.y * 100}%`
         button.style.width = `${hotspot.width * 100}%`
         button.style.height = `${hotspot.height * 100}%`
         button.style.setProperty('--tribe-word-hotspot-stroke', `${strokeWidthPx}px`)
-        button.style.setProperty('--tribe-word-hotspot-word-scale', String(magnifyScale))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-x', String(outlineScaleX))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-y', String(outlineScaleY))
+        button.style.setProperty('--tribe-word-hotspot-word-scale', String(isLargeHotspot ? 1 : magnifyScale))
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-x',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : outlineScaleX),
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-y',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : outlineScaleY),
+        )
+        button.style.setProperty('--tribe-word-hotspot-shadow-x', `${shouldShowWordHotspotBoxes ? 0 : shadowXPx}px`)
+        button.style.setProperty('--tribe-word-hotspot-shadow-y', `${shouldShowWordHotspotBoxes ? 0 : shadowYPx}px`)
+        setWordHotspotSourceBounds(button, calibratedBounds)
         button.setAttribute('aria-label', `Look up ${lookupWord}`)
         button.setAttribute('data-reader-navigation-ignore', 'true')
         button.dataset.lookupWord = lookupWord
@@ -5476,13 +6893,20 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
         }
         button.dataset.hotspotPage = String(hotspotPage)
         button.dataset.hotspotSpreadPage = String(page)
-        button.dataset.hotspotPages = (hotspotFile.pages || []).join(',')
+        button.dataset.hotspotPages = hotspotPages.join(',')
         button.dataset.lookupAliases = getReadAlongButtonWordAliases(button).join(',')
 
-        const magnifier = document.createElement('canvas')
-        magnifier.className = 'tribe-standalone-word-hotspot-magnifier'
-        button.append(magnifier)
-        attachWordHotspotMagnifier(button, magnifier, () => findWordHotspotSourceCanvas(readingRoot, frame))
+        if (shouldUseWordHotspotMagnifier && !isLargeHotspot) {
+          const magnifier = document.createElement('canvas')
+          magnifier.className = 'tribe-standalone-word-hotspot-magnifier'
+          button.append(magnifier)
+          attachWordHotspotMagnifier(
+            button,
+            magnifier,
+            () => findWordHotspotSourceCanvas(readingRoot, frame),
+            magnifierPixelScale,
+          )
+        }
 
         button.addEventListener('pointerdown', (event) => {
           event.preventDefault()
@@ -5509,6 +6933,14 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
       mode: 'standalone',
       page,
       reason,
+      geometrySource: 'rive-ocr-sidecar',
+      boundsTransform,
+      source: hotspotFile.source || hotspotFileMappingSource,
+      sourceDetail: {
+        ...(hotspotFile.sourceDetail || {}),
+        mappingSource: hotspotFileMappingSource,
+      },
+      showBoxes: shouldShowWordHotspotBoxes,
     }
     setStatus(`Word hotspots: ${activeWordHotspots.length} (${hotspotFile.file})`)
     syncDebugHelpers()
@@ -5594,10 +7026,12 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
     pageChangeCleanup()
     root.remove()
     activeWordHotspots = []
-    debugWindow.tribeWordHotspots = []
-    delete debugWindow.tribeClickWordHotspot
-    delete debugWindow.tribeForceWordHotspotPage
-    delete debugWindow.tribeWordHotspotDebug
+    if (shouldExposeStandaloneDebugGlobals) {
+      debugWindow.tribeWordHotspots = []
+      delete debugWindow.tribeClickWordHotspot
+      delete debugWindow.tribeForceWordHotspotPage
+      delete debugWindow.tribeWordHotspotDebug
+    }
   }
 }
 
@@ -5679,6 +7113,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const stateMachineControls = document.createElement('div')
   const cleanupCallbacks: Array<() => void> = []
   const fetchController = new AbortController()
+  const shouldExposeSimpleDebugGlobals = shouldExposeDebugGlobals()
   const pageSwapDelayMs = getNumberParam('rivePageSwapDelayMs', 0)
   const initialLoadDelayMs = getNumberParam('riveInitialLoadDelayMs', 0)
   const pageFlipMs = getNumberParam('rivePageFlipMs', 520)
@@ -5733,8 +7168,16 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const wordHotspotPaddingYRatio = getNumberParam('riveWordHotspotPaddingYPct', wordHotspotPaddingRatio)
   const wordHotspotStrokeWidthPx = Math.max(1, getNumberParam('riveWordHotspotStrokePx', 3))
   const wordHotspotMagnifyScale = Math.max(1, getNumberParam('riveWordHotspotMagnifyScale', 1.16))
+  const wordHotspotMagnifierPixelScale = Math.max(
+    1,
+    Math.min(3, getNumberParam('riveWordHotspotMagnifierPixelScale', wordHotspotMagnifyScale)),
+  )
   const wordHotspotOutlineScaleX = Math.max(1, getNumberParam('riveWordHotspotOutlineScaleX', 1.16))
   const wordHotspotOutlineScaleY = Math.max(1, getNumberParam('riveWordHotspotOutlineScaleY', 1.2))
+  const wordHotspotShadowXPx = getNonNegativeNumberParam('riveWordHotspotShadowXPx', 5)
+  const wordHotspotShadowYPx = getNonNegativeNumberParam('riveWordHotspotShadowYPx', 5)
+  const shouldUseWordHotspotMagnifier = wordHotspotMagnifyScale > 1.001
+  const shouldShowWordHotspotBoxes = getBooleanParam('riveWordHotspotShowBoxes', false)
   const wordHotspotManifestParam = getStringParam('riveWordHotspotManifest')?.trim() || null
   const wordHotspotFolderParam = getStringParam('riveWordHotspotFolder')?.trim() || null
   const focusedRiveFolder = (getStringParam('riveFolder') || wordHotspotFolderParam || '').trim()
@@ -5754,6 +7197,10 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const requestedTransitionAnimation = getStringParam('riveTransitionAnimation')?.trim() || null
   const requestedTransitionArtboard = getStringParam('riveTransitionArtboard')?.trim() || null
   const activeBookId = getSimpleRiveBookIdFromContext(context)
+  const activeBookConfig =
+    getEpicTribeBookConfig(activeBookId) ||
+    getEpicTribeBookConfig(context.data.getBookId()) ||
+    getEpicTribeBookConfig()
   const shouldAutoSelectAnimation = requestedInteractiveAnimation?.toLowerCase() === 'auto'
   const shouldAutoSelectStateMachine = requestedInteractiveStateMachine?.toLowerCase() === 'auto'
   const shouldUseStateMachine = (isRiveInteractive || shouldUseStateMachineIdleOnly) && Boolean(requestedInteractiveStateMachine)
@@ -5852,15 +7299,35 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     ariaHidden: string | null
   }> = []
   type EpicNativePointerPassthroughSide = 'left' | 'right'
-  const epicNativePointerPassthroughRules: Array<{ pages: number[]; side: EpicNativePointerPassthroughSide }> = [
-    { pages: [0], side: 'left' },
-    { pages: [25], side: 'right' },
-  ]
   let hasWarnedAboutReplacementSelector = false
   const wordHotspotManifestPromises = new Map<string, Promise<WordHotspotManifest | null>>()
 
   const getActiveSimpleRiveFileForPassthrough = () =>
-    activeFileUrl ? files.find((file) => file.url === activeFileUrl) || null : null
+    getSimpleRiveFileForPage(files, displayedPage)?.file ||
+    getSimpleRiveFileForPage(files, context.data.getCurrentPage())?.file ||
+    (activeFileUrl ? files.find((file) => file.url === activeFileUrl) || null : null)
+
+  const getLastReaderPageForNativePassthrough = () => {
+    const bookPageCount = Number(context.data.getBookData()?.numPages)
+    if (Number.isFinite(bookPageCount) && bookPageCount > 0) return Math.max(0, Math.trunc(bookPageCount) - 1)
+
+    return getSimpleRiveLastPage(files)
+  }
+
+  const getEpicNativePointerPassthroughRules = (): Array<{
+    pages: number[]
+    side: EpicNativePointerPassthroughSide
+  }> => {
+    const fallbackLastPage = getLastReaderPageForNativePassthrough()
+    const leftPages = activeBookConfig?.nativePassthroughLeftPages ?? [0]
+    const rightPages =
+      activeBookConfig?.nativePassthroughRightPages ?? (fallbackLastPage === null ? [] : [fallbackLastPage])
+
+    return [
+      { pages: leftPages, side: 'left' as const },
+      { pages: rightPages, side: 'right' as const },
+    ].filter((rule) => rule.pages.length > 0)
+  }
 
   const doesSimpleRiveFileCoverReaderPage = (file: SimpleRiveFile | null, page: number): boolean => {
     if (!file) return false
@@ -5874,6 +7341,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   const getActiveEpicNativePointerPassthroughRules = () => {
     const activeFile = getActiveSimpleRiveFileForPassthrough()
     const currentPage = context.data.getCurrentPage()
+    const epicNativePointerPassthroughRules = getEpicNativePointerPassthroughRules()
     return epicNativePointerPassthroughRules.filter((rule) => {
       if (rule.pages.includes(displayedPage) || rule.pages.includes(currentPage)) return true
       return rule.pages.some((page) => doesSimpleRiveFileCoverReaderPage(activeFile, page))
@@ -6014,6 +7482,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   navNextGutter.setAttribute('aria-hidden', 'true')
   navNextGutter.setAttribute('data-reader-navigation-ignore', 'true')
   wordHotspotLayer.className = 'tribe-word-hotspot-layer'
+  wordHotspotLayer.classList.toggle('is-debug-visible', shouldShowWordHotspotBoxes)
   wordHotspotLayer.hidden = true
   wordHotspotLayer.setAttribute('data-reader-navigation-ignore', 'true')
   completionPage.className = 'book-completion-page-container tribe-simple-completion-page'
@@ -6061,12 +7530,14 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   readingRoot.append(root)
   applyRivePointerCaptureStyles()
   const debugWindow = window as TribeDebugWindow
-  debugWindow.tribeEpicNativePassthroughDebug = getEpicNativePassthroughDebug
-  cleanupCallbacks.push(() => {
-    if (debugWindow.tribeEpicNativePassthroughDebug === getEpicNativePassthroughDebug) {
-      delete debugWindow.tribeEpicNativePassthroughDebug
-    }
-  })
+  if (shouldExposeSimpleDebugGlobals) {
+    debugWindow.tribeEpicNativePassthroughDebug = getEpicNativePassthroughDebug
+    cleanupCallbacks.push(() => {
+      if (debugWindow.tribeEpicNativePassthroughDebug === getEpicNativePassthroughDebug) {
+        delete debugWindow.tribeEpicNativePassthroughDebug
+      }
+    })
+  }
 
   const setStatus = (message: string) => {
     status.textContent = message
@@ -6176,6 +7647,8 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   }
 
   function syncWordHotspotDebugHelpers() {
+    if (!shouldExposeSimpleDebugGlobals) return
+
     const debugWindow = window as TribeDebugWindow
     debugWindow.tribeWordHotspots = activeWordHotspots.slice()
     debugWindow.tribeReaderNavGutterDebug = getReaderNavGutterDebugState
@@ -6188,12 +7661,18 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         layerHidden: wordHotspotLayer.hidden,
         layerFile: wordHotspotLayer.dataset.file || null,
         layerCount: wordHotspotLayer.dataset.count || null,
+        pageAudit: getActiveWordHotspotPageAudit(
+          activeWordHotspots,
+          Array.from(wordHotspotLayer.querySelectorAll<HTMLButtonElement>('.tribe-word-hotspot-button')),
+        ),
         displayedPage,
         contextCurrentPage: context.data.getCurrentPage(),
         activeFile: activeFile?.name || null,
         activeFileUrl,
         activeFileManifestUrl,
+        geometrySource: 'rive-ocr-sidecar',
         requestedFolder: getStringParam('riveFolder'),
+        showBoxes: shouldShowWordHotspotBoxes,
         wordHotspotTest: getBooleanParam('tribeWordHotspotTest', false),
         mappedFiles: files.map((item) => ({
           name: item.name,
@@ -6304,15 +7783,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     const x = (event.clientX - rect.left) / rect.width
     const y = (event.clientY - rect.top) / rect.height
 
-    return (
-      activeWordHotspots.find(
-        (hotspot) =>
-          x >= hotspot.x &&
-          x <= hotspot.x + hotspot.width &&
-          y >= hotspot.y &&
-          y <= hotspot.y + hotspot.height,
-      ) || null
-    )
+    return getSmallestActiveWordHotspotAtPoint(activeWordHotspots, x, y)
   }
 
   const onWordHotspotFramePointerUp = (event: PointerEvent) => {
@@ -6326,6 +7797,8 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
   frame.addEventListener('pointerup', onWordHotspotFramePointerUp, true)
   cleanupCallbacks.push(() => frame.removeEventListener('pointerup', onWordHotspotFramePointerUp, true))
   cleanupCallbacks.push(() => {
+    if (!shouldExposeSimpleDebugGlobals) return
+
     const debugWindow = window as TribeDebugWindow
     delete debugWindow.tribeWordHotspots
     delete debugWindow.tribeClickWordHotspot
@@ -6376,7 +7849,7 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       return
     }
 
-    let hotspotFile = findWordHotspotFile(manifest, file)
+    let hotspotFile = getConfiguredWordHotspotFileForPage(context, page, manifest) || findWordHotspotFile(manifest, file)
     if (!hotspotFile) {
       wordHotspotLayer.textContent = ''
       wordHotspotLayer.hidden = true
@@ -6399,7 +7872,31 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       })
       return
     }
-    hotspotFile = await getWordHotspotFileWithOcrSidecar(hotspotFile, manifest, manifestUrl, fetchController.signal)
+    const ocrHotspotFile = await getWordHotspotFileWithOcrSidecar(
+      hotspotFile,
+      manifest,
+      manifestUrl,
+      fetchController.signal,
+    )
+    if (!ocrHotspotFile) {
+      wordHotspotLayer.textContent = ''
+      wordHotspotLayer.hidden = true
+      wordHotspotLayer.dataset.file = file.name
+      wordHotspotLayer.dataset.count = '0'
+      activeWordHotspots = []
+      lastWordHotspotDebug = {
+        enabled: shouldUseWordHotspots,
+        file: file.name,
+        geometrySource: 'rive-ocr-sidecar',
+        manifestUrl,
+        message: 'No valid Rive OCR sidecar geometry was available for the active Rive file.',
+        page,
+        reason,
+      }
+      syncWordHotspotDebugHelpers()
+      return
+    }
+    hotspotFile = ocrHotspotFile
     if (isDisposed || serial !== wordHotspotSerial) return
 
     const words = (hotspotFile.words || []).filter((word) => {
@@ -6413,46 +7910,77 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
     wordHotspotLayer.dataset.count = String(words.length)
     activeWordHotspots = []
 
-    const contentBounds = hotspotFile.contentBounds || manifest.render?.contentBounds
+    const hotspotPages = normalizeWordHotspotPages(hotspotFile.pages)
     for (const word of words) {
-      const adjustedBounds = getAdjustedWordHotspotBounds(word.normalized, contentBounds)
       const sourceWord = String(word.text || '')
+      const rawBounds = getFiniteWordHotspotBounds(word.normalized)
+      if (!rawBounds) continue
+
+      const rawHotspotPage = getWordHotspotLogicalPage(page, hotspotPages, rawBounds)
+      const contentBounds = getWordHotspotContentBoundsForPage(hotspotFile, manifest, rawHotspotPage)
+      const adjustedBounds = getAdjustedWordHotspotBounds(rawBounds, contentBounds)
       if (!adjustedBounds) continue
 
       for (const segment of getWordHotspotTextSegments(sourceWord, adjustedBounds)) {
         const { lookupWord } = segment
         if (!lookupWord) continue
 
-        const paddedX = Math.max(0, segment.bounds.x - wordHotspotPaddingXRatio)
-        const paddedY = Math.max(0, segment.bounds.y - wordHotspotPaddingYRatio)
-        const paddedWidth = Math.min(1 - paddedX, segment.bounds.width + wordHotspotPaddingXRatio * 2)
-        const paddedHeight = Math.min(1 - paddedY, segment.bounds.height + wordHotspotPaddingYRatio * 2)
-        const hotspotPage = getWordHotspotLogicalPage(page, hotspotFile.pages, segment.bounds)
+        const isLargeHotspot = isLargeWordHotspotBounds(segment.bounds)
+        const paddedBounds = clampWordHotspotBoundsToUnitFrame({
+          x: segment.bounds.x - wordHotspotPaddingXRatio,
+          y: segment.bounds.y - wordHotspotPaddingYRatio,
+          width: segment.bounds.width + wordHotspotPaddingXRatio * 2,
+          height: segment.bounds.height + wordHotspotPaddingYRatio * 2,
+        })
+        if (!paddedBounds) continue
+        const displayBounds = shouldShowWordHotspotBoxes ? segment.bounds : paddedBounds
+
+        const hotspotPage = getWordHotspotLogicalPage(page, hotspotPages, segment.bounds)
         const hotspot: ActiveWordHotspot = {
           fileName: file.name,
-          height: paddedHeight,
+          height: displayBounds.height,
           page: hotspotPage,
           reason,
+          sourceHeight: segment.bounds.height,
           sourceWord: segment.sourceWord,
-          width: paddedWidth,
+          sourceWidth: segment.bounds.width,
+          sourceX: segment.bounds.x,
+          sourceY: segment.bounds.y,
+          width: displayBounds.width,
           word: lookupWord,
-          x: paddedX,
-          y: paddedY,
+          x: displayBounds.x,
+          y: displayBounds.y,
         }
         activeWordHotspots.push(hotspot)
 
         const button = document.createElement('button')
         button.type = 'button'
         button.className = 'tribe-word-hotspot-button'
+        button.classList.toggle('is-large-hotspot', isLargeHotspot)
         button.classList.toggle('is-suspect', isSuspectWordHotspot(segment.sourceWord))
         button.style.left = `${hotspot.x * 100}%`
         button.style.top = `${hotspot.y * 100}%`
         button.style.width = `${hotspot.width * 100}%`
         button.style.height = `${hotspot.height * 100}%`
         button.style.setProperty('--tribe-word-hotspot-stroke', `${wordHotspotStrokeWidthPx}px`)
-        button.style.setProperty('--tribe-word-hotspot-word-scale', String(wordHotspotMagnifyScale))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-x', String(wordHotspotOutlineScaleX))
-        button.style.setProperty('--tribe-word-hotspot-outline-scale-y', String(wordHotspotOutlineScaleY))
+        button.style.setProperty('--tribe-word-hotspot-word-scale', String(isLargeHotspot ? 1 : wordHotspotMagnifyScale))
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-x',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : wordHotspotOutlineScaleX),
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-outline-scale-y',
+          String(shouldShowWordHotspotBoxes || isLargeHotspot ? 1 : wordHotspotOutlineScaleY),
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-shadow-x',
+          `${shouldShowWordHotspotBoxes ? 0 : wordHotspotShadowXPx}px`,
+        )
+        button.style.setProperty(
+          '--tribe-word-hotspot-shadow-y',
+          `${shouldShowWordHotspotBoxes ? 0 : wordHotspotShadowYPx}px`,
+        )
+        setWordHotspotSourceBounds(button, segment.bounds)
         button.setAttribute('aria-label', `Look up ${lookupWord}`)
         button.setAttribute('data-reader-navigation-ignore', 'true')
         button.dataset.lookupWord = lookupWord
@@ -6464,13 +7992,20 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
         }
         button.dataset.hotspotPage = String(hotspotPage)
         button.dataset.hotspotSpreadPage = String(page)
-        button.dataset.hotspotPages = (hotspotFile.pages || []).join(',')
+        button.dataset.hotspotPages = hotspotPages.join(',')
         button.dataset.lookupAliases = getReadAlongButtonWordAliases(button).join(',')
 
-        const magnifier = document.createElement('canvas')
-        magnifier.className = 'tribe-word-hotspot-magnifier'
-        button.append(magnifier)
-        attachWordHotspotMagnifier(button, magnifier, () => activeCanvas || findWordHotspotSourceCanvas(readingRoot, frame))
+        if (shouldUseWordHotspotMagnifier && !isLargeHotspot) {
+          const magnifier = document.createElement('canvas')
+          magnifier.className = 'tribe-word-hotspot-magnifier'
+          button.append(magnifier)
+          attachWordHotspotMagnifier(
+            button,
+            magnifier,
+            () => activeCanvas || findWordHotspotSourceCanvas(readingRoot, frame),
+            wordHotspotMagnifierPixelScale,
+          )
+        }
 
         button.addEventListener('pointerdown', (event) => {
           event.preventDefault()
@@ -6495,6 +8030,8 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
       manifestUrl,
       activeCount: activeWordHotspots.length,
       buttonCount: wordHotspotLayer.childElementCount,
+      geometrySource: 'rive-ocr-sidecar',
+      showBoxes: shouldShowWordHotspotBoxes,
     }
     syncWordHotspotDebugHelpers()
 
@@ -11042,8 +12579,11 @@ function activateSimpleRiveOverlay(context: ExtensionContext): () => void {
 
       let page = getReaderPageFromPayload(payload, context.data.getCurrentPage())
       const payloadDirection = getNavigationDirectionFromPayload(payload)
-      const direction = pendingNavigationDirection || payloadDirection || (page < displayedPage ? -1 : page > displayedPage ? 1 : null)
-      const reason = pendingNavigationReason || (direction && direction < 0 ? 'back page' : 'next page')
+      const inferredDirection = page < displayedPage ? -1 : page > displayedPage ? 1 : null
+      const direction = pendingNavigationDirection || payloadDirection || inferredDirection
+      const reason =
+        pendingNavigationReason ||
+        (direction && direction < 0 ? 'back page' : 'next page')
       const targetMatch = getSimpleRiveFileForPage(files, page)
       const activeFile = getActiveSimpleRiveFile()
       const canPromoteBusyPreloadedUnderlay = Boolean(
@@ -11239,6 +12779,11 @@ extension = {
 
     const cleanupWordLookupDismissGuard = installWordLookupDismissGuard(context)
     const cleanupDebugCommands = installDebugCommands(context)
+    const readingRoot = context.slots.get('reading-area')
+    readAlongHotspotRoots.add(readingRoot)
+    const cleanupReadAlongHotspotRoot = () => {
+      readAlongHotspotRoots.delete(readingRoot)
+    }
 
     if (shouldUseCommandHarness()) {
       const cleanupCommandHarness = activateCommandHarness(context)
@@ -11249,6 +12794,7 @@ extension = {
         cleanupStandaloneWordHotspots()
         cleanupCommandHarness()
         cleanupDebugCommands()
+        cleanupReadAlongHotspotRoot()
         cleanupWordLookupDismissGuard()
       }
     }
@@ -11262,11 +12808,11 @@ extension = {
         cleanupStandaloneWordHotspots()
         cleanupSimpleRiveOverlay()
         cleanupDebugCommands()
+        cleanupReadAlongHotspotRoot()
         cleanupWordLookupDismissGuard()
       }
     }
 
-    const readingRoot = context.slots.get('reading-area')
     const root = document.createElement('div')
     const frame = document.createElement('div')
     const canvas = document.createElement('canvas')
@@ -11493,6 +13039,7 @@ extension = {
 
     cleanupCallbacks.push(
       cleanupDebugCommands,
+      cleanupReadAlongHotspotRoot,
       cleanupWordLookupDismissGuard,
       cleanupStandaloneWordHotspots,
       () => {

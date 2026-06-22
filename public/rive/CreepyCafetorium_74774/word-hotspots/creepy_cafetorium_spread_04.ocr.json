@@ -1,0 +1,1366 @@
+﻿{
+    "image":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\CreepyCafetorium_74774\\word-hotspots\\creepy_cafetorium_spread_04.png",
+    "text":  "magical land after spinning too quickly—and Hello, Doily—the story of a matchmaker who pairs lonely people with the best yarn for making decorative doilies. And who can forget Les Miserable—a play about somebody named Les who serves food, talks constantly, and is just really miserable to be around. I\u0027m Gertie, your guide. Some kids love to be in the spotlight. Others prefer to be behind the scenes, but it takes a whole team to pull a production together! This fall, we were going to do Hamilton, but whoa those scripts were pricey, and the only version we could afford, Hamiltonedeaf, was just painful to 2 listen to. So the school decided on the public domain classic Hansel and Gretel, where nothing strange ever happens—just like in the Cafetorium. Today\u0027s adventure stars shy Margot Delgado, who never wanted to be in the spotlight. But sometimes the Cafetorium has other ideas. Margot never raised her hand. Not to ask for help. Not to answer a teacher\u0027s question. Not even to ask to go to the bathroom. Margot had been at Newville Elementary for a whole month, but the only time she had spoken was on 3",
+    "width":  2416,
+    "height":  1762,
+    "words":  [
+                  {
+                      "text":  "magical",
+                      "x":  271,
+                      "y":  215,
+                      "width":  181,
+                      "height":  58
+                  },
+                  {
+                      "text":  "land",
+                      "x":  471,
+                      "y":  215,
+                      "width":  105,
+                      "height":  48
+                  },
+                  {
+                      "text":  "after",
+                      "x":  597,
+                      "y":  215,
+                      "width":  114,
+                      "height":  48
+                  },
+                  {
+                      "text":  "spinning",
+                      "x":  731,
+                      "y":  217,
+                      "width":  201,
+                      "height":  56
+                  },
+                  {
+                      "text":  "too",
+                      "x":  951,
+                      "y":  219,
+                      "width":  73,
+                      "height":  44
+                  },
+                  {
+                      "text":  "quickly—and",
+                      "x":  271,
+                      "y":  285,
+                      "width":  277,
+                      "height":  58
+                  },
+                  {
+                      "text":  "Hello,",
+                      "x":  551,
+                      "y":  285,
+                      "width":  123,
+                      "height":  56
+                  },
+                  {
+                      "text":  "Doily—the",
+                      "x":  682,
+                      "y":  285,
+                      "width":  225,
+                      "height":  58
+                  },
+                  {
+                      "text":  "story",
+                      "x":  915,
+                      "y":  290,
+                      "width":  110,
+                      "height":  53
+                  },
+                  {
+                      "text":  "of",
+                      "x":  271,
+                      "y":  356,
+                      "width":  51,
+                      "height":  48
+                  },
+                  {
+                      "text":  "a",
+                      "x":  329,
+                      "y":  370,
+                      "width":  32,
+                      "height":  34
+                  },
+                  {
+                      "text":  "matchmaker",
+                      "x":  373,
+                      "y":  356,
+                      "width":  276,
+                      "height":  48
+                  },
+                  {
+                      "text":  "who",
+                      "x":  660,
+                      "y":  356,
+                      "width":  92,
+                      "height":  48
+                  },
+                  {
+                      "text":  "pairs",
+                      "x":  764,
+                      "y":  358,
+                      "width":  116,
+                      "height":  56
+                  },
+                  {
+                      "text":  "lonely",
+                      "x":  893,
+                      "y":  356,
+                      "width":  133,
+                      "height":  58
+                  },
+                  {
+                      "text":  "people",
+                      "x":  271,
+                      "y":  426,
+                      "width":  135,
+                      "height":  58
+                  },
+                  {
+                      "text":  "with",
+                      "x":  410,
+                      "y":  426,
+                      "width":  100,
+                      "height":  48
+                  },
+                  {
+                      "text":  "the",
+                      "x":  514,
+                      "y":  426,
+                      "width":  72,
+                      "height":  48
+                  },
+                  {
+                      "text":  "best",
+                      "x":  590,
+                      "y":  426,
+                      "width":  92,
+                      "height":  48
+                  },
+                  {
+                      "text":  "yarn",
+                      "x":  686,
+                      "y":  440,
+                      "width":  104,
+                      "height":  44
+                  },
+                  {
+                      "text":  "for",
+                      "x":  794,
+                      "y":  426,
+                      "width":  62,
+                      "height":  48
+                  },
+                  {
+                      "text":  "making",
+                      "x":  860,
+                      "y":  426,
+                      "width":  166,
+                      "height":  58
+                  },
+                  {
+                      "text":  "decorative",
+                      "x":  271,
+                      "y":  496,
+                      "width":  210,
+                      "height":  48
+                  },
+                  {
+                      "text":  "doilies.",
+                      "x":  485,
+                      "y":  496,
+                      "width":  144,
+                      "height":  48
+                  },
+                  {
+                      "text":  "And",
+                      "x":  632,
+                      "y":  496,
+                      "width":  94,
+                      "height":  49
+                  },
+                  {
+                      "text":  "who",
+                      "x":  728,
+                      "y":  496,
+                      "width":  88,
+                      "height":  48
+                  },
+                  {
+                      "text":  "can",
+                      "x":  820,
+                      "y":  510,
+                      "width":  78,
+                      "height":  34
+                  },
+                  {
+                      "text":  "forget",
+                      "x":  902,
+                      "y":  496,
+                      "width":  123,
+                      "height":  59
+                  },
+                  {
+                      "text":  "Les",
+                      "x":  373,
+                      "y":  569,
+                      "width":  82,
+                      "height":  46
+                  },
+                  {
+                      "text":  "Miserable—a",
+                      "x":  470,
+                      "y":  566,
+                      "width":  294,
+                      "height":  49
+                  },
+                  {
+                      "text":  "play",
+                      "x":  781,
+                      "y":  566,
+                      "width":  99,
+                      "height":  59
+                  },
+                  {
+                      "text":  "about",
+                      "x":  898,
+                      "y":  567,
+                      "width":  127,
+                      "height":  48
+                  },
+                  {
+                      "text":  "somebody",
+                      "x":  365,
+                      "y":  639,
+                      "width":  202,
+                      "height":  58
+                  },
+                  {
+                      "text":  "named",
+                      "x":  569,
+                      "y":  639,
+                      "width":  145,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Les",
+                      "x":  716,
+                      "y":  641,
+                      "width":  79,
+                      "height":  46
+                  },
+                  {
+                      "text":  "who",
+                      "x":  798,
+                      "y":  639,
+                      "width":  89,
+                      "height":  48
+                  },
+                  {
+                      "text":  "serves",
+                      "x":  891,
+                      "y":  653,
+                      "width":  132,
+                      "height":  34
+                  },
+                  {
+                      "text":  "food,",
+                      "x":  342,
+                      "y":  709,
+                      "width":  102,
+                      "height":  56
+                  },
+                  {
+                      "text":  "talks",
+                      "x":  451,
+                      "y":  709,
+                      "width":  110,
+                      "height":  48
+                  },
+                  {
+                      "text":  "constantly,",
+                      "x":  570,
+                      "y":  709,
+                      "width":  224,
+                      "height":  58
+                  },
+                  {
+                      "text":  "and",
+                      "x":  803,
+                      "y":  709,
+                      "width":  83,
+                      "height":  48
+                  },
+                  {
+                      "text":  "is",
+                      "x":  893,
+                      "y":  711,
+                      "width":  40,
+                      "height":  46
+                  },
+                  {
+                      "text":  "just",
+                      "x":  936,
+                      "y":  711,
+                      "width":  89,
+                      "height":  56
+                  },
+                  {
+                      "text":  "really",
+                      "x":  316,
+                      "y":  780,
+                      "width":  126,
+                      "height":  58
+                  },
+                  {
+                      "text":  "miserable",
+                      "x":  446,
+                      "y":  779,
+                      "width":  204,
+                      "height":  49
+                  },
+                  {
+                      "text":  "to",
+                      "x":  656,
+                      "y":  784,
+                      "width":  46,
+                      "height":  44
+                  },
+                  {
+                      "text":  "be",
+                      "x":  707,
+                      "y":  779,
+                      "width":  54,
+                      "height":  48
+                  },
+                  {
+                      "text":  "around.",
+                      "x":  769,
+                      "y":  779,
+                      "width":  161,
+                      "height":  49
+                  },
+                  {
+                      "text":  "I\u0027m",
+                      "x":  370,
+                      "y":  850,
+                      "width":  76,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Gertie,",
+                      "x":  462,
+                      "y":  852,
+                      "width":  154,
+                      "height":  54
+                  },
+                  {
+                      "text":  "your",
+                      "x":  631,
+                      "y":  864,
+                      "width":  105,
+                      "height":  44
+                  },
+                  {
+                      "text":  "guide.",
+                      "x":  750,
+                      "y":  850,
+                      "width":  136,
+                      "height":  58
+                  },
+                  {
+                      "text":  "Some",
+                      "x":  903,
+                      "y":  852,
+                      "width":  120,
+                      "height":  46
+                  },
+                  {
+                      "text":  "kids",
+                      "x":  270,
+                      "y":  920,
+                      "width":  99,
+                      "height":  48
+                  },
+                  {
+                      "text":  "love",
+                      "x":  389,
+                      "y":  920,
+                      "width":  93,
+                      "height":  48
+                  },
+                  {
+                      "text":  "to",
+                      "x":  501,
+                      "y":  925,
+                      "width":  48,
+                      "height":  43
+                  },
+                  {
+                      "text":  "be",
+                      "x":  568,
+                      "y":  920,
+                      "width":  56,
+                      "height":  48
+                  },
+                  {
+                      "text":  "in",
+                      "x":  644,
+                      "y":  923,
+                      "width":  50,
+                      "height":  45
+                  },
+                  {
+                      "text":  "the",
+                      "x":  713,
+                      "y":  920,
+                      "width":  76,
+                      "height":  48
+                  },
+                  {
+                      "text":  "spotlight.",
+                      "x":  810,
+                      "y":  920,
+                      "width":  213,
+                      "height":  58
+                  },
+                  {
+                      "text":  "Others",
+                      "x":  272,
+                      "y":  991,
+                      "width":  143,
+                      "height":  48
+                  },
+                  {
+                      "text":  "prefer",
+                      "x":  419,
+                      "y":  991,
+                      "width":  127,
+                      "height":  57
+                  },
+                  {
+                      "text":  "to",
+                      "x":  548,
+                      "y":  995,
+                      "width":  46,
+                      "height":  44
+                  },
+                  {
+                      "text":  "be",
+                      "x":  597,
+                      "y":  991,
+                      "width":  54,
+                      "height":  47
+                  },
+                  {
+                      "text":  "behind",
+                      "x":  653,
+                      "y":  991,
+                      "width":  146,
+                      "height":  48
+                  },
+                  {
+                      "text":  "the",
+                      "x":  802,
+                      "y":  991,
+                      "width":  72,
+                      "height":  47
+                  },
+                  {
+                      "text":  "scenes,",
+                      "x":  878,
+                      "y":  1005,
+                      "width":  145,
+                      "height":  41
+                  },
+                  {
+                      "text":  "but",
+                      "x":  270,
+                      "y":  1061,
+                      "width":  77,
+                      "height":  48
+                  },
+                  {
+                      "text":  "it",
+                      "x":  356,
+                      "y":  1063,
+                      "width":  39,
+                      "height":  46
+                  },
+                  {
+                      "text":  "takes",
+                      "x":  404,
+                      "y":  1061,
+                      "width":  120,
+                      "height":  48
+                  },
+                  {
+                      "text":  "a",
+                      "x":  536,
+                      "y":  1075,
+                      "width":  32,
+                      "height":  34
+                  },
+                  {
+                      "text":  "whole",
+                      "x":  575,
+                      "y":  1061,
+                      "width":  127,
+                      "height":  48
+                  },
+                  {
+                      "text":  "team",
+                      "x":  712,
+                      "y":  1065,
+                      "width":  113,
+                      "height":  44
+                  },
+                  {
+                      "text":  "to",
+                      "x":  835,
+                      "y":  1066,
+                      "width":  48,
+                      "height":  43
+                  },
+                  {
+                      "text":  "pull",
+                      "x":  893,
+                      "y":  1061,
+                      "width":  89,
+                      "height":  58
+                  },
+                  {
+                      "text":  "a",
+                      "x":  993,
+                      "y":  1075,
+                      "width":  31,
+                      "height":  34
+                  },
+                  {
+                      "text":  "production",
+                      "x":  271,
+                      "y":  1133,
+                      "width":  235,
+                      "height":  58
+                  },
+                  {
+                      "text":  "together!",
+                      "x":  521,
+                      "y":  1133,
+                      "width":  197,
+                      "height":  58
+                  },
+                  {
+                      "text":  "This",
+                      "x":  734,
+                      "y":  1133,
+                      "width":  104,
+                      "height":  48
+                  },
+                  {
+                      "text":  "fall,",
+                      "x":  853,
+                      "y":  1133,
+                      "width":  91,
+                      "height":  56
+                  },
+                  {
+                      "text":  "we",
+                      "x":  959,
+                      "y":  1147,
+                      "width":  65,
+                      "height":  34
+                  },
+                  {
+                      "text":  "were",
+                      "x":  270,
+                      "y":  1218,
+                      "width":  104,
+                      "height":  34
+                  },
+                  {
+                      "text":  "going",
+                      "x":  381,
+                      "y":  1206,
+                      "width":  118,
+                      "height":  56
+                  },
+                  {
+                      "text":  "to",
+                      "x":  503,
+                      "y":  1208,
+                      "width":  47,
+                      "height":  44
+                  },
+                  {
+                      "text":  "do",
+                      "x":  557,
+                      "y":  1203,
+                      "width":  52,
+                      "height":  49
+                  },
+                  {
+                      "text":  "Hamilton,",
+                      "x":  613,
+                      "y":  1203,
+                      "width":  209,
+                      "height":  56
+                  },
+                  {
+                      "text":  "but",
+                      "x":  831,
+                      "y":  1203,
+                      "width":  75,
+                      "height":  49
+                  },
+                  {
+                      "text":  "whoa",
+                      "x":  910,
+                      "y":  1203,
+                      "width":  115,
+                      "height":  49
+                  },
+                  {
+                      "text":  "those",
+                      "x":  271,
+                      "y":  1274,
+                      "width":  119,
+                      "height":  48
+                  },
+                  {
+                      "text":  "scripts",
+                      "x":  405,
+                      "y":  1276,
+                      "width":  149,
+                      "height":  56
+                  },
+                  {
+                      "text":  "were",
+                      "x":  568,
+                      "y":  1288,
+                      "width":  107,
+                      "height":  34
+                  },
+                  {
+                      "text":  "pricey,",
+                      "x":  689,
+                      "y":  1276,
+                      "width":  145,
+                      "height":  56
+                  },
+                  {
+                      "text":  "and",
+                      "x":  850,
+                      "y":  1274,
+                      "width":  85,
+                      "height":  48
+                  },
+                  {
+                      "text":  "the",
+                      "x":  949,
+                      "y":  1274,
+                      "width":  75,
+                      "height":  48
+                  },
+                  {
+                      "text":  "only",
+                      "x":  271,
+                      "y":  1344,
+                      "width":  105,
+                      "height":  58
+                  },
+                  {
+                      "text":  "version",
+                      "x":  403,
+                      "y":  1346,
+                      "width":  175,
+                      "height":  46
+                  },
+                  {
+                      "text":  "we",
+                      "x":  607,
+                      "y":  1358,
+                      "width":  66,
+                      "height":  34
+                  },
+                  {
+                      "text":  "could",
+                      "x":  705,
+                      "y":  1344,
+                      "width":  128,
+                      "height":  48
+                  },
+                  {
+                      "text":  "afford,",
+                      "x":  863,
+                      "y":  1344,
+                      "width":  160,
+                      "height":  56
+                  },
+                  {
+                      "text":  "Hamiltonedeaf,",
+                      "x":  268,
+                      "y":  1414,
+                      "width":  324,
+                      "height":  59
+                  },
+                  {
+                      "text":  "was",
+                      "x":  606,
+                      "y":  1428,
+                      "width":  87,
+                      "height":  35
+                  },
+                  {
+                      "text":  "just",
+                      "x":  701,
+                      "y":  1417,
+                      "width":  92,
+                      "height":  56
+                  },
+                  {
+                      "text":  "painful",
+                      "x":  803,
+                      "y":  1414,
+                      "width":  162,
+                      "height":  59
+                  },
+                  {
+                      "text":  "to",
+                      "x":  976,
+                      "y":  1419,
+                      "width":  48,
+                      "height":  44
+                  },
+                  {
+                      "text":  "2",
+                      "x":  630,
+                      "y":  1596,
+                      "width":  34,
+                      "height":  57
+                  },
+                  {
+                      "text":  "listen",
+                      "x":  1389,
+                      "y":  215,
+                      "width":  122,
+                      "height":  48
+                  },
+                  {
+                      "text":  "to.",
+                      "x":  1515,
+                      "y":  219,
+                      "width":  56,
+                      "height":  44
+                  },
+                  {
+                      "text":  "So",
+                      "x":  1577,
+                      "y":  217,
+                      "width":  57,
+                      "height":  46
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1638,
+                      "y":  215,
+                      "width":  72,
+                      "height":  48
+                  },
+                  {
+                      "text":  "school",
+                      "x":  1715,
+                      "y":  215,
+                      "width":  129,
+                      "height":  48
+                  },
+                  {
+                      "text":  "decided",
+                      "x":  1849,
+                      "y":  215,
+                      "width":  158,
+                      "height":  48
+                  },
+                  {
+                      "text":  "on",
+                      "x":  2011,
+                      "y":  229,
+                      "width":  56,
+                      "height":  34
+                  },
+                  {
+                      "text":  "the",
+                      "x":  2070,
+                      "y":  215,
+                      "width":  72,
+                      "height":  48
+                  },
+                  {
+                      "text":  "public",
+                      "x":  1389,
+                      "y":  285,
+                      "width":  137,
+                      "height":  58
+                  },
+                  {
+                      "text":  "domain",
+                      "x":  1542,
+                      "y":  285,
+                      "width":  165,
+                      "height":  49
+                  },
+                  {
+                      "text":  "classic",
+                      "x":  1723,
+                      "y":  285,
+                      "width":  146,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Hansel",
+                      "x":  1881,
+                      "y":  285,
+                      "width":  157,
+                      "height":  48
+                  },
+                  {
+                      "text":  "and",
+                      "x":  2053,
+                      "y":  285,
+                      "width":  90,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Gretel,",
+                      "x":  1390,
+                      "y":  356,
+                      "width":  141,
+                      "height":  55
+                  },
+                  {
+                      "text":  "where",
+                      "x":  1545,
+                      "y":  356,
+                      "width":  134,
+                      "height":  48
+                  },
+                  {
+                      "text":  "nothing",
+                      "x":  1690,
+                      "y":  356,
+                      "width":  171,
+                      "height":  58
+                  },
+                  {
+                      "text":  "strange",
+                      "x":  1871,
+                      "y":  360,
+                      "width":  166,
+                      "height":  54
+                  },
+                  {
+                      "text":  "ever",
+                      "x":  2049,
+                      "y":  370,
+                      "width":  94,
+                      "height":  34
+                  },
+                  {
+                      "text":  "happens—just",
+                      "x":  1389,
+                      "y":  426,
+                      "width":  296,
+                      "height":  58
+                  },
+                  {
+                      "text":  "like",
+                      "x":  1687,
+                      "y":  426,
+                      "width":  82,
+                      "height":  48
+                  },
+                  {
+                      "text":  "in",
+                      "x":  1772,
+                      "y":  428,
+                      "width":  48,
+                      "height":  46
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1823,
+                      "y":  426,
+                      "width":  71,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Cafetorium.",
+                      "x":  1898,
+                      "y":  426,
+                      "width":  243,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Today\u0027s",
+                      "x":  1466,
+                      "y":  496,
+                      "width":  173,
+                      "height":  59
+                  },
+                  {
+                      "text":  "adventure",
+                      "x":  1663,
+                      "y":  496,
+                      "width":  232,
+                      "height":  49
+                  },
+                  {
+                      "text":  "stars",
+                      "x":  1919,
+                      "y":  501,
+                      "width":  119,
+                      "height":  44
+                  },
+                  {
+                      "text":  "shy",
+                      "x":  2062,
+                      "y":  496,
+                      "width":  82,
+                      "height":  59
+                  },
+                  {
+                      "text":  "Margot",
+                      "x":  1389,
+                      "y":  569,
+                      "width":  161,
+                      "height":  56
+                  },
+                  {
+                      "text":  "Delgado,",
+                      "x":  1558,
+                      "y":  566,
+                      "width":  185,
+                      "height":  59
+                  },
+                  {
+                      "text":  "who",
+                      "x":  1753,
+                      "y":  566,
+                      "width":  90,
+                      "height":  49
+                  },
+                  {
+                      "text":  "never",
+                      "x":  1853,
+                      "y":  581,
+                      "width":  121,
+                      "height":  34
+                  },
+                  {
+                      "text":  "wanted",
+                      "x":  1982,
+                      "y":  566,
+                      "width":  161,
+                      "height":  49
+                  },
+                  {
+                      "text":  "to",
+                      "x":  1389,
+                      "y":  643,
+                      "width":  47,
+                      "height":  44
+                  },
+                  {
+                      "text":  "be",
+                      "x":  1441,
+                      "y":  639,
+                      "width":  54,
+                      "height":  48
+                  },
+                  {
+                      "text":  "in",
+                      "x":  1501,
+                      "y":  641,
+                      "width":  49,
+                      "height":  46
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1555,
+                      "y":  639,
+                      "width":  72,
+                      "height":  48
+                  },
+                  {
+                      "text":  "spotlight.",
+                      "x":  1634,
+                      "y":  639,
+                      "width":  195,
+                      "height":  58
+                  },
+                  {
+                      "text":  "But",
+                      "x":  1836,
+                      "y":  641,
+                      "width":  82,
+                      "height":  46
+                  },
+                  {
+                      "text":  "sometimes",
+                      "x":  1923,
+                      "y":  641,
+                      "width":  219,
+                      "height":  46
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1389,
+                      "y":  709,
+                      "width":  73,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Cafetorium",
+                      "x":  1469,
+                      "y":  709,
+                      "width":  237,
+                      "height":  48
+                  },
+                  {
+                      "text":  "has",
+                      "x":  1711,
+                      "y":  709,
+                      "width":  79,
+                      "height":  48
+                  },
+                  {
+                      "text":  "other",
+                      "x":  1797,
+                      "y":  709,
+                      "width":  113,
+                      "height":  48
+                  },
+                  {
+                      "text":  "ideas.",
+                      "x":  1915,
+                      "y":  709,
+                      "width":  121,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Margot",
+                      "x":  1466,
+                      "y":  993,
+                      "width":  157,
+                      "height":  55
+                  },
+                  {
+                      "text":  "never",
+                      "x":  1627,
+                      "y":  1005,
+                      "width":  120,
+                      "height":  34
+                  },
+                  {
+                      "text":  "raised",
+                      "x":  1751,
+                      "y":  991,
+                      "width":  135,
+                      "height":  48
+                  },
+                  {
+                      "text":  "her",
+                      "x":  1889,
+                      "y":  991,
+                      "width":  77,
+                      "height":  48
+                  },
+                  {
+                      "text":  "hand.",
+                      "x":  1970,
+                      "y":  991,
+                      "width":  121,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Not",
+                      "x":  1466,
+                      "y":  1063,
+                      "width":  81,
+                      "height":  46
+                  },
+                  {
+                      "text":  "to",
+                      "x":  1550,
+                      "y":  1065,
+                      "width":  47,
+                      "height":  44
+                  },
+                  {
+                      "text":  "ask",
+                      "x":  1602,
+                      "y":  1061,
+                      "width":  78,
+                      "height":  48
+                  },
+                  {
+                      "text":  "for",
+                      "x":  1683,
+                      "y":  1061,
+                      "width":  62,
+                      "height":  48
+                  },
+                  {
+                      "text":  "help.",
+                      "x":  1747,
+                      "y":  1061,
+                      "width":  102,
+                      "height":  58
+                  },
+                  {
+                      "text":  "Not",
+                      "x":  1855,
+                      "y":  1063,
+                      "width":  80,
+                      "height":  46
+                  },
+                  {
+                      "text":  "to",
+                      "x":  1939,
+                      "y":  1065,
+                      "width":  46,
+                      "height":  44
+                  },
+                  {
+                      "text":  "answer",
+                      "x":  1990,
+                      "y":  1075,
+                      "width":  153,
+                      "height":  34
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1390,
+                      "y":  1147,
+                      "width":  32,
+                      "height":  34
+                  },
+                  {
+                      "text":  "teacher\u0027s",
+                      "x":  1428,
+                      "y":  1133,
+                      "width":  185,
+                      "height":  49
+                  },
+                  {
+                      "text":  "question.",
+                      "x":  1621,
+                      "y":  1135,
+                      "width":  187,
+                      "height":  56
+                  },
+                  {
+                      "text":  "Not",
+                      "x":  1816,
+                      "y":  1135,
+                      "width":  82,
+                      "height":  46
+                  },
+                  {
+                      "text":  "even",
+                      "x":  1905,
+                      "y":  1147,
+                      "width":  100,
+                      "height":  35
+                  },
+                  {
+                      "text":  "to",
+                      "x":  2011,
+                      "y":  1138,
+                      "width":  47,
+                      "height":  43
+                  },
+                  {
+                      "text":  "ask",
+                      "x":  2066,
+                      "y":  1133,
+                      "width":  78,
+                      "height":  48
+                  },
+                  {
+                      "text":  "to",
+                      "x":  1389,
+                      "y":  1208,
+                      "width":  47,
+                      "height":  44
+                  },
+                  {
+                      "text":  "go",
+                      "x":  1442,
+                      "y":  1218,
+                      "width":  52,
+                      "height":  44
+                  },
+                  {
+                      "text":  "to",
+                      "x":  1501,
+                      "y":  1208,
+                      "width":  46,
+                      "height":  44
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1552,
+                      "y":  1204,
+                      "width":  73,
+                      "height":  48
+                  },
+                  {
+                      "text":  "bathroom.",
+                      "x":  1630,
+                      "y":  1203,
+                      "width":  213,
+                      "height":  49
+                  },
+                  {
+                      "text":  "Margot",
+                      "x":  1466,
+                      "y":  1276,
+                      "width":  166,
+                      "height":  56
+                  },
+                  {
+                      "text":  "had",
+                      "x":  1647,
+                      "y":  1274,
+                      "width":  88,
+                      "height":  48
+                  },
+                  {
+                      "text":  "been",
+                      "x":  1751,
+                      "y":  1274,
+                      "width":  110,
+                      "height":  48
+                  },
+                  {
+                      "text":  "at",
+                      "x":  1878,
+                      "y":  1278,
+                      "width":  50,
+                      "height":  44
+                  },
+                  {
+                      "text":  "Newville",
+                      "x":  1943,
+                      "y":  1274,
+                      "width":  199,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Elementary",
+                      "x":  1389,
+                      "y":  1344,
+                      "width":  254,
+                      "height":  59
+                  },
+                  {
+                      "text":  "for",
+                      "x":  1652,
+                      "y":  1344,
+                      "width":  65,
+                      "height":  48
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1727,
+                      "y":  1358,
+                      "width":  31,
+                      "height":  34
+                  },
+                  {
+                      "text":  "whole",
+                      "x":  1767,
+                      "y":  1344,
+                      "width":  126,
+                      "height":  48
+                  },
+                  {
+                      "text":  "month,",
+                      "x":  1904,
+                      "y":  1344,
+                      "width":  152,
+                      "height":  56
+                  },
+                  {
+                      "text":  "but",
+                      "x":  2066,
+                      "y":  1344,
+                      "width":  77,
+                      "height":  48
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1389,
+                      "y":  1414,
+                      "width":  73,
+                      "height":  49
+                  },
+                  {
+                      "text":  "only",
+                      "x":  1469,
+                      "y":  1414,
+                      "width":  93,
+                      "height":  59
+                  },
+                  {
+                      "text":  "time",
+                      "x":  1566,
+                      "y":  1417,
+                      "width":  99,
+                      "height":  46
+                  },
+                  {
+                      "text":  "she",
+                      "x":  1672,
+                      "y":  1414,
+                      "width":  74,
+                      "height":  48
+                  },
+                  {
+                      "text":  "had",
+                      "x":  1752,
+                      "y":  1414,
+                      "width":  85,
+                      "height":  49
+                  },
+                  {
+                      "text":  "spoken",
+                      "x":  1843,
+                      "y":  1414,
+                      "width":  147,
+                      "height":  59
+                  },
+                  {
+                      "text":  "was",
+                      "x":  1994,
+                      "y":  1428,
+                      "width":  87,
+                      "height":  35
+                  },
+                  {
+                      "text":  "on",
+                      "x":  2088,
+                      "y":  1429,
+                      "width":  55,
+                      "height":  34
+                  },
+                  {
+                      "text":  "3",
+                      "x":  1749,
+                      "y":  1596,
+                      "width":  34,
+                      "height":  55
+                  }
+              ]
+}

@@ -1,0 +1,316 @@
+﻿{
+    "image":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\CreepyCafetorium_74774\\word-hotspots\\creepy_cafetorium_spread_02.png",
+    "text":  "BOOK 6 our, DARN SPOTLIGHT Our lovely Newville Elementary Cafetorium is known for its delicious lunches, low number of ejector seats, and wonderful stage plays! We\u0027ve done productions of The Wizard Is Odd—the story of a girl from Kentucky who finds herself in a",
+    "width":  2416,
+    "height":  1762,
+    "words":  [
+                  {
+                      "text":  "BOOK",
+                      "x":  559,
+                      "y":  573,
+                      "width":  133,
+                      "height":  54
+                  },
+                  {
+                      "text":  "6",
+                      "x":  704,
+                      "y":  573,
+                      "width":  34,
+                      "height":  53
+                  },
+                  {
+                      "text":  "our,",
+                      "x":  404,
+                      "y":  645,
+                      "width":  105,
+                      "height":  62
+                  },
+                  {
+                      "text":  "DARN",
+                      "x":  521,
+                      "y":  645,
+                      "width":  121,
+                      "height":  54
+                  },
+                  {
+                      "text":  "SPOTLIGHT",
+                      "x":  654,
+                      "y":  645,
+                      "width":  239,
+                      "height":  55
+                  },
+                  {
+                      "text":  "Our",
+                      "x":  1466,
+                      "y":  1003,
+                      "width":  56,
+                      "height":  34
+                  },
+                  {
+                      "text":  "lovely",
+                      "x":  1536,
+                      "y":  988,
+                      "width":  129,
+                      "height":  59
+                  },
+                  {
+                      "text":  "Newville",
+                      "x":  1678,
+                      "y":  989,
+                      "width":  195,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Elementary",
+                      "x":  1888,
+                      "y":  989,
+                      "width":  257,
+                      "height":  58
+                  },
+                  {
+                      "text":  "Cafetorium",
+                      "x":  1392,
+                      "y":  1059,
+                      "width":  237,
+                      "height":  48
+                  },
+                  {
+                      "text":  "is",
+                      "x":  1635,
+                      "y":  1061,
+                      "width":  40,
+                      "height":  46
+                  },
+                  {
+                      "text":  "known",
+                      "x":  1681,
+                      "y":  1059,
+                      "width":  145,
+                      "height":  48
+                  },
+                  {
+                      "text":  "for",
+                      "x":  1832,
+                      "y":  1059,
+                      "width":  62,
+                      "height":  48
+                  },
+                  {
+                      "text":  "its",
+                      "x":  1899,
+                      "y":  1061,
+                      "width":  57,
+                      "height":  46
+                  },
+                  {
+                      "text":  "delicious",
+                      "x":  1963,
+                      "y":  1059,
+                      "width":  180,
+                      "height":  48
+                  },
+                  {
+                      "text":  "lunches,",
+                      "x":  1390,
+                      "y":  1131,
+                      "width":  173,
+                      "height":  56
+                  },
+                  {
+                      "text":  "low",
+                      "x":  1570,
+                      "y":  1131,
+                      "width":  77,
+                      "height":  49
+                  },
+                  {
+                      "text":  "number",
+                      "x":  1652,
+                      "y":  1131,
+                      "width":  166,
+                      "height":  49
+                  },
+                  {
+                      "text":  "of",
+                      "x":  1825,
+                      "y":  1131,
+                      "width":  48,
+                      "height":  48
+                  },
+                  {
+                      "text":  "ejector",
+                      "x":  1874,
+                      "y":  1133,
+                      "width":  142,
+                      "height":  56
+                  },
+                  {
+                      "text":  "seats,",
+                      "x":  2023,
+                      "y":  1136,
+                      "width":  120,
+                      "height":  51
+                  },
+                  {
+                      "text":  "and",
+                      "x":  1391,
+                      "y":  1202,
+                      "width":  87,
+                      "height":  48
+                  },
+                  {
+                      "text":  "wonderful",
+                      "x":  1493,
+                      "y":  1202,
+                      "width":  223,
+                      "height":  48
+                  },
+                  {
+                      "text":  "stage",
+                      "x":  1732,
+                      "y":  1206,
+                      "width":  121,
+                      "height":  54
+                  },
+                  {
+                      "text":  "plays!",
+                      "x":  1868,
+                      "y":  1202,
+                      "width":  129,
+                      "height":  58
+                  },
+                  {
+                      "text":  "We\u0027ve",
+                      "x":  2015,
+                      "y":  1202,
+                      "width":  128,
+                      "height":  48
+                  },
+                  {
+                      "text":  "done",
+                      "x":  1391,
+                      "y":  1272,
+                      "width":  104,
+                      "height":  48
+                  },
+                  {
+                      "text":  "productions",
+                      "x":  1508,
+                      "y":  1272,
+                      "width":  253,
+                      "height":  58
+                  },
+                  {
+                      "text":  "of",
+                      "x":  1775,
+                      "y":  1272,
+                      "width":  49,
+                      "height":  48
+                  },
+                  {
+                      "text":  "The",
+                      "x":  1832,
+                      "y":  1272,
+                      "width":  85,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Wizard",
+                      "x":  1931,
+                      "y":  1272,
+                      "width":  156,
+                      "height":  48
+                  },
+                  {
+                      "text":  "Is",
+                      "x":  2097,
+                      "y":  1274,
+                      "width":  46,
+                      "height":  46
+                  },
+                  {
+                      "text":  "Odd—the",
+                      "x":  1391,
+                      "y":  1342,
+                      "width":  223,
+                      "height":  49
+                  },
+                  {
+                      "text":  "story",
+                      "x":  1642,
+                      "y":  1347,
+                      "width":  122,
+                      "height":  54
+                  },
+                  {
+                      "text":  "of",
+                      "x":  1789,
+                      "y":  1342,
+                      "width":  53,
+                      "height":  49
+                  },
+                  {
+                      "text":  "a",
+                      "x":  1862,
+                      "y":  1356,
+                      "width":  32,
+                      "height":  34
+                  },
+                  {
+                      "text":  "girl",
+                      "x":  1919,
+                      "y":  1342,
+                      "width":  88,
+                      "height":  58
+                  },
+                  {
+                      "text":  "from",
+                      "x":  2033,
+                      "y":  1342,
+                      "width":  111,
+                      "height":  49
+                  },
+                  {
+                      "text":  "Kentucky",
+                      "x":  1391,
+                      "y":  1413,
+                      "width":  216,
+                      "height":  58
+                  },
+                  {
+                      "text":  "who",
+                      "x":  1623,
+                      "y":  1413,
+                      "width":  93,
+                      "height":  48
+                  },
+                  {
+                      "text":  "finds",
+                      "x":  1735,
+                      "y":  1413,
+                      "width":  116,
+                      "height":  48
+                  },
+                  {
+                      "text":  "herself",
+                      "x":  1869,
+                      "y":  1413,
+                      "width":  162,
+                      "height":  48
+                  },
+                  {
+                      "text":  "in",
+                      "x":  2044,
+                      "y":  1415,
+                      "width":  50,
+                      "height":  46
+                  },
+                  {
+                      "text":  "a",
+                      "x":  2113,
+                      "y":  1427,
+                      "width":  32,
+                      "height":  34
+                  }
+              ]
+}

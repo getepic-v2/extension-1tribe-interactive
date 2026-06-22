@@ -1,0 +1,249 @@
+﻿{
+    "generatedAt":  "2026-06-17T17:01:00.093Z",
+    "sourceFolder":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230",
+    "sourceImages":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230\\word-hotspots",
+    "render":  {
+                   "width":  2964,
+                   "height":  2160
+               },
+    "wordPadding":  {
+                        "x":  2,
+                        "y":  0
+                    },
+    "files":  [
+                  {
+                      "file":  "hummingbird_spread_01.riv",
+                      "pages":  [
+                                    0,
+                                    1
+                                ],
+                      "screenshot":  "hummingbird_spread_01.png",
+                      "ocr":  "hummingbird_spread_01.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_02.riv",
+                      "pages":  [
+                                    2,
+                                    3
+                                ],
+                      "screenshot":  "hummingbird_spread_02.png",
+                      "ocr":  "hummingbird_spread_02.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_04.riv",
+                      "pages":  [
+                                    4,
+                                    5
+                                ],
+                      "screenshot":  "hummingbird_spread_04.png",
+                      "ocr":  "hummingbird_spread_04.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_06.riv",
+                      "pages":  [
+                                    6,
+                                    7
+                                ],
+                      "screenshot":  "hummingbird_spread_06.png",
+                      "ocr":  "hummingbird_spread_06.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_08.riv",
+                      "pages":  [
+                                    8,
+                                    9
+                                ],
+                      "screenshot":  "hummingbird_spread_08.png",
+                      "ocr":  "hummingbird_spread_08.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_10.riv",
+                      "pages":  [
+                                    10,
+                                    11
+                                ],
+                      "screenshot":  "hummingbird_spread_10.png",
+                      "ocr":  "hummingbird_spread_10.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_12.riv",
+                      "pages":  [
+                                    12,
+                                    13
+                                ],
+                      "screenshot":  "hummingbird_spread_12.png",
+                      "ocr":  "hummingbird_spread_12.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_14.riv",
+                      "pages":  [
+                                    14,
+                                    15
+                                ],
+                      "screenshot":  "hummingbird_spread_14.png",
+                      "ocr":  "hummingbird_spread_14.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_16.riv",
+                      "pages":  [
+                                    16,
+                                    17
+                                ],
+                      "screenshot":  "hummingbird_spread_16.png",
+                      "ocr":  "hummingbird_spread_16.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_18.riv",
+                      "pages":  [
+                                    18,
+                                    19
+                                ],
+                      "screenshot":  "hummingbird_spread_18.png",
+                      "ocr":  "hummingbird_spread_18.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_20.riv",
+                      "pages":  [
+                                    20,
+                                    21
+                                ],
+                      "screenshot":  "hummingbird_spread_20.png",
+                      "ocr":  "hummingbird_spread_20.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_22.riv",
+                      "pages":  [
+                                    22,
+                                    23
+                                ],
+                      "screenshot":  "hummingbird_spread_22.png",
+                      "ocr":  "hummingbird_spread_22.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_24.riv",
+                      "pages":  [
+                                    24,
+                                    25
+                                ],
+                      "screenshot":  "hummingbird_spread_24.png",
+                      "ocr":  "hummingbird_spread_24.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_26.riv",
+                      "pages":  [
+                                    26,
+                                    27
+                                ],
+                      "screenshot":  "hummingbird_spread_26.png",
+                      "ocr":  "hummingbird_spread_26.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_28.riv",
+                      "pages":  [
+                                    28,
+                                    29
+                                ],
+                      "screenshot":  "hummingbird_spread_28.png",
+                      "ocr":  "hummingbird_spread_28.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_30.riv",
+                      "pages":  [
+                                    30,
+                                    31
+                                ],
+                      "screenshot":  "hummingbird_spread_30.png",
+                      "ocr":  "hummingbird_spread_30.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_32.riv",
+                      "pages":  [
+                                    32,
+                                    33
+                                ],
+                      "screenshot":  "hummingbird_spread_32.png",
+                      "ocr":  "hummingbird_spread_32.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  },
+                  {
+                      "file":  "hummingbird_spread_34.riv",
+                      "pages":  [
+                                    34,
+                                    35
+                                ],
+                      "screenshot":  "hummingbird_spread_34.png",
+                      "ocr":  "hummingbird_spread_34.ocr.json",
+                      "render":  {
+                                     "width":  2964,
+                                     "height":  2160
+                                 }
+                  }
+              ]
+}

@@ -146,7 +146,7 @@ export const commandHarnessStyles = `
     border: var(--tribe-command-harness-book-frame-border, 3px solid #111111);
     border-radius: 0;
     background: #ffffff;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.88);
+    box-shadow: var(--tribe-command-harness-book-frame-shadow, 0 0 0 1px rgba(255, 255, 255, 0.88));
   }
 
   .tribe-command-harness__stage.is-reader-overlay.is-takeover.is-native-passthrough-suspended {
@@ -186,6 +186,73 @@ export const commandHarnessStyles = `
     border: 0;
     background: transparent;
     pointer-events: auto;
+  }
+
+  .tribe-command-harness__loading {
+    box-sizing: border-box;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: 2147483500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: min(360px, calc(100% - 32px));
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(16, 20, 18, 0.86);
+    color: #ffffff;
+    font: 700 13px/1.25 Inter, ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+    opacity: 1;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: opacity 1s ease;
+  }
+
+  .tribe-command-harness__loading[hidden] {
+    display: none;
+  }
+
+  .tribe-command-harness__loading.is-fading {
+    opacity: 0;
+  }
+
+  .tribe-command-harness__loading-spinner {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border: 3px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 999px;
+    animation: tribe-command-harness-spin 0.85s linear infinite;
+  }
+
+  @keyframes tribe-command-harness-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .tribe-command-harness__debug-badge {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index: 2147483400;
+    max-width: min(420px, calc(100% - 20px));
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    background: rgba(16, 20, 18, 0.86);
+    color: #ffffff;
+    font: 700 11px/1.2 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    letter-spacing: 0;
+    pointer-events: none;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+  }
+
+  .tribe-command-harness__debug-badge[hidden] {
+    display: none;
   }
 
   .tribe-command-harness__stage.is-reader-overlay.is-epic-native-passthrough-left.is-epic-native-passthrough-right
@@ -794,6 +861,7 @@ export const simpleOverlayStyles = `
     position: absolute;
     inset: 0;
     z-index: 12;
+    overflow: hidden;
     pointer-events: none;
   }
 
@@ -825,6 +893,10 @@ export const simpleOverlayStyles = `
     pointer-events: auto;
   }
 
+  .tribe-word-hotspot-button.is-large-hotspot {
+    overflow: visible;
+  }
+
   .tribe-word-hotspot-button::before {
     content: "";
     position: absolute;
@@ -845,6 +917,7 @@ export const simpleOverlayStyles = `
       box-shadow 80ms ease;
   }
 
+  .tribe-word-hotspot-layer.is-debug-visible .tribe-word-hotspot-button::before,
   .tribe-word-hotspot-button:hover::before,
   .tribe-word-hotspot-button:focus-visible::before,
   .tribe-word-hotspot-button.is-read-along-active::before {
@@ -854,6 +927,16 @@ export const simpleOverlayStyles = `
       var(--tribe-word-hotspot-shadow-y, 5px)
       0
       #000000;
+  }
+
+  .tribe-word-hotspot-layer.is-debug-visible .tribe-word-hotspot-button {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .tribe-word-hotspot-layer.is-debug-visible .tribe-word-hotspot-button::before {
+    box-shadow: none;
+    transform: none;
   }
 
   .tribe-word-hotspot-button.is-suspect {
@@ -910,7 +993,7 @@ export const standaloneWordHotspotStyles = `
 
   .tribe-standalone-word-hotspot-frame {
     position: absolute;
-    overflow: visible;
+    overflow: hidden;
     pointer-events: none;
     outline: none;
   }
@@ -930,9 +1013,9 @@ export const standaloneWordHotspotStyles = `
     pointer-events: none;
   }
 
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-root,
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-frame,
-  html.tribe-word-lookup-passthrough .tribe-standalone-word-hotspot-button {
+  :host-context(.tribe-word-lookup-passthrough) .tribe-standalone-word-hotspot-root,
+  :host-context(.tribe-word-lookup-passthrough) .tribe-standalone-word-hotspot-frame,
+  :host-context(.tribe-word-lookup-passthrough) .tribe-standalone-word-hotspot-button {
     pointer-events: none !important;
   }
 
@@ -955,6 +1038,10 @@ export const standaloneWordHotspotStyles = `
     pointer-events: auto;
   }
 
+  .tribe-standalone-word-hotspot-button.is-large-hotspot {
+    overflow: visible;
+  }
+
   .tribe-standalone-word-hotspot-button::before {
     content: "";
     position: absolute;
@@ -975,6 +1062,7 @@ export const standaloneWordHotspotStyles = `
       box-shadow 80ms ease;
   }
 
+  .tribe-standalone-word-hotspot-frame.is-debug-visible .tribe-standalone-word-hotspot-button::before,
   .tribe-standalone-word-hotspot-button:hover::before,
   .tribe-standalone-word-hotspot-button:focus-visible::before,
   .tribe-standalone-word-hotspot-button.is-read-along-active::before {
@@ -984,6 +1072,16 @@ export const standaloneWordHotspotStyles = `
       var(--tribe-word-hotspot-shadow-y, 5px)
       0
       #000000;
+  }
+
+  .tribe-standalone-word-hotspot-frame.is-debug-visible .tribe-standalone-word-hotspot-button {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .tribe-standalone-word-hotspot-frame.is-debug-visible .tribe-standalone-word-hotspot-button::before {
+    box-shadow: none;
+    transform: none;
   }
 
   .tribe-standalone-word-hotspot-button.is-suspect {

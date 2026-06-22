@@ -1,0 +1,1454 @@
+{
+    "image":  "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230\\word-hotspots\\hummingbird_spread_26.png",
+    "text":  "COO Mom. who\u0027s For breakfast? WAKE THE You grow up so fast! But here\u0027s what happened after you were born. Female hummingbirds usually lay two white eggs about the size of small jelly beans Your mom sat on her eggs for two or three weeks before they hatched. You probably hatched in late spring or early summer. depending on where you live. Your mom is an amazing architect! When building your nest. she used spider silk-the strong. elastic fiber spiders produce to catch prey. the silk stretched as you grew. so your home was the perfect size. Baby hummingbirds are called clicks. hatchmgs. or nesdings You didn\u0027t open your eyes or start growing any feathers until about nine days after you hatched You stayed pretty quiet as a baby-except when you were really hungry When you were small. your mom fed you small bugs and nectar from her bill. You spent about three weeks in your mom\u0027s nest before you were big enough to fly and live on your own. Every year. you like to retum to the same place you were born.",
+    "width":  2964,
+    "height":  2160,
+    "words":  [
+                  {
+                      "text":  "COO",
+                      "x":  229,
+                      "y":  207,
+                      "width":  176,
+                      "height":  70
+                  },
+                  {
+                      "text":  "Mom.",
+                      "x":  717,
+                      "y":  630,
+                      "width":  78,
+                      "height":  28
+                  },
+                  {
+                      "text":  "who\u0027s",
+                      "x":  801,
+                      "y":  631,
+                      "width":  78,
+                      "height":  24
+                  },
+                  {
+                      "text":  "For",
+                      "x":  904,
+                      "y":  631,
+                      "width":  43,
+                      "height":  25
+                  },
+                  {
+                      "text":  "breakfast?",
+                      "x":  755,
+                      "y":  664,
+                      "width":  156,
+                      "height":  25
+                  },
+                  {
+                      "text":  "WAKE",
+                      "x":  2340,
+                      "y":  499,
+                      "width":  217,
+                      "height":  81
+                  },
+                  {
+                      "text":  "THE",
+                      "x":  1780,
+                      "y":  609,
+                      "width":  151,
+                      "height":  74
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1783,
+                      "y":  722,
+                      "width":  87,
+                      "height":  43
+                  },
+                  {
+                      "text":  "grow",
+                      "x":  1887,
+                      "y":  730,
+                      "width":  121,
+                      "height":  47
+                  },
+                  {
+                      "text":  "up",
+                      "x":  2020,
+                      "y":  734,
+                      "width":  58,
+                      "height":  40
+                  },
+                  {
+                      "text":  "so",
+                      "x":  2092,
+                      "y":  734,
+                      "width":  56,
+                      "height":  31
+                  },
+                  {
+                      "text":  "fast!",
+                      "x":  2162,
+                      "y":  723,
+                      "width":  109,
+                      "height":  42
+                  },
+                  {
+                      "text":  "But",
+                      "x":  2290,
+                      "y":  722,
+                      "width":  80,
+                      "height":  42
+                  },
+                  {
+                      "text":  "here\u0027s",
+                      "x":  2384,
+                      "y":  723,
+                      "width":  136,
+                      "height":  42
+                  },
+                  {
+                      "text":  "what",
+                      "x":  2535,
+                      "y":  725,
+                      "width":  118,
+                      "height":  39
+                  },
+                  {
+                      "text":  "happened",
+                      "x":  1784,
+                      "y":  785,
+                      "width":  240,
+                      "height":  53
+                  },
+                  {
+                      "text":  "after",
+                      "x":  2037,
+                      "y":  786,
+                      "width":  117,
+                      "height":  41
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2169,
+                      "y":  796,
+                      "width":  85,
+                      "height":  39
+                  },
+                  {
+                      "text":  "were",
+                      "x":  2271,
+                      "y":  794,
+                      "width":  110,
+                      "height":  33
+                  },
+                  {
+                      "text":  "born.",
+                      "x":  2395,
+                      "y":  786,
+                      "width":  123,
+                      "height":  41
+                  },
+                  {
+                      "text":  "Female",
+                      "x":  1827,
+                      "y":  869,
+                      "width":  99,
+                      "height":  24
+                  },
+                  {
+                      "text":  "hummingbirds",
+                      "x":  1934,
+                      "y":  869,
+                      "width":  192,
+                      "height":  29
+                  },
+                  {
+                      "text":  "usually",
+                      "x":  2134,
+                      "y":  870,
+                      "width":  94,
+                      "height":  28
+                  },
+                  {
+                      "text":  "lay",
+                      "x":  2235,
+                      "y":  869,
+                      "width":  42,
+                      "height":  29
+                  },
+                  {
+                      "text":  "two",
+                      "x":  2283,
+                      "y":  871,
+                      "width":  52,
+                      "height":  22
+                  },
+                  {
+                      "text":  "white",
+                      "x":  2343,
+                      "y":  869,
+                      "width":  78,
+                      "height":  24
+                  },
+                  {
+                      "text":  "eggs",
+                      "x":  2427,
+                      "y":  874,
+                      "width":  67,
+                      "height":  24
+                  },
+                  {
+                      "text":  "about",
+                      "x":  2502,
+                      "y":  870,
+                      "width":  78,
+                      "height":  23
+                  },
+                  {
+                      "text":  "the",
+                      "x":  2588,
+                      "y":  870,
+                      "width":  42,
+                      "height":  23
+                  },
+                  {
+                      "text":  "size",
+                      "x":  1828,
+                      "y":  908,
+                      "width":  50,
+                      "height":  23
+                  },
+                  {
+                      "text":  "of",
+                      "x":  1886,
+                      "y":  908,
+                      "width":  28,
+                      "height":  23
+                  },
+                  {
+                      "text":  "small",
+                      "x":  1921,
+                      "y":  908,
+                      "width":  69,
+                      "height":  23
+                  },
+                  {
+                      "text":  "jelly",
+                      "x":  1997,
+                      "y":  908,
+                      "width":  56,
+                      "height":  29
+                  },
+                  {
+                      "text":  "beans",
+                      "x":  2060,
+                      "y":  908,
+                      "width":  89,
+                      "height":  23
+                  },
+                  {
+                      "text":  "Your",
+                      "x":  1827,
+                      "y":  962,
+                      "width":  63,
+                      "height":  24
+                  },
+                  {
+                      "text":  "mom",
+                      "x":  1897,
+                      "y":  967,
+                      "width":  66,
+                      "height":  19
+                  },
+                  {
+                      "text":  "sat",
+                      "x":  1972,
+                      "y":  964,
+                      "width":  39,
+                      "height":  22
+                  },
+                  {
+                      "text":  "on",
+                      "x":  2020,
+                      "y":  967,
+                      "width":  33,
+                      "height":  19
+                  },
+                  {
+                      "text":  "her",
+                      "x":  2062,
+                      "y":  962,
+                      "width":  44,
+                      "height":  24
+                  },
+                  {
+                      "text":  "eggs",
+                      "x":  2112,
+                      "y":  967,
+                      "width":  66,
+                      "height":  24
+                  },
+                  {
+                      "text":  "for",
+                      "x":  2187,
+                      "y":  962,
+                      "width":  36,
+                      "height":  24
+                  },
+                  {
+                      "text":  "two",
+                      "x":  2231,
+                      "y":  963,
+                      "width":  52,
+                      "height":  23
+                  },
+                  {
+                      "text":  "or",
+                      "x":  2290,
+                      "y":  968,
+                      "width":  29,
+                      "height":  18
+                  },
+                  {
+                      "text":  "three",
+                      "x":  2327,
+                      "y":  962,
+                      "width":  73,
+                      "height":  24
+                  },
+                  {
+                      "text":  "weeks",
+                      "x":  2408,
+                      "y":  962,
+                      "width":  87,
+                      "height":  24
+                  },
+                  {
+                      "text":  "before",
+                      "x":  2504,
+                      "y":  962,
+                      "width":  87,
+                      "height":  24
+                  },
+                  {
+                      "text":  "they",
+                      "x":  2599,
+                      "y":  962,
+                      "width":  59,
+                      "height":  29
+                  },
+                  {
+                      "text":  "hatched.",
+                      "x":  1828,
+                      "y":  1000,
+                      "width":  115,
+                      "height":  24
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1828,
+                      "y":  1055,
+                      "width":  50,
+                      "height":  23
+                  },
+                  {
+                      "text":  "probably",
+                      "x":  1886,
+                      "y":  1055,
+                      "width":  118,
+                      "height":  29
+                  },
+                  {
+                      "text":  "hatched",
+                      "x":  2013,
+                      "y":  1055,
+                      "width":  108,
+                      "height":  23
+                  },
+                  {
+                      "text":  "in",
+                      "x":  2131,
+                      "y":  1055,
+                      "width":  22,
+                      "height":  23
+                  },
+                  {
+                      "text":  "late",
+                      "x":  2162,
+                      "y":  1055,
+                      "width":  50,
+                      "height":  23
+                  },
+                  {
+                      "text":  "spring",
+                      "x":  2220,
+                      "y":  1054,
+                      "width":  87,
+                      "height":  30
+                  },
+                  {
+                      "text":  "or",
+                      "x":  2315,
+                      "y":  1060,
+                      "width":  29,
+                      "height":  18
+                  },
+                  {
+                      "text":  "early",
+                      "x":  2350,
+                      "y":  1055,
+                      "width":  68,
+                      "height":  29
+                  },
+                  {
+                      "text":  "summer.",
+                      "x":  2427,
+                      "y":  1060,
+                      "width":  119,
+                      "height":  21
+                  },
+                  {
+                      "text":  "depending",
+                      "x":  1828,
+                      "y":  1093,
+                      "width":  143,
+                      "height":  29
+                  },
+                  {
+                      "text":  "on",
+                      "x":  1980,
+                      "y":  1098,
+                      "width":  34,
+                      "height":  19
+                  },
+                  {
+                      "text":  "where",
+                      "x":  2020,
+                      "y":  1093,
+                      "width":  86,
+                      "height":  24
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2113,
+                      "y":  1098,
+                      "width":  48,
+                      "height":  24
+                  },
+                  {
+                      "text":  "live.",
+                      "x":  2171,
+                      "y":  1093,
+                      "width":  52,
+                      "height":  24
+                  },
+                  {
+                      "text":  "Your",
+                      "x":  1828,
+                      "y":  1147,
+                      "width":  62,
+                      "height":  24
+                  },
+                  {
+                      "text":  "mom",
+                      "x":  1897,
+                      "y":  1153,
+                      "width":  66,
+                      "height":  18
+                  },
+                  {
+                      "text":  "is",
+                      "x":  1972,
+                      "y":  1147,
+                      "width":  21,
+                      "height":  24
+                  },
+                  {
+                      "text":  "an",
+                      "x":  2001,
+                      "y":  1153,
+                      "width":  32,
+                      "height":  18
+                  },
+                  {
+                      "text":  "amazing",
+                      "x":  2042,
+                      "y":  1147,
+                      "width":  111,
+                      "height":  29
+                  },
+                  {
+                      "text":  "architect!",
+                      "x":  2162,
+                      "y":  1147,
+                      "width":  124,
+                      "height":  24
+                  },
+                  {
+                      "text":  "When",
+                      "x":  2293,
+                      "y":  1147,
+                      "width":  79,
+                      "height":  24
+                  },
+                  {
+                      "text":  "building",
+                      "x":  2381,
+                      "y":  1147,
+                      "width":  107,
+                      "height":  29
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2495,
+                      "y":  1153,
+                      "width":  60,
+                      "height":  23
+                  },
+                  {
+                      "text":  "nest.",
+                      "x":  2564,
+                      "y":  1149,
+                      "width":  65,
+                      "height":  24
+                  },
+                  {
+                      "text":  "she",
+                      "x":  2636,
+                      "y":  1147,
+                      "width":  48,
+                      "height":  24
+                  },
+                  {
+                      "text":  "used",
+                      "x":  1827,
+                      "y":  1186,
+                      "width":  65,
+                      "height":  23
+                  },
+                  {
+                      "text":  "spider",
+                      "x":  1902,
+                      "y":  1185,
+                      "width":  85,
+                      "height":  29
+                  },
+                  {
+                      "text":  "silk-the",
+                      "x":  1994,
+                      "y":  1185,
+                      "width":  115,
+                      "height":  24
+                  },
+                  {
+                      "text":  "strong.",
+                      "x":  2117,
+                      "y":  1187,
+                      "width":  93,
+                      "height":  27
+                  },
+                  {
+                      "text":  "elastic",
+                      "x":  2218,
+                      "y":  1186,
+                      "width":  85,
+                      "height":  23
+                  },
+                  {
+                      "text":  "fiber",
+                      "x":  2312,
+                      "y":  1186,
+                      "width":  63,
+                      "height":  23
+                  },
+                  {
+                      "text":  "spiders",
+                      "x":  2382,
+                      "y":  1186,
+                      "width":  97,
+                      "height":  28
+                  },
+                  {
+                      "text":  "produce",
+                      "x":  2488,
+                      "y":  1186,
+                      "width":  111,
+                      "height":  28
+                  },
+                  {
+                      "text":  "to",
+                      "x":  2606,
+                      "y":  1187,
+                      "width":  27,
+                      "height":  22
+                  },
+                  {
+                      "text":  "catch",
+                      "x":  1828,
+                      "y":  1224,
+                      "width":  71,
+                      "height":  23
+                  },
+                  {
+                      "text":  "prey.",
+                      "x":  1908,
+                      "y":  1229,
+                      "width":  64,
+                      "height":  23
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1980,
+                      "y":  1223,
+                      "width":  51,
+                      "height":  24
+                  },
+                  {
+                      "text":  "silk",
+                      "x":  2039,
+                      "y":  1224,
+                      "width":  44,
+                      "height":  23
+                  },
+                  {
+                      "text":  "stretched",
+                      "x":  2091,
+                      "y":  1224,
+                      "width":  127,
+                      "height":  23
+                  },
+                  {
+                      "text":  "as",
+                      "x":  2226,
+                      "y":  1229,
+                      "width":  30,
+                      "height":  18
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2263,
+                      "y":  1229,
+                      "width":  49,
+                      "height":  24
+                  },
+                  {
+                      "text":  "grew.",
+                      "x":  2319,
+                      "y":  1229,
+                      "width":  74,
+                      "height":  24
+                  },
+                  {
+                      "text":  "so",
+                      "x":  2402,
+                      "y":  1229,
+                      "width":  31,
+                      "height":  18
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2440,
+                      "y":  1229,
+                      "width":  62,
+                      "height":  24
+                  },
+                  {
+                      "text":  "home",
+                      "x":  2510,
+                      "y":  1224,
+                      "width":  78,
+                      "height":  23
+                  },
+                  {
+                      "text":  "was",
+                      "x":  2595,
+                      "y":  1229,
+                      "width":  55,
+                      "height":  18
+                  },
+                  {
+                      "text":  "the",
+                      "x":  1929,
+                      "y":  1262,
+                      "width":  46,
+                      "height":  24
+                  },
+                  {
+                      "text":  "perfect",
+                      "x":  1982,
+                      "y":  1262,
+                      "width":  99,
+                      "height":  29
+                  },
+                  {
+                      "text":  "size.",
+                      "x":  2090,
+                      "y":  1261,
+                      "width":  60,
+                      "height":  25
+                  },
+                  {
+                      "text":  "Baby",
+                      "x":  1827,
+                      "y":  1316,
+                      "width":  69,
+                      "height":  30
+                  },
+                  {
+                      "text":  "hummingbirds",
+                      "x":  1904,
+                      "y":  1316,
+                      "width":  191,
+                      "height":  30
+                  },
+                  {
+                      "text":  "are",
+                      "x":  2104,
+                      "y":  1322,
+                      "width":  43,
+                      "height":  18
+                  },
+                  {
+                      "text":  "called",
+                      "x":  2154,
+                      "y":  1316,
+                      "width":  79,
+                      "height":  24
+                  },
+                  {
+                      "text":  "clicks.",
+                      "x":  2241,
+                      "y":  1315,
+                      "width":  97,
+                      "height":  27
+                  },
+                  {
+                      "text":  "hatchmgs.",
+                      "x":  2344,
+                      "y":  1316,
+                      "width":  152,
+                      "height":  29
+                  },
+                  {
+                      "text":  "or",
+                      "x":  2505,
+                      "y":  1322,
+                      "width":  28,
+                      "height":  18
+                  },
+                  {
+                      "text":  "nesdings",
+                      "x":  2541,
+                      "y":  1315,
+                      "width":  132,
+                      "height":  30
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1827,
+                      "y":  1370,
+                      "width":  50,
+                      "height":  24
+                  },
+                  {
+                      "text":  "didn\u0027t",
+                      "x":  1886,
+                      "y":  1370,
+                      "width":  76,
+                      "height":  24
+                  },
+                  {
+                      "text":  "open",
+                      "x":  1970,
+                      "y":  1376,
+                      "width":  66,
+                      "height":  24
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2045,
+                      "y":  1376,
+                      "width":  61,
+                      "height":  24
+                  },
+                  {
+                      "text":  "eyes",
+                      "x":  2112,
+                      "y":  1376,
+                      "width":  63,
+                      "height":  24
+                  },
+                  {
+                      "text":  "or",
+                      "x":  2183,
+                      "y":  1376,
+                      "width":  28,
+                      "height":  18
+                  },
+                  {
+                      "text":  "start",
+                      "x":  2219,
+                      "y":  1372,
+                      "width":  60,
+                      "height":  22
+                  },
+                  {
+                      "text":  "growing",
+                      "x":  2287,
+                      "y":  1371,
+                      "width":  108,
+                      "height":  29
+                  },
+                  {
+                      "text":  "any",
+                      "x":  2404,
+                      "y":  1376,
+                      "width":  47,
+                      "height":  24
+                  },
+                  {
+                      "text":  "feathers",
+                      "x":  2459,
+                      "y":  1370,
+                      "width":  110,
+                      "height":  24
+                  },
+                  {
+                      "text":  "until",
+                      "x":  2578,
+                      "y":  1370,
+                      "width":  57,
+                      "height":  24
+                  },
+                  {
+                      "text":  "about",
+                      "x":  1828,
+                      "y":  1409,
+                      "width":  77,
+                      "height":  24
+                  },
+                  {
+                      "text":  "nine",
+                      "x":  1914,
+                      "y":  1408,
+                      "width":  58,
+                      "height":  24
+                  },
+                  {
+                      "text":  "days",
+                      "x":  1980,
+                      "y":  1409,
+                      "width":  65,
+                      "height":  29
+                  },
+                  {
+                      "text":  "after",
+                      "x":  2053,
+                      "y":  1409,
+                      "width":  65,
+                      "height":  23
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2124,
+                      "y":  1414,
+                      "width":  52,
+                      "height":  24
+                  },
+                  {
+                      "text":  "hatched",
+                      "x":  2184,
+                      "y":  1409,
+                      "width":  118,
+                      "height":  23
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1828,
+                      "y":  1463,
+                      "width":  52,
+                      "height":  24
+                  },
+                  {
+                      "text":  "stayed",
+                      "x":  1888,
+                      "y":  1463,
+                      "width":  90,
+                      "height":  29
+                  },
+                  {
+                      "text":  "pretty",
+                      "x":  1987,
+                      "y":  1465,
+                      "width":  83,
+                      "height":  27
+                  },
+                  {
+                      "text":  "quiet",
+                      "x":  2078,
+                      "y":  1462,
+                      "width":  71,
+                      "height":  30
+                  },
+                  {
+                      "text":  "as",
+                      "x":  2158,
+                      "y":  1469,
+                      "width":  28,
+                      "height":  18
+                  },
+                  {
+                      "text":  "a",
+                      "x":  2194,
+                      "y":  1468,
+                      "width":  16,
+                      "height":  19
+                  },
+                  {
+                      "text":  "baby-except",
+                      "x":  2218,
+                      "y":  1463,
+                      "width":  182,
+                      "height":  30
+                  },
+                  {
+                      "text":  "when",
+                      "x":  2406,
+                      "y":  1464,
+                      "width":  74,
+                      "height":  23
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2489,
+                      "y":  1469,
+                      "width":  48,
+                      "height":  24
+                  },
+                  {
+                      "text":  "were",
+                      "x":  2545,
+                      "y":  1469,
+                      "width":  66,
+                      "height":  18
+                  },
+                  {
+                      "text":  "really",
+                      "x":  1828,
+                      "y":  1502,
+                      "width":  73,
+                      "height":  28
+                  },
+                  {
+                      "text":  "hungry",
+                      "x":  1908,
+                      "y":  1502,
+                      "width":  100,
+                      "height":  28
+                  },
+                  {
+                      "text":  "When",
+                      "x":  1827,
+                      "y":  1556,
+                      "width":  78,
+                      "height":  23
+                  },
+                  {
+                      "text":  "you",
+                      "x":  1912,
+                      "y":  1562,
+                      "width":  50,
+                      "height":  23
+                  },
+                  {
+                      "text":  "were",
+                      "x":  1968,
+                      "y":  1561,
+                      "width":  68,
+                      "height":  19
+                  },
+                  {
+                      "text":  "small.",
+                      "x":  2045,
+                      "y":  1556,
+                      "width":  75,
+                      "height":  26
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2127,
+                      "y":  1562,
+                      "width":  61,
+                      "height":  23
+                  },
+                  {
+                      "text":  "mom",
+                      "x":  2196,
+                      "y":  1562,
+                      "width":  66,
+                      "height":  17
+                  },
+                  {
+                      "text":  "fed",
+                      "x":  2271,
+                      "y":  1556,
+                      "width":  45,
+                      "height":  24
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2323,
+                      "y":  1562,
+                      "width":  50,
+                      "height":  23
+                  },
+                  {
+                      "text":  "small",
+                      "x":  2381,
+                      "y":  1556,
+                      "width":  73,
+                      "height":  24
+                  },
+                  {
+                      "text":  "bugs",
+                      "x":  2462,
+                      "y":  1556,
+                      "width":  69,
+                      "height":  29
+                  },
+                  {
+                      "text":  "and",
+                      "x":  2538,
+                      "y":  1556,
+                      "width":  52,
+                      "height":  23
+                  },
+                  {
+                      "text":  "nectar",
+                      "x":  2598,
+                      "y":  1557,
+                      "width":  90,
+                      "height":  23
+                  },
+                  {
+                      "text":  "from",
+                      "x":  1827,
+                      "y":  1594,
+                      "width":  61,
+                      "height":  24
+                  },
+                  {
+                      "text":  "her",
+                      "x":  1897,
+                      "y":  1594,
+                      "width":  44,
+                      "height":  24
+                  },
+                  {
+                      "text":  "bill.",
+                      "x":  1949,
+                      "y":  1594,
+                      "width":  45,
+                      "height":  24
+                  },
+                  {
+                      "text":  "You",
+                      "x":  1828,
+                      "y":  1649,
+                      "width":  50,
+                      "height":  23
+                  },
+                  {
+                      "text":  "spent",
+                      "x":  1886,
+                      "y":  1650,
+                      "width":  76,
+                      "height":  27
+                  },
+                  {
+                      "text":  "about",
+                      "x":  1969,
+                      "y":  1648,
+                      "width":  80,
+                      "height":  24
+                  },
+                  {
+                      "text":  "three",
+                      "x":  2057,
+                      "y":  1649,
+                      "width":  74,
+                      "height":  23
+                  },
+                  {
+                      "text":  "weeks",
+                      "x":  2138,
+                      "y":  1649,
+                      "width":  88,
+                      "height":  23
+                  },
+                  {
+                      "text":  "in",
+                      "x":  2234,
+                      "y":  1649,
+                      "width":  23,
+                      "height":  23
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2266,
+                      "y":  1654,
+                      "width":  60,
+                      "height":  24
+                  },
+                  {
+                      "text":  "mom\u0027s",
+                      "x":  2333,
+                      "y":  1649,
+                      "width":  86,
+                      "height":  23
+                  },
+                  {
+                      "text":  "nest",
+                      "x":  2428,
+                      "y":  1650,
+                      "width":  58,
+                      "height":  22
+                  },
+                  {
+                      "text":  "before",
+                      "x":  2494,
+                      "y":  1648,
+                      "width":  86,
+                      "height":  24
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2587,
+                      "y":  1654,
+                      "width":  49,
+                      "height":  24
+                  },
+                  {
+                      "text":  "were",
+                      "x":  1826,
+                      "y":  1692,
+                      "width":  67,
+                      "height":  18
+                  },
+                  {
+                      "text":  "big",
+                      "x":  1902,
+                      "y":  1687,
+                      "width":  41,
+                      "height":  29
+                  },
+                  {
+                      "text":  "enough",
+                      "x":  1952,
+                      "y":  1687,
+                      "width":  101,
+                      "height":  29
+                  },
+                  {
+                      "text":  "to",
+                      "x":  2061,
+                      "y":  1689,
+                      "width":  27,
+                      "height":  21
+                  },
+                  {
+                      "text":  "fly",
+                      "x":  2096,
+                      "y":  1687,
+                      "width":  33,
+                      "height":  29
+                  },
+                  {
+                      "text":  "and",
+                      "x":  2137,
+                      "y":  1687,
+                      "width":  48,
+                      "height":  23
+                  },
+                  {
+                      "text":  "live",
+                      "x":  2194,
+                      "y":  1687,
+                      "width":  46,
+                      "height":  23
+                  },
+                  {
+                      "text":  "on",
+                      "x":  2247,
+                      "y":  1692,
+                      "width":  34,
+                      "height":  19
+                  },
+                  {
+                      "text":  "your",
+                      "x":  2290,
+                      "y":  1692,
+                      "width":  58,
+                      "height":  24
+                  },
+                  {
+                      "text":  "own.",
+                      "x":  2356,
+                      "y":  1692,
+                      "width":  65,
+                      "height":  18
+                  },
+                  {
+                      "text":  "Every",
+                      "x":  1827,
+                      "y":  1741,
+                      "width":  76,
+                      "height":  29
+                  },
+                  {
+                      "text":  "year.",
+                      "x":  1909,
+                      "y":  1746,
+                      "width":  66,
+                      "height":  24
+                  },
+                  {
+                      "text":  "you",
+                      "x":  1982,
+                      "y":  1746,
+                      "width":  48,
+                      "height":  24
+                  },
+                  {
+                      "text":  "like",
+                      "x":  2039,
+                      "y":  1742,
+                      "width":  46,
+                      "height":  23
+                  },
+                  {
+                      "text":  "to",
+                      "x":  2093,
+                      "y":  1743,
+                      "width":  26,
+                      "height":  22
+                  },
+                  {
+                      "text":  "retum",
+                      "x":  2126,
+                      "y":  1743,
+                      "width":  86,
+                      "height":  22
+                  },
+                  {
+                      "text":  "to",
+                      "x":  2220,
+                      "y":  1743,
+                      "width":  26,
+                      "height":  22
+                  },
+                  {
+                      "text":  "the",
+                      "x":  2254,
+                      "y":  1742,
+                      "width":  44,
+                      "height":  23
+                  },
+                  {
+                      "text":  "same",
+                      "x":  2306,
+                      "y":  1746,
+                      "width":  71,
+                      "height":  19
+                  },
+                  {
+                      "text":  "place",
+                      "x":  2386,
+                      "y":  1742,
+                      "width":  72,
+                      "height":  28
+                  },
+                  {
+                      "text":  "you",
+                      "x":  2465,
+                      "y":  1746,
+                      "width":  48,
+                      "height":  24
+                  },
+                  {
+                      "text":  "were",
+                      "x":  2521,
+                      "y":  1746,
+                      "width":  67,
+                      "height":  19
+                  },
+                  {
+                      "text":  "born.",
+                      "x":  2596,
+                      "y":  1741,
+                      "width":  68,
+                      "height":  24
+                  },
+                  {
+                      "height":  380,
+                      "width":  410,
+                      "x":  805,
+                      "y":  175,
+                      "page":  26,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "TWEEET"
+                  },
+                  {
+                      "height":  82,
+                      "width":  248,
+                      "x":  224,
+                      "y":  195,
+                      "page":  26,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "Two"
+                  },
+                  {
+                      "height":  82,
+                      "width":  188,
+                      "x":  510,
+                      "y":  195,
+                      "page":  26,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "AM"
+                  },
+                  {
+                      "height":  86,
+                      "width":  257,
+                      "x":  2048,
+                      "y":  495,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "DON\u0027T"
+                  },
+                  {
+                      "height":  86,
+                      "width":  219,
+                      "x":  1778,
+                      "y":  497,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "SHHH"
+                  },
+                  {
+                      "height":  34,
+                      "width":  112,
+                      "x":  746,
+                      "y":  635,
+                      "page":  26,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "what\u0027s"
+                  },
+                  {
+                      "height":  78,
+                      "width":  273,
+                      "x":  1957,
+                      "y":  609,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "BABIES"
+                  },
+                  {
+                      "height":  100,
+                      "width":  84,
+                      "x":  502,
+                      "y":  810,
+                      "page":  26,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "A"
+                  },
+                  {
+                      "height":  112,
+                      "width":  104,
+                      "x":  402,
+                      "y":  972,
+                      "page":  26,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "B"
+                  },
+                  {
+                      "height":  112,
+                      "width":  108,
+                      "x":  586,
+                      "y":  972,
+                      "page":  26,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "C"
+                  },
+                  {
+                      "height":  25,
+                      "width":  96,
+                      "x":  1827,
+                      "y":  1263,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "always"
+                  },
+                  {
+                      "height":  27,
+                      "width":  87,
+                      "x":  2242,
+                      "y":  1316,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "chicks"
+                  },
+                  {
+                      "height":  27,
+                      "width":  146,
+                      "x":  2344,
+                      "y":  1316,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "hatchlings"
+                  },
+                  {
+                      "height":  27,
+                      "width":  130,
+                      "x":  2540,
+                      "y":  1316,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "nestlings"
+                  },
+                  {
+                      "height":  24,
+                      "width":  86,
+                      "x":  2127,
+                      "y":  1743,
+                      "page":  27,
+                      "reviewFile":  "hummingbird_spread_26.riv",
+                      "reviewSource":  "calibrated-transcript-coords-candidate",
+                      "source":  "ocr-review-approved",
+                      "text":  "return"
+                  }
+              ]
+}

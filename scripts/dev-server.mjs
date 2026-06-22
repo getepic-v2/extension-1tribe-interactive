@@ -37,7 +37,9 @@ async function serveFile(req, res, filePath) {
   if (!fileStat.isFile()) return false
 
   res.writeHead(200, {
+    'Access-Control-Allow-Headers': 'Content-Type, Access-Control-Request-Private-Network',
     'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Private-Network': 'true',
     'Access-Control-Expose-Headers': 'Content-Length',
     'Cache-Control': 'no-store',
     'Content-Length': String(fileStat.size),
@@ -66,8 +68,25 @@ function getSearchRoots(pathname) {
 const server = http.createServer(async (req, res) => {
   const pathname = decodeURIComponent(req.url?.split('?')[0] || '/')
 
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Headers': 'Content-Type, Access-Control-Request-Private-Network',
+      'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Private-Network': 'true',
+      'Access-Control-Max-Age': '600',
+    })
+    res.end()
+    return
+  }
+
   if (pathname === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
+    res.writeHead(200, {
+      'Access-Control-Allow-Headers': 'Content-Type, Access-Control-Request-Private-Network',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Private-Network': 'true',
+      'Content-Type': 'text/plain; charset=utf-8',
+    })
     res.end(`Extension dev server running on http://localhost:${port}`)
     return
   }

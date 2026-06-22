@@ -1,0 +1,469 @@
+{
+  "image": "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\TheWildLifeHummingbirdforaDay_83230\\word-hotspots\\hummingbird_spread_02.png",
+  "text": "Hi, Friend! Hear that sound? That's how we hummingbirds got our name-our fast-flapping wings hum all day long! Hummingbirds are fun, colorful creatures that like to be on the move. How would it feel to be a hummingbird for a day? Spread your wings and find out! My name is Busy, and be your guide. Come on-let's fly!",
+  "width": 2964,
+  "height": 2160,
+  "words": [
+    {
+      "text": "Hi,",
+      "x": 832,
+      "y": 254,
+      "width": 56,
+      "height": 44
+    },
+    {
+      "text": "Friend!",
+      "x": 901,
+      "y": 254,
+      "width": 144,
+      "height": 41
+    },
+    {
+      "text": "Hear",
+      "x": 737,
+      "y": 312,
+      "width": 111,
+      "height": 41
+    },
+    {
+      "text": "that",
+      "x": 861,
+      "y": 314,
+      "width": 97,
+      "height": 40
+    },
+    {
+      "text": "sound?",
+      "x": 973,
+      "y": 313,
+      "width": 166,
+      "height": 41
+    },
+    {
+      "text": "That's",
+      "x": 600,
+      "y": 372,
+      "width": 146,
+      "height": 42
+    },
+    {
+      "text": "how",
+      "x": 761,
+      "y": 374,
+      "width": 97,
+      "height": 40
+    },
+    {
+      "text": "we",
+      "x": 875,
+      "y": 384,
+      "width": 62,
+      "height": 29
+    },
+    {
+      "text": "hummingbirds",
+      "x": 950,
+      "y": 374,
+      "width": 322,
+      "height": 50
+    },
+    {
+      "text": "got",
+      "x": 723,
+      "y": 434,
+      "width": 80,
+      "height": 49
+    },
+    {
+      "text": "our",
+      "x": 818,
+      "y": 444,
+      "width": 79,
+      "height": 29
+    },
+    {
+      "text": "name-our",
+      "x": 910,
+      "y": 443,
+      "width": 242,
+      "height": 30
+    },
+    {
+      "text": "fast-flapping",
+      "x": 708,
+      "y": 494,
+      "width": 309,
+      "height": 49
+    },
+    {
+      "text": "wings",
+      "x": 1032,
+      "y": 495,
+      "width": 132,
+      "height": 48
+    },
+    {
+      "text": "hum",
+      "x": 747,
+      "y": 552,
+      "width": 96,
+      "height": 40
+    },
+    {
+      "text": "all",
+      "x": 859,
+      "y": 553,
+      "width": 48,
+      "height": 38
+    },
+    {
+      "text": "day",
+      "x": 919,
+      "y": 553,
+      "width": 85,
+      "height": 49
+    },
+    {
+      "text": "long!",
+      "x": 1018,
+      "y": 552,
+      "width": 108,
+      "height": 51
+    },
+    {
+      "text": "Hummingbirds",
+      "x": 1916,
+      "y": 667,
+      "width": 265,
+      "height": 40
+    },
+    {
+      "text": "are",
+      "x": 2191,
+      "y": 675,
+      "width": 58,
+      "height": 24
+    },
+    {
+      "text": "fun,",
+      "x": 2259,
+      "y": 670,
+      "width": 69,
+      "height": 34
+    },
+    {
+      "text": "colorful",
+      "x": 2340,
+      "y": 670,
+      "width": 134,
+      "height": 29
+    },
+    {
+      "text": "creatures",
+      "x": 1914,
+      "y": 730,
+      "width": 170,
+      "height": 28
+    },
+    {
+      "text": "that",
+      "x": 2093,
+      "y": 729,
+      "width": 73,
+      "height": 30
+    },
+    {
+      "text": "like",
+      "x": 2177,
+      "y": 728,
+      "width": 60,
+      "height": 30
+    },
+    {
+      "text": "to",
+      "x": 2248,
+      "y": 729,
+      "width": 36,
+      "height": 30
+    },
+    {
+      "text": "be",
+      "x": 2296,
+      "y": 729,
+      "width": 45,
+      "height": 30
+    },
+    {
+      "text": "on",
+      "x": 2351,
+      "y": 735,
+      "width": 45,
+      "height": 23
+    },
+    {
+      "text": "the",
+      "x": 2407,
+      "y": 729,
+      "width": 59,
+      "height": 30
+    },
+    {
+      "text": "move.",
+      "x": 1917,
+      "y": 794,
+      "width": 105,
+      "height": 24
+    },
+    {
+      "text": "How",
+      "x": 2036,
+      "y": 789,
+      "width": 81,
+      "height": 29
+    },
+    {
+      "text": "would",
+      "x": 2128,
+      "y": 789,
+      "width": 108,
+      "height": 29
+    },
+    {
+      "text": "it",
+      "x": 2250,
+      "y": 787,
+      "width": 22,
+      "height": 31
+    },
+    {
+      "text": "feel",
+      "x": 2280,
+      "y": 789,
+      "width": 67,
+      "height": 29
+    },
+    {
+      "text": "to",
+      "x": 2359,
+      "y": 789,
+      "width": 34,
+      "height": 29
+    },
+    {
+      "text": "be",
+      "x": 2407,
+      "y": 789,
+      "width": 45,
+      "height": 29
+    },
+    {
+      "text": "a",
+      "x": 2462,
+      "y": 794,
+      "width": 20,
+      "height": 24
+    },
+    {
+      "text": "hummingbird",
+      "x": 1916,
+      "y": 847,
+      "width": 238,
+      "height": 39
+    },
+    {
+      "text": "for",
+      "x": 2166,
+      "y": 848,
+      "width": 49,
+      "height": 30
+    },
+    {
+      "text": "a",
+      "x": 2226,
+      "y": 854,
+      "width": 20,
+      "height": 24
+    },
+    {
+      "text": "day?",
+      "x": 2258,
+      "y": 848,
+      "width": 84,
+      "height": 38
+    },
+    {
+      "text": "Spread",
+      "x": 1917,
+      "y": 911,
+      "width": 167,
+      "height": 51
+    },
+    {
+      "text": "your",
+      "x": 2104,
+      "y": 918,
+      "width": 99,
+      "height": 42
+    },
+    {
+      "text": "wings",
+      "x": 2223,
+      "y": 908,
+      "width": 131,
+      "height": 57
+    },
+    {
+      "text": "and",
+      "x": 1918,
+      "y": 975,
+      "width": 87,
+      "height": 39
+    },
+    {
+      "text": "find",
+      "x": 2023,
+      "y": 970,
+      "width": 87,
+      "height": 43
+    },
+    {
+      "text": "out!",
+      "x": 2120,
+      "y": 970,
+      "width": 74,
+      "height": 43
+    },
+    {
+      "text": "My",
+      "x": 2391,
+      "y": 1176,
+      "width": 49,
+      "height": 36
+    },
+    {
+      "text": "name",
+      "x": 2449,
+      "y": 1185,
+      "width": 89,
+      "height": 21
+    },
+    {
+      "text": "is",
+      "x": 2321,
+      "y": 1223,
+      "width": 25,
+      "height": 29
+    },
+    {
+      "text": "Busy,",
+      "x": 2357,
+      "y": 1224,
+      "width": 82,
+      "height": 34
+    },
+    {
+      "text": "and",
+      "x": 2450,
+      "y": 1223,
+      "width": 64,
+      "height": 29
+    },
+    {
+      "text": "be",
+      "x": 2568,
+      "y": 1224,
+      "width": 41,
+      "height": 29
+    },
+    {
+      "text": "your",
+      "x": 2323,
+      "y": 1277,
+      "width": 72,
+      "height": 27
+    },
+    {
+      "text": "guide.",
+      "x": 2406,
+      "y": 1269,
+      "width": 98,
+      "height": 38
+    },
+    {
+      "text": "Come",
+      "x": 2515,
+      "y": 1273,
+      "width": 91,
+      "height": 26
+    },
+    {
+      "text": "on-let's",
+      "x": 2365,
+      "y": 1316,
+      "width": 138,
+      "height": 30
+    },
+    {
+      "text": "fly!",
+      "x": 2512,
+      "y": 1316,
+      "width": 51,
+      "height": 34
+    },
+    {
+      "height": 353,
+      "width": 657,
+      "x": 260,
+      "y": 645,
+      "page": 2,
+      "reviewFile": "hummingbird_spread_02.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "HUMMMMMMM"
+    },
+    {
+      "height": 28,
+      "width": 36,
+      "x": 2523,
+      "y": 1225,
+      "page": 3,
+      "reviewFile": "hummingbird_spread_02.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "I'll"
+    },
+    {
+      "height": 20,
+      "width": 104,
+      "x": 1081,
+      "y": 1289,
+      "page": 2,
+      "reviewFile": "hummingbird_spread_02.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Violetear"
+    },
+    {
+      "height": 20,
+      "width": 157,
+      "x": 1081,
+      "y": 1321,
+      "page": 2,
+      "reviewFile": "hummingbird_spread_02.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "Hummingbird"
+    },
+    {
+      "height": 23,
+      "width": 23,
+      "x": 194,
+      "y": 1958,
+      "page": 2,
+      "reviewFile": "hummingbird_spread_02.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "2"
+    }
+  ]
+}

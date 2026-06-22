@@ -1,0 +1,255 @@
+{
+  "generatedAt": "2026-06-18T23:47:40.2691102-07:00",
+  "sourceFolder": "C:\\CorbinOrdelStudio\\2026\\TheLittleLabs\\extension-1tribe-interactive-official\\public\\rive\\CreepyCafetorium_74774",
+  "render": {
+    "width": 2416,
+    "height": 1762,
+    "source": "artboard-params",
+    "artboardWidth": 1208,
+    "artboardHeight": 881,
+    "renderScale": 2,
+    "metadataFile": null,
+    "ocrWordPaddingX": 4,
+    "ocrWordPaddingY": 5,
+    "animation": "idle",
+    "stateMachine": "",
+    "fit": "contain",
+    "settleMs": 1800,
+    "contentBounds": {
+      "x": 0.039735099337748346,
+      "y": 0,
+      "width": 0.9205298013245033,
+      "height": 1
+    },
+    "contentBoundsSource": "detected-page-edge-columns",
+    "contentBoundsPixels": {
+      "x": 96,
+      "y": 0,
+      "width": 2224,
+      "height": 1762
+    }
+  },
+  "files": [
+    {
+      "file": "creepy_cafetorium_spread_00.riv",
+      "pages": [
+        0,
+        1
+      ],
+      "screenshot": "creepy_cafetorium_spread_00.png",
+      "ocr": "creepy_cafetorium_spread_00.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_02.riv",
+      "pages": [
+        2,
+        3
+      ],
+      "screenshot": "creepy_cafetorium_spread_02.png",
+      "ocr": "creepy_cafetorium_spread_02.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_04.riv",
+      "pages": [
+        4,
+        5
+      ],
+      "screenshot": "creepy_cafetorium_spread_04.png",
+      "ocr": "creepy_cafetorium_spread_04.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_06.riv",
+      "pages": [
+        6,
+        7
+      ],
+      "screenshot": "creepy_cafetorium_spread_06.png",
+      "ocr": "creepy_cafetorium_spread_06.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_08.riv",
+      "pages": [
+        8,
+        9
+      ],
+      "screenshot": "creepy_cafetorium_spread_08.png",
+      "ocr": "creepy_cafetorium_spread_08.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_10.riv",
+      "pages": [
+        10,
+        11
+      ],
+      "screenshot": "creepy_cafetorium_spread_10.png",
+      "ocr": "creepy_cafetorium_spread_10.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_12.riv",
+      "pages": [
+        12,
+        13
+      ],
+      "screenshot": "creepy_cafetorium_spread_12.png",
+      "ocr": "creepy_cafetorium_spread_12.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_14.riv",
+      "pages": [
+        14,
+        15
+      ],
+      "screenshot": "creepy_cafetorium_spread_14.png",
+      "ocr": "creepy_cafetorium_spread_14.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_16.riv",
+      "pages": [
+        16,
+        17
+      ],
+      "screenshot": "creepy_cafetorium_spread_16.png",
+      "ocr": "creepy_cafetorium_spread_16.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_18.riv",
+      "pages": [
+        18,
+        19
+      ],
+      "screenshot": "creepy_cafetorium_spread_18.png",
+      "ocr": "creepy_cafetorium_spread_18.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_20.riv",
+      "pages": [
+        20,
+        21
+      ],
+      "screenshot": "creepy_cafetorium_spread_20.png",
+      "ocr": "creepy_cafetorium_spread_20.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_22.riv",
+      "pages": [
+        22,
+        23
+      ],
+      "screenshot": "creepy_cafetorium_spread_22.png",
+      "ocr": "creepy_cafetorium_spread_22.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_24.riv",
+      "pages": [
+        24,
+        25
+      ],
+      "screenshot": "creepy_cafetorium_spread_24.png",
+      "ocr": "creepy_cafetorium_spread_24.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_26.riv",
+      "pages": [
+        26,
+        27
+      ],
+      "screenshot": "creepy_cafetorium_spread_26.png",
+      "ocr": "creepy_cafetorium_spread_26.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_28.riv",
+      "pages": [
+        28,
+        29
+      ],
+      "screenshot": "creepy_cafetorium_spread_28.png",
+      "ocr": "creepy_cafetorium_spread_28.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_30.riv",
+      "pages": [
+        30,
+        31
+      ],
+      "screenshot": "creepy_cafetorium_spread_30.png",
+      "ocr": "creepy_cafetorium_spread_30.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    },
+    {
+      "file": "creepy_cafetorium_spread_32.riv",
+      "pages": [
+        31,
+        32
+      ],
+      "screenshot": "creepy_cafetorium_spread_32.png",
+      "ocr": "creepy_cafetorium_spread_32.ocr.json",
+      "render": {
+        "width": 2416,
+        "height": 1762
+      }
+    }
+  ]
+}
