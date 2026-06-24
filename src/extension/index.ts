@@ -2492,6 +2492,28 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     return currentPage >= lastPreviewReaderStart
   }
 
+  const getCommandHarnessSliderCompletionReleaseThreshold = () => {
+    const bookData = context.data.getBookData() || {}
+    const numPages = Number((bookData as { numPages?: unknown }).numPages)
+    const firstPageAfterLastRive = lastPreviewReaderEnd + 1
+    const candidates = [
+      firstPageAfterLastRive,
+      ...nativePassthroughRightPages.map((page) => page + 1),
+      Number.isFinite(numPages) ? numPages - 1 : Number.NaN,
+    ].filter((page) => Number.isFinite(page) && page > lastPreviewReaderEnd)
+
+    return candidates.length ? Math.min(...candidates) : firstPageAfterLastRive
+  }
+
+  const isCommandHarnessSliderCompletionReleasePage = (page: number) =>
+    Number.isFinite(page) && page >= getCommandHarnessSliderCompletionReleaseThreshold()
+
+  const isCommandHarnessBeforeSliderCompletionReleasePage = (page: number) =>
+    Number.isFinite(page) && page < getCommandHarnessSliderCompletionReleaseThreshold()
+
+  const canReleaseCommandHarnessForSliderCompletion = () =>
+    commandHarnessCompletionHandoff || commandHarnessCompletionRiveReleased || Boolean(findVisibleEpicCompletionElement())
+
   const getCommandHarnessCompletionDebug = () => {
     const visibleElement = findVisibleEpicCompletionElement()
     return {
@@ -2518,6 +2540,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         since: commandHarnessReadAgainRestoreSince,
         target: commandHarnessReadAgainRestoreTarget,
       },
+      sliderCompletionReleaseThreshold: getCommandHarnessSliderCompletionReleaseThreshold(),
       since: commandHarnessCompletionSince,
       visibleElement: getCommandHarnessElementSummary(visibleElement),
     }
@@ -2617,6 +2640,11 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       return false
     }
 
+    if (isCommandHarnessSliderCompletionReleasePage(currentPage)) {
+      releaseCommandHarnessForSliderCompletion(currentPage, `${reason}: terminal page invariant`, null)
+      return true
+    }
+
     if (isCommandHarnessFinalRiveSpreadTransitionInFlight()) {
       scheduleCommandHarnessCompletionCheck(`${reason}: waiting for final Rive transition`, 120)
       return false
@@ -2640,6 +2668,15 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         trigger: 'page-beyond-last-rive',
       })
       return true
+    }
+
+    if (commandHarnessCompletionHandoff && isCommandHarnessBeforeSliderCompletionReleasePage(currentPage)) {
+      setCommandHarnessCompletionHandoff(false, reason, {
+        currentPage,
+        sliderCompletionReleaseThreshold: getCommandHarnessSliderCompletionReleaseThreshold(),
+        trigger: 'returned-before-completion-release-page',
+      })
+      return false
     }
 
     if (commandHarnessCompletionHandoff && currentPage < lastPreviewReaderStart) {
@@ -2827,6 +2864,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
 
     if (!isCommandHarnessCompletionClickTarget(event.target)) return
+    clearCommandHarnessSliderSettle()
+    cancelCommandHarnessSliderTransitionState()
     window.setTimeout(() => {
       commandHarnessCompletionRiveReleased = true
       setCommandHarnessCompletionHandoff(true, 'Epic completion UI click', {
@@ -2836,6 +2875,36 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       })
     }, 0)
     scheduleCommandHarnessCompletionCheck('post-completion-click check', 500)
+  }
+
+  const releaseCommandHarnessForSliderCompletion = (
+    page: number,
+    reason: string,
+    direction: CommandHarnessTransitionDirection,
+  ) => {
+    clearCommandHarnessSliderSettle()
+    cancelCommandHarnessSliderTransitionState()
+    commandHarnessCompletionRiveReleased = true
+    setCommandHarnessCompletionHandoff(true, reason, {
+      currentPage: page,
+      direction,
+      finalRiveReleased: true,
+      sliderCompletionReleaseThreshold: getCommandHarnessSliderCompletionReleaseThreshold(),
+      trigger: 'slider-final-page',
+    })
+    previewStatus.textContent = 'Slider reached the final Epic page; final Rive spread removed.'
+    scheduleCommandHarnessFrameResizeSync(`${reason}: final slider handoff`)
+  }
+
+  const enforceCommandHarnessTerminalPageInvariant = (reason: string) => {
+    const currentPage = context.data.getCurrentPage()
+    if (commandHarnessReadAgainRestorePending || !isCommandHarnessSliderCompletionReleasePage(currentPage)) {
+      return false
+    }
+    if (commandHarnessCompletionHandoff && commandHarnessCompletionRiveReleased) return true
+
+    releaseCommandHarnessForSliderCompletion(currentPage, reason, null)
+    return true
   }
 
   const startCommandHarnessCompletionObserver = () => {
@@ -3113,7 +3182,11 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
     const pagePreviewIndex = getPreviewIndexForReaderPage(page)
     const pageIsBeforeFinalRiveSpread = pagePreviewIndex < previewFiles.length - 1
-    if (commandHarnessCompletionHandoff && pageIsBeforeFinalRiveSpread && !commandHarnessReadAgainRestorePending) {
+    if (
+      commandHarnessCompletionHandoff &&
+      !commandHarnessReadAgainRestorePending &&
+      (pageIsBeforeFinalRiveSpread || isCommandHarnessBeforeSliderCompletionReleasePage(page))
+    ) {
       setCommandHarnessCompletionHandoff(false, `${eventSource}: pageChange returned to Rive spread`, {
         page,
         previewIndex: pagePreviewIndex,
@@ -3126,6 +3199,10 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
     if (payloadSource === 'slider') {
       if (isPreviewEnabled) {
+        if (isCommandHarnessSliderCompletionReleasePage(page) && canReleaseCommandHarnessForSliderCompletion()) {
+          releaseCommandHarnessForSliderCompletion(page, `${eventSource}: final page`, direction)
+          return
+        }
         scheduleCommandHarnessSliderAlignment(page, eventSource, direction)
         scheduleCommandHarnessFrameResizeSync(`${eventSource}: slider pageChange`)
       }
@@ -3279,6 +3356,19 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         },
       }),
     )
+  }
+
+  const dispatchCommandHarnessSliderSettle = (page: number, reason: string) => {
+    syncCommandHarnessPreviewPointerEvents()
+    dispatchCommandHarnessTurnEvent('tribeCommandHarnessTurnSettle', {
+      activeFile: previewActiveLayer?.file.file || null,
+      direction: 'slider',
+      interactionRefresh: true,
+      source: 'slider',
+      targetIndex: previewActiveLayer?.index ?? previewIndex,
+      targetPage: page,
+      reason,
+    })
   }
 
   const runPreviousPage = () => {
@@ -3508,6 +3598,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     for (const delayMs of [0, 40, 120, 300, 700]) {
       const timer = window.setTimeout(() => {
         commandHarnessFrameResizeTimers = commandHarnessFrameResizeTimers.filter((item) => item !== timer)
+        if (enforceCommandHarnessTerminalPageInvariant(`${reason}: frame resize terminal guard`)) return
         syncCommandHarnessFrameResizeObserver()
         resizeTwoLayerPreview()
         console.info('[1Tribe command harness] Synced Rive overlay to Epic frame.', {
@@ -3756,12 +3847,25 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
     try {
       if (layer.initialPlaybackMode === 'idle' && layer.role === 'active') {
-        return startCommandHarnessAnimation(
+        const idleEntry = startCommandHarnessAnimation(
           layer,
           previewBackIdleAnimation,
           ['Page_idle', 'Page_Idle', 'Page idle', 'PageIdle', 'idle', 'Idle'],
           `${label} slider idle`,
         )
+        const stateMachineAfterIdle = schedulePreviewStateMachineAfterIdle(layer, idleEntry)
+        if (!stateMachineAfterIdle && !idleEntry.found) {
+          return startCommandHarnessStateMachine(layer, `${label} slider idle fallback`)
+        }
+        if (stateMachineAfterIdle) {
+          console.info('[1Tribe command harness] Slider-loaded idle will resume state machine.', {
+            file: layer.file.file,
+            spread: layer.file.label,
+            idleAnimation: idleEntry.animation,
+            stateMachineAfterIdle,
+          })
+        }
+        return idleEntry
       }
 
       if (layer.role === 'active') {
@@ -3992,6 +4096,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     const rive = layer.rive
     const delays = [0, 32, 80, 160, 320, 640]
     const run = (attempt: number) => {
+      if (enforceCommandHarnessTerminalPageInvariant(`${label}: initial start terminal guard`)) return
       if (layer.rive !== rive || !isCommandHarnessLayerCurrent(layer) || layer.initialStateMachineStarted) return
 
       positionCommandHarnessPreviewStage()
@@ -4050,6 +4155,8 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   }
 
   const markPreviewLayerLoaded = (layer: CommandHarnessPreviewLayer, label: string, serial: number) => {
+    if (enforceCommandHarnessTerminalPageInvariant(`${label}: layer load terminal guard`)) return
+
     if (
       serial !== previewLayerLoadSerial &&
       layer !== previewActiveLayer &&
@@ -4085,6 +4192,15 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     }
     syncCommandHarnessLoadingIndicator()
     updateCommandButtons()
+
+    if (
+      layer === previewActiveLayer &&
+      layer.initialPlaybackMode === 'idle' &&
+      getPreviewIndexForReaderPage(context.data.getCurrentPage()) === layer.index &&
+      !isCommandHarnessSliderCompletionReleasePage(context.data.getCurrentPage())
+    ) {
+      dispatchCommandHarnessSliderSettle(context.data.getCurrentPage(), `${label}: slider idle layer loaded`)
+    }
 
     if (commandHarnessReadAgainRestorePending && layer.index === 0) {
       window.setTimeout(() => {
@@ -4376,9 +4492,21 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       ['Page_idle', 'Page_Idle', 'Page idle', 'PageIdle', 'idle', 'Idle'],
       `slider settled page ${page}: ${reason}`,
     )
-    if (!entry.found) {
+    if (entry.found) {
+      const stateMachineAfterIdle = schedulePreviewStateMachineAfterIdle(layer, entry)
+      if (stateMachineAfterIdle) {
+        console.info('[1Tribe command harness] Slider idle scheduled state-machine resume.', {
+          file: layer.file.file,
+          page,
+          reason,
+          spread: layer.file.label,
+          stateMachineAfterIdle,
+        })
+      }
+    } else {
       layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
       layer.rive.drawFrame()
+      startCommandHarnessStateMachine(layer, `slider idle missing; resumed state machine for page ${page}`)
     }
     return entry
   }
@@ -4402,6 +4530,20 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const alignTwoLayerPreviewToReaderPageWithoutAnimation = (page: number, reason: string) => {
     if (!isPreviewEnabled) return
 
+    const currentPage = context.data.getCurrentPage()
+    if (page !== currentPage || isCommandHarnessSliderCompletionReleasePage(currentPage)) {
+      if (enforceCommandHarnessTerminalPageInvariant(`${reason}: stale slider target terminal guard`)) return
+      if (page !== context.data.getCurrentPage()) {
+        previewStatus.textContent = `Skipped stale slider target ${page}; Epic is on page ${context.data.getCurrentPage()}.`
+        console.info('[1Tribe command harness] Skipped stale slider target before direct Rive alignment.', {
+          currentPage: context.data.getCurrentPage(),
+          page,
+          reason,
+        })
+        return
+      }
+    }
+
     const targetIndex = getPreviewIndexForReaderPage(page)
     const targetFile = previewFiles[targetIndex]
     if (!targetFile) return
@@ -4421,6 +4563,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
         targetIndex,
       })
       updateCommandButtons()
+      dispatchCommandHarnessSliderSettle(page, reason)
       return
     }
 
@@ -4441,6 +4584,9 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       targetIndex,
     })
     updateCommandButtons()
+    if (previewActiveLayer?.loaded) {
+      dispatchCommandHarnessSliderSettle(page, reason)
+    }
   }
 
   const scheduleCommandHarnessSliderAlignment = (
@@ -4468,6 +4614,15 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       commandHarnessSliderSettleTimer = null
       commandHarnessSliderTarget = null
       if (!target) return
+      if (target.page !== context.data.getCurrentPage()) {
+        if (enforceCommandHarnessTerminalPageInvariant(`${target.reason}: stale slider settle terminal guard`)) return
+        previewStatus.textContent = `Skipped stale slider settle ${target.page}; Epic is on page ${context.data.getCurrentPage()}.`
+        console.info('[1Tribe command harness] Skipped stale slider settle target.', {
+          currentPage: context.data.getCurrentPage(),
+          target,
+        })
+        return
+      }
 
       alignTwoLayerPreviewToReaderPageWithoutAnimation(target.page, target.reason)
       scheduleCommandHarnessFrameResizeSync(`${target.reason}: slider settled`)
@@ -7268,6 +7423,11 @@ function activateStandaloneWordHotspotOverlay(context: ExtensionContext): () => 
   const onCommandHarnessTurnSettle = (event: Event) => {
     const detail = event instanceof CustomEvent && typeof event.detail === 'object' ? event.detail as Record<string, unknown> : null
     lastHarnessPageOverrideDetail = detail
+    if (detail?.interactionRefresh || detail?.source === 'slider') {
+      if (syncStandaloneWordHotspotCompletionSuppression('command harness slider settle')) return
+      void renderForPage('command harness slider settle')
+      positionHotspotFrame()
+    }
   }
   const pageChangeCleanup = context.events.on('pageChange', onPageChange)
   const interval = window.setInterval(() => refresh('standalone interval refresh'), 750)

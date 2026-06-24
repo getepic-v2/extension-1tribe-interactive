@@ -144,13 +144,15 @@ const CREEPY_CAFETORIUM_READER_DEFAULTS: Record<string, string> = {
 }
 
 function createIcanFindItPreviewFiles(): CommandHarnessPreviewFile[] {
-  return ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24'].map((spread) => {
+  const spreads = ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24']
+  return spreads.map((spread, index) => {
     const spreadNumber = Number(spread)
     const readerStart = spread === '01' ? 0 : spreadNumber
+    const isFinalRiveSpread = index === spreads.length - 1
     return {
       file: `rive/ICanFindIt_83936/83936_spread_${spread}.riv`,
       label: `spread ${spread}`,
-      readerEnd: readerStart + 1,
+      readerEnd: isFinalRiveSpread ? readerStart : readerStart + 1,
       readerStart,
       stateMachine:
         spread === '01'
@@ -161,10 +163,12 @@ function createIcanFindItPreviewFiles(): CommandHarnessPreviewFile[] {
 }
 
 function createHummingbirdPreviewFiles(): CommandHarnessPreviewFile[] {
-  return ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24', '26', '28', '30', '32', '34'].map(
-    (spread) => {
+  const spreads = ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24', '26', '28', '30', '32', '34']
+  return spreads.map(
+    (spread, index) => {
       const spreadNumber = Number(spread)
       const readerStart = spread === '01' ? 0 : spreadNumber
+      const isFinalRiveSpread = index === spreads.length - 1
       const stateMachine =
         spread === '01'
           ? 'HummingBird_spread_00&01'
@@ -175,7 +179,7 @@ function createHummingbirdPreviewFiles(): CommandHarnessPreviewFile[] {
       return {
         file: `rive/TheWildLifeHummingbirdforaDay_83230/hummingbird_spread_${spread}.riv`,
         label: `spread ${spread}`,
-        readerEnd: readerStart + 1,
+        readerEnd: isFinalRiveSpread ? readerStart : readerStart + 1,
         readerStart,
         stateMachine,
       }
@@ -219,7 +223,7 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     bookId: ICAN_FIND_IT_BOOK_ID,
     defaultParams: ICAN_FIND_IT_READER_DEFAULTS,
     nativePassthroughLeftPages: [0],
-    nativePassthroughRightPages: [25],
+    nativePassthroughRightPages: [24],
     previewFiles: createIcanFindItPreviewFiles(),
     readAlongSuppressedTimingRanges: [
       {
@@ -243,7 +247,7 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     bookId: HUMMINGBIRD_BOOK_ID,
     defaultParams: HUMMINGBIRD_READER_DEFAULTS,
     nativePassthroughLeftPages: [0],
-    nativePassthroughRightPages: [35],
+    nativePassthroughRightPages: [34],
     previewFiles: createHummingbirdPreviewFiles(),
     readAlongSuppressedTimingRanges: [
       {
