@@ -577,6 +577,7 @@ function getReadAlongSuppressedTimingRange(
   context: ExtensionContext,
   timingSet: ReadAlongTimingSet | null,
   currentTime: number,
+  timing: ReadAlongWordTiming | null = null,
 ): ReadAlongSuppressedTimingRange | null {
   if (!timingSet || !Number.isFinite(currentTime)) return null
 
@@ -590,7 +591,18 @@ function getReadAlongSuppressedTimingRange(
       if (!Number.isFinite(startTime) || currentTime < startTime) return false
 
       const endTime = range.endTime === undefined ? Number.POSITIVE_INFINITY : Number(range.endTime)
-      return !Number.isFinite(endTime) || currentTime <= endTime
+      if (Number.isFinite(endTime) && currentTime > endTime) return false
+
+      const suppressedWords = range.words || []
+      if (!suppressedWords.length) return true
+      if (!timing) return false
+
+      const timingAliases = new Set([
+        normalizeReadAlongWordAlias(timing.word),
+        normalizeReadAlongWordAlias(timing.text),
+        normalizeReadAlongWordAlias(timing.nativeText),
+      ].filter(Boolean))
+      return suppressedWords.some((word) => timingAliases.has(normalizeReadAlongWordAlias(word)))
     }) || null
   )
 }
@@ -603,6 +615,7 @@ function summarizeReadAlongSuppression(range: ReadAlongSuppressedTimingRange | n
     page: range.page,
     reason: range.reason || null,
     startTime: range.startTime,
+    words: range.words || null,
   }
 }
 
@@ -1912,7 +1925,9 @@ export async function previewReadAlongAtTime(
   const lingerSeconds = Math.max(0, getNumberParam('tribeReadAlongPreviewLingerMs', 120) / 1000)
   const timingIndex = findReadAlongTimingIndexAtTime(timingSet.timings, safeTime, lingerSeconds)
   const candidateTiming = timingSet.timings[timingIndex] || null
-  const suppressedRange = candidateTiming ? getReadAlongSuppressedTimingRange(context, timingSet, safeTime) : null
+  const suppressedRange = candidateTiming
+    ? getReadAlongSuppressedTimingRange(context, timingSet, safeTime, candidateTiming)
+    : null
   const timing = suppressedRange ? null : candidateTiming
   const message = suppressedRange && candidateTiming
     ? `Read-along time preview suppressed "${candidateTiming.text}" at ${safeTime.toFixed(2)}s.`
@@ -2142,7 +2157,7 @@ function updateEpicPlaybackStatus(
   const candidateTiming = timingSet?.timings[timingIndex] || null
   const suppressedRange =
     candidateTiming && Number.isFinite(numericTime)
-      ? getReadAlongSuppressedTimingRange(context, timingSet, numericTime)
+      ? getReadAlongSuppressedTimingRange(context, timingSet, numericTime, candidateTiming)
       : null
   const timing = suppressedRange ? null : candidateTiming
   const shouldShowActiveWord = Boolean(media && !media.paused && !media.ended && timing)
@@ -2909,7 +2924,9 @@ function updateReadAlongPlaybackStatus(
   const lingerSeconds = Math.max(0, getNumberParam('tribeReadAlongPreviewLingerMs', 120) / 1000)
   const timingIndex = timingSet ? findReadAlongTimingIndexAtTime(timingSet.timings, currentTime, lingerSeconds) : -1
   const candidateTiming = timingSet?.timings[timingIndex] || null
-  const suppressedRange = candidateTiming ? getReadAlongSuppressedTimingRange(context, timingSet, currentTime) : null
+  const suppressedRange = candidateTiming
+    ? getReadAlongSuppressedTimingRange(context, timingSet, currentTime, candidateTiming)
+    : null
   const timing = suppressedRange ? null : candidateTiming
   const message = suppressedRange && candidateTiming
     ? `Read-along playback suppressed "${candidateTiming.text}" at ${currentTime.toFixed(2)}s.`

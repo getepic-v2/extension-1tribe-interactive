@@ -11,6 +11,7 @@ export interface ReadAlongSuppressedTimingRange {
   page: number
   reason?: string
   startTime: number
+  words?: string[]
 }
 
 export interface EpicTribeBookConfig {
@@ -225,6 +226,13 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
         page: 1,
         reason: 'I Can Find It page 1 audio continues past the visible cover credits while Epic timing rows can reuse cover words.',
         startTime: 10.35,
+        words: ['epic', 'i', 'can', 'find', 'it', 'spring', 'surprise'],
+      },
+      {
+        page: 1,
+        reason: 'I Can Find It page 1 can repeat the final illustrator surname after the visible credit has already highlighted.',
+        startTime: 11.35,
+        words: ['gibson'],
       },
     ],
     riveFolder: 'ICanFindIt_83936',
