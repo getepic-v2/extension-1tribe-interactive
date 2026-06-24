@@ -117,6 +117,7 @@ interface CommandHarnessPreviewLayer {
   canvas: HTMLCanvasElement
   file: CommandHarnessPreviewFile
   index: number
+  initialPlaybackMode: 'stateMachine' | 'idle'
   initialStateMachineStarted: boolean
   loaded: boolean
   renderSize: WordHotspotRenderSize | null
@@ -1864,6 +1865,18 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   let previewStateMachineAfterIdleLayer: CommandHarnessPreviewLayer | null = null
   let previewStateMachineAfterIdleTimer: number | null = null
   let previewLayerLoadSerial = 0
+  let commandHarnessSliderSettleTimer: number | null = null
+  let commandHarnessSliderTarget:
+    | {
+        direction: CommandHarnessTransitionDirection
+        page: number
+        reason: string
+      }
+    | null = null
+  const commandHarnessSliderSettleMs = Math.max(
+    80,
+    getNumberParam('tribeCommandHarnessSliderSettleMs', 320),
+  )
   let commandHarnessFrameResizeObserver: ResizeObserver | null = null
   let commandHarnessFrameResizeObservedHost: Element | null = null
   let commandHarnessFrameResizeObservedReader: Element | null = null
@@ -3111,6 +3124,16 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       if (commandHarnessCompletionHandoff) return
     }
 
+    if (payloadSource === 'slider') {
+      if (isPreviewEnabled) {
+        scheduleCommandHarnessSliderAlignment(page, eventSource, direction)
+        scheduleCommandHarnessFrameResizeSync(`${eventSource}: slider pageChange`)
+      }
+      return
+    }
+
+    clearCommandHarnessSliderSettle()
+
     if (isPreviewEnabled) {
       alignTwoLayerPreviewToReaderPage(page, eventSource, direction)
       scheduleCommandHarnessFrameResizeSync(`${eventSource}: pageChange`)
@@ -3732,6 +3755,15 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     if (!layer.rive) return null
 
     try {
+      if (layer.initialPlaybackMode === 'idle' && layer.role === 'active') {
+        return startCommandHarnessAnimation(
+          layer,
+          previewBackIdleAnimation,
+          ['Page_idle', 'Page_Idle', 'Page idle', 'PageIdle', 'idle', 'Idle'],
+          `${label} slider idle`,
+        )
+      }
+
       if (layer.role === 'active') {
         return startCommandHarnessStateMachine(layer, label)
       }
@@ -4083,6 +4115,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     index: number,
     canvas: HTMLCanvasElement,
     role: CommandHarnessPreviewLayer['role'],
+    options: { initialPlaybackMode?: CommandHarnessPreviewLayer['initialPlaybackMode'] } = {},
   ): CommandHarnessPreviewLayer | null => {
     const file = previewFiles[index]
     if (!file) return null
@@ -4091,6 +4124,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
       canvas,
       file,
       index,
+      initialPlaybackMode: options.initialPlaybackMode || 'stateMachine',
       initialStateMachineStarted: false,
       loaded: false,
       renderSize: null,
@@ -4306,6 +4340,49 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     clearPreviewStateMachineAfterIdle()
   }
 
+  const clearCommandHarnessSliderSettle = () => {
+    if (commandHarnessSliderSettleTimer !== null) {
+      window.clearTimeout(commandHarnessSliderSettleTimer)
+      commandHarnessSliderSettleTimer = null
+    }
+    commandHarnessSliderTarget = null
+  }
+
+  const cancelCommandHarnessSliderTransitionState = () => {
+    cancelPreviewTurnState()
+    cleanupPreviewLayer(previewNextLayer)
+    previewNextLayer = null
+    cleanupForwardPreloadLayer()
+    previewLayerLoadSerial += 1
+  }
+
+  const startCommandHarnessSliderIdle = (
+    layer: CommandHarnessPreviewLayer | null,
+    page: number,
+    reason: string,
+  ) => {
+    if (!layer) return null
+
+    layer.initialPlaybackMode = 'idle'
+    clearPreviewIdleAfterPageIn(layer)
+    clearPreviewStateMachineAfterIdle(layer)
+
+    if (!layer.loaded || !layer.rive) return null
+
+    layer.initialStateMachineStarted = true
+    const entry = startCommandHarnessAnimation(
+      layer,
+      previewBackIdleAnimation,
+      ['Page_idle', 'Page_Idle', 'Page idle', 'PageIdle', 'idle', 'Idle'],
+      `slider settled page ${page}: ${reason}`,
+    )
+    if (!entry.found) {
+      layer.rive.resizeDrawingSurfaceToCanvas(getEffectivePixelRatio(previewStage))
+      layer.rive.drawFrame()
+    }
+    return entry
+  }
+
   const queueForwardNeighborForActive = (spareCanvas: HTMLCanvasElement | null = null) => {
     if (!previewActiveLayer) return null
     const nextIndex = previewActiveLayer.index + 1
@@ -4320,6 +4397,82 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
     previewNextLayer = createPreviewLayer(nextIndex, spareCanvas || getSparePreviewCanvas(), 'next')
     return previewNextLayer
+  }
+
+  const alignTwoLayerPreviewToReaderPageWithoutAnimation = (page: number, reason: string) => {
+    if (!isPreviewEnabled) return
+
+    const targetIndex = getPreviewIndexForReaderPage(page)
+    const targetFile = previewFiles[targetIndex]
+    if (!targetFile) return
+
+    cancelCommandHarnessSliderTransitionState()
+
+    if (previewActiveLayer?.index === targetIndex) {
+      previewIndex = targetIndex
+      setPreviewCanvasRole(previewActiveLayer, 'active')
+      startCommandHarnessSliderIdle(previewActiveLayer, page, reason)
+      queueForwardNeighborForActive(getSparePreviewCanvas())
+      previewStatus.textContent = `Slider settled on ${targetFile.label}; kept active Rive page in idle.`
+      console.info('[1Tribe command harness] Slider settled on active Rive layer without page-turn animation.', {
+        activeFile: targetFile.file,
+        page,
+        reason,
+        targetIndex,
+      })
+      updateCommandButtons()
+      return
+    }
+
+    const previousActiveLayer = previewActiveLayer
+    const activeCanvas = previousActiveLayer?.canvas || previewCanvas
+    cleanupPreviewLayer(previousActiveLayer)
+    previewActiveLayer = null
+    previewIndex = targetIndex
+    previewActiveLayer = createPreviewLayer(targetIndex, activeCanvas, 'active', {
+      initialPlaybackMode: 'idle',
+    })
+    queueForwardNeighborForActive(getSparePreviewCanvas())
+    previewStatus.textContent = `Slider settled on ${targetFile.label}; loading target Rive page in idle.`
+    console.info('[1Tribe command harness] Slider rebuilt active Rive layer without page-turn animation.', {
+      activeFile: targetFile.file,
+      page,
+      reason,
+      targetIndex,
+    })
+    updateCommandButtons()
+  }
+
+  const scheduleCommandHarnessSliderAlignment = (
+    page: number,
+    reason: string,
+    direction: CommandHarnessTransitionDirection,
+  ) => {
+    if (!isPreviewEnabled) return
+
+    cancelCommandHarnessSliderTransitionState()
+    commandHarnessSliderTarget = { direction, page, reason }
+    previewStatus.textContent = `Slider moving to reader page ${page}; waiting for final target.`
+    console.info('[1Tribe command harness] Slider pageChange queued for direct idle alignment.', {
+      activeFile: previewActiveLayer?.file.file || null,
+      direction,
+      page,
+      reason,
+      settleMs: commandHarnessSliderSettleMs,
+    })
+    if (commandHarnessSliderSettleTimer !== null) {
+      window.clearTimeout(commandHarnessSliderSettleTimer)
+    }
+    commandHarnessSliderSettleTimer = window.setTimeout(() => {
+      const target = commandHarnessSliderTarget
+      commandHarnessSliderSettleTimer = null
+      commandHarnessSliderTarget = null
+      if (!target) return
+
+      alignTwoLayerPreviewToReaderPageWithoutAnimation(target.page, target.reason)
+      scheduleCommandHarnessFrameResizeSync(`${target.reason}: slider settled`)
+    }, commandHarnessSliderSettleMs)
+    updateCommandButtons()
   }
 
   const alignTwoLayerPreviewToReaderPage = (
@@ -5304,6 +5457,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     cleanupBackEdgeGutterListeners()
     cleanupNextEdgeGutterListeners()
     clearPendingPreviewSwapTimer()
+    clearCommandHarnessSliderSettle()
     if (previewLoadingFadeTimer !== null) window.clearTimeout(previewLoadingFadeTimer)
     previewLoadingFadeTimer = null
     if (previewSettleTimer !== null) window.clearTimeout(previewSettleTimer)
