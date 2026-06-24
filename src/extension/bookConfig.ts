@@ -220,6 +220,13 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     nativePassthroughLeftPages: [0],
     nativePassthroughRightPages: [25],
     previewFiles: createIcanFindItPreviewFiles(),
+    readAlongSuppressedTimingRanges: [
+      {
+        page: 1,
+        reason: 'I Can Find It page 1 audio continues past the visible cover credits while Epic timing rows can reuse cover words.',
+        startTime: 10.35,
+      },
+    ],
     riveFolder: 'ICanFindIt_83936',
     title: 'I Can Find It',
     wordHotspotFolder: 'ICanFindIt_83936',

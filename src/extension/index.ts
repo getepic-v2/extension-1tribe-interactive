@@ -2524,20 +2524,9 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     )
   }
 
-  const updateCommandHarnessCompletionPresentation = (reason: string) => {
+  const updateCommandHarnessCompletionPresentation = () => {
     const keepCompletionRiveVisible = commandHarnessCompletionHandoff && shouldKeepCommandHarnessCompletionRiveVisible()
     const useCompletionNativePassthrough = commandHarnessCompletionHandoff && shouldUseCompletionNativePassthrough
-    const finalRiveAlreadyActive =
-      previewFiles.length > 0 &&
-      previewActiveLayer?.index === previewFiles.length - 1 &&
-      previewNextLayer === null &&
-      pendingPreviewTurn === null &&
-      previewAnimatingTurn === null &&
-      previewSettleTimer === null
-
-    if (commandHarnessCompletionHandoff && keepCompletionRiveVisible && !finalRiveAlreadyActive) {
-      forceCommandHarnessFinalRiveSpread(reason)
-    }
 
     root.classList.toggle('is-completion-handoff', commandHarnessCompletionHandoff)
     previewStage.classList.toggle('is-completion-handoff', commandHarnessCompletionHandoff && !useCompletionNativePassthrough)
@@ -2548,7 +2537,6 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     )
 
     if (commandHarnessCompletionHandoff) {
-      hideCommandHarnessEdgeGutters()
       status.textContent = 'Epic completion handoff is active.'
       previewStatus.textContent = keepCompletionRiveVisible
         ? 'Epic completion handoff is active; final Rive spread remains on the native Rive side.'
@@ -2575,14 +2563,14 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
     if (commandHarnessCompletionHandoff === active) {
       commandHarnessCompletionReason = active ? reason : null
-      updateCommandHarnessCompletionPresentation(reason)
+      updateCommandHarnessCompletionPresentation()
       return getCommandHarnessCompletionDebug()
     }
 
     commandHarnessCompletionHandoff = active
     commandHarnessCompletionReason = active ? reason : null
     commandHarnessCompletionSince = active ? Date.now() : null
-    updateCommandHarnessCompletionPresentation(reason)
+    updateCommandHarnessCompletionPresentation()
     context.analytics.log(active ? '1tribe_command_harness_completion_handoff' : '1tribe_command_harness_completion_restore', {
       bookId: context.data.getBookId(),
       completionRiveReleased: commandHarnessCompletionRiveReleased,
@@ -3112,7 +3100,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
 
     const pagePreviewIndex = getPreviewIndexForReaderPage(page)
     const pageIsBeforeFinalRiveSpread = pagePreviewIndex < previewFiles.length - 1
-    if (commandHarnessCompletionHandoff && pageIsBeforeFinalRiveSpread) {
+    if (commandHarnessCompletionHandoff && pageIsBeforeFinalRiveSpread && !commandHarnessReadAgainRestorePending) {
       setCommandHarnessCompletionHandoff(false, `${eventSource}: pageChange returned to Rive spread`, {
         page,
         previewIndex: pagePreviewIndex,
@@ -4316,53 +4304,6 @@ function activateCommandHarness(context: ExtensionContext): () => void {
     previewAnimatingTurn = null
     clearPreviewIdleAfterPageIn()
     clearPreviewStateMachineAfterIdle()
-  }
-
-  function forceCommandHarnessFinalRiveSpread(reason: string): void {
-    if (!isPreviewEnabled || !previewFiles.length) return
-
-    const targetIndex = previewFiles.length - 1
-    const targetFile = previewFiles[targetIndex]
-    if (!targetFile) return
-
-    cancelPreviewTurnState()
-    cleanupForwardPreloadLayer()
-
-    const promoteLayer = (layer: CommandHarnessPreviewLayer) => {
-      const outgoingLayer = previewActiveLayer && previewActiveLayer !== layer ? previewActiveLayer : null
-      if (outgoingLayer) cleanupPreviewLayer(outgoingLayer)
-      if (previewNextLayer && previewNextLayer !== layer) cleanupPreviewLayer(previewNextLayer)
-
-      previewActiveLayer = layer
-      previewNextLayer = null
-      previewIndex = targetIndex
-      setPreviewCanvasRole(layer, 'active')
-      if (layer.loaded && layer.rive) {
-        startCommandHarnessStateMachine(layer, `completion native passthrough: ${reason}`)
-      }
-    }
-
-    if (previewActiveLayer?.index === targetIndex) {
-      promoteLayer(previewActiveLayer)
-    } else if (previewNextLayer?.index === targetIndex) {
-      promoteLayer(previewNextLayer)
-    } else {
-      const canvas = previewActiveLayer?.canvas || previewCanvas
-      cleanupPreviewLayer(previewActiveLayer)
-      cleanupPreviewLayer(previewNextLayer)
-      previewActiveLayer = createPreviewLayer(targetIndex, canvas, 'active')
-      previewNextLayer = null
-      previewIndex = targetIndex
-    }
-
-    previewStatus.textContent = `Epic completion visible; ${targetFile.label} remains active on the Rive side.`
-    console.info('[1Tribe command harness] Forced final Rive spread for Epic completion native passthrough.', {
-      activeFile: previewActiveLayer?.file.file || null,
-      activeIndex: previewActiveLayer?.index ?? null,
-      reason,
-      targetFile: targetFile.file,
-      targetIndex,
-    })
   }
 
   const queueForwardNeighborForActive = (spareCanvas: HTMLCanvasElement | null = null) => {
