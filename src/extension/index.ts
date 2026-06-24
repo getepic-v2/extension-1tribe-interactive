@@ -1489,15 +1489,6 @@ function installDebugCommands(context: ExtensionContext): () => void {
   console.info(
     '[1Tribe debug] Console helpers enabled: tribeLookupWord("doorbell"), tribeNextPage(), tribePreviousPage(), tribeWordHotspotDebug(), tribeActiveHotspotPageAudit(), tribeCheckEpicPageLayout(), tribeProbeReadAlongTimings(), tribeExportFullReadAlongTranscript(), tribeAuditReadAlongWords(), tribeProbeEpicPlayback(), tribeStartEpicPlaybackFollow(), tribeStopEpicPlaybackFollow(), tribeReadAlongStatus(), tribeDebugStatus()',
   )
-  const epicPlaybackPageChangeCleanup = context.events.on('pageChange', () => {
-    if (shouldUseReadAlong()) {
-      void ensureEpicPlaybackFollowForCurrentPage(context, 'pageChange')
-    }
-  })
-  if (shouldUseReadAlong()) {
-    void ensureEpicPlaybackFollowForCurrentPage(context, 'initial follow')
-  }
-
   return () => {
     if (debugWindow.TribeDebug === debugApi) {
       delete debugWindow.TribeDebug
@@ -1569,9 +1560,26 @@ function installDebugCommands(context: ExtensionContext): () => void {
     if (debugWindow.tribeCheckEpicPageLayout === epicPageLayoutCheck) {
       delete debugWindow.tribeCheckEpicPageLayout
     }
-    epicPlaybackPageChangeCleanup()
     cleanupReadAlongDebugState()
     delete debugWindow.tribeDebugStatus
+  }
+}
+
+function installReadAlongPlaybackFollow(context: ExtensionContext): () => void {
+  if (!shouldUseReadAlong()) return () => {}
+
+  void ensureEpicPlaybackFollowForCurrentPage(context, 'initial follow')
+
+  const cleanupPageChange = context.events.on('pageChange', () => {
+    if (shouldUseReadAlong()) {
+      void ensureEpicPlaybackFollowForCurrentPage(context, 'pageChange')
+    }
+  })
+
+  return () => {
+    cleanupPageChange()
+    stopFollowingEpicPlayback()
+    cleanupReadAlongDebugState()
   }
 }
 
@@ -1802,7 +1810,7 @@ function activateCommandHarness(context: ExtensionContext): () => void {
   const previewInputResetMs = getNumberParam('tribeCommandHarnessInputResetMs', previewAnimationHoldMs)
   const edgeNavRatio = Math.max(0, Math.min(24, getNumberParam('tribeCommandHarnessEdgeNavPct', 5))) / 100
   const shouldShowCommandHarnessDebugBadge =
-    isPreviewEnabled && getBooleanParam('tribeCommandHarnessDebugBadge', shouldExposeDebugGlobals())
+    isPreviewEnabled && getBooleanParam('tribeCommandHarnessDebugBadge', false)
   const clampCommandHarnessCanvasBleedPct = (value: number, fallback = 0) =>
     Number.isFinite(value) ? Math.max(0, Math.min(40, value)) : fallback
   const initialCanvasBleedXPct = clampCommandHarnessCanvasBleedPct(
@@ -12779,6 +12787,7 @@ extension = {
 
     const cleanupWordLookupDismissGuard = installWordLookupDismissGuard(context)
     const cleanupDebugCommands = installDebugCommands(context)
+    const cleanupReadAlongPlaybackFollow = installReadAlongPlaybackFollow(context)
     const readingRoot = context.slots.get('reading-area')
     readAlongHotspotRoots.add(readingRoot)
     const cleanupReadAlongHotspotRoot = () => {
@@ -12793,6 +12802,7 @@ extension = {
       return () => {
         cleanupStandaloneWordHotspots()
         cleanupCommandHarness()
+        cleanupReadAlongPlaybackFollow()
         cleanupDebugCommands()
         cleanupReadAlongHotspotRoot()
         cleanupWordLookupDismissGuard()
@@ -12807,6 +12817,7 @@ extension = {
       return () => {
         cleanupStandaloneWordHotspots()
         cleanupSimpleRiveOverlay()
+        cleanupReadAlongPlaybackFollow()
         cleanupDebugCommands()
         cleanupReadAlongHotspotRoot()
         cleanupWordLookupDismissGuard()
@@ -13039,6 +13050,7 @@ extension = {
 
     cleanupCallbacks.push(
       cleanupDebugCommands,
+      cleanupReadAlongPlaybackFollow,
       cleanupReadAlongHotspotRoot,
       cleanupWordLookupDismissGuard,
       cleanupStandaloneWordHotspots,
