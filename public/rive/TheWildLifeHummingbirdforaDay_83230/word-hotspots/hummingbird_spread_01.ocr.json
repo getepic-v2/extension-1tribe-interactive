@@ -33,6 +33,50 @@
       "height": 60
     },
     {
+      "height": 157,
+      "width": 1065,
+      "x": 1656,
+      "y": 433,
+      "page": 1,
+      "reviewFile": "hummingbird_spread_01.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "HUMMINGBIRD"
+    },
+    {
+      "height": 120,
+      "width": 241,
+      "x": 1910,
+      "y": 604,
+      "page": 1,
+      "reviewFile": "hummingbird_spread_01.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "FOR"
+    },
+    {
+      "height": 101,
+      "width": 78,
+      "x": 2178,
+      "y": 619,
+      "page": 1,
+      "reviewFile": "hummingbird_spread_01.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "A"
+    },
+    {
+      "height": 122,
+      "width": 250,
+      "x": 2279,
+      "y": 608,
+      "page": 1,
+      "reviewFile": "hummingbird_spread_01.riv",
+      "reviewSource": "calibrated-transcript-coords-candidate",
+      "source": "ocr-review-approved",
+      "text": "DAY"
+    },
+    {
       "text": "Hummingbird",
       "x": 1835,
       "y": 1733,
@@ -136,50 +180,6 @@
       "y": 1965,
       "width": 104,
       "height": 40
-    },
-    {
-      "height": 157,
-      "width": 1065,
-      "x": 1656,
-      "y": 433,
-      "page": 1,
-      "reviewFile": "hummingbird_spread_01.riv",
-      "reviewSource": "calibrated-transcript-coords-candidate",
-      "source": "ocr-review-approved",
-      "text": "HUMMINGBIRD"
-    },
-    {
-      "height": 120,
-      "width": 241,
-      "x": 1910,
-      "y": 604,
-      "page": 1,
-      "reviewFile": "hummingbird_spread_01.riv",
-      "reviewSource": "calibrated-transcript-coords-candidate",
-      "source": "ocr-review-approved",
-      "text": "FOR"
-    },
-    {
-      "height": 122,
-      "width": 250,
-      "x": 2279,
-      "y": 608,
-      "page": 1,
-      "reviewFile": "hummingbird_spread_01.riv",
-      "reviewSource": "calibrated-transcript-coords-candidate",
-      "source": "ocr-review-approved",
-      "text": "DAY"
-    },
-    {
-      "height": 101,
-      "width": 78,
-      "x": 2178,
-      "y": 619,
-      "page": 1,
-      "reviewFile": "hummingbird_spread_01.riv",
-      "reviewSource": "calibrated-transcript-coords-candidate",
-      "source": "ocr-review-approved",
-      "text": "A"
     }
   ]
 }

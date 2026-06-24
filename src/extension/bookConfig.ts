@@ -6,12 +6,20 @@ export interface CommandHarnessPreviewFile {
   stateMachine: string
 }
 
+export interface ReadAlongSuppressedTimingRange {
+  endTime?: number
+  page: number
+  reason?: string
+  startTime: number
+}
+
 export interface EpicTribeBookConfig {
   bookId: number
   defaultParams: Record<string, string>
   nativePassthroughLeftPages?: number[]
   nativePassthroughRightPages?: number[]
   previewFiles: CommandHarnessPreviewFile[]
+  readAlongSuppressedTimingRanges?: ReadAlongSuppressedTimingRange[]
   readAlongTranscriptFile?: string
   riveFolder: string
   title: string
@@ -222,6 +230,14 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     nativePassthroughLeftPages: [0],
     nativePassthroughRightPages: [35],
     previewFiles: createHummingbirdPreviewFiles(),
+    readAlongSuppressedTimingRanges: [
+      {
+        endTime: 16,
+        page: 1,
+        reason: 'Hummingbird page 1 audio reads performer credits while Epic timing rows repeat the title.',
+        startTime: 13,
+      },
+    ],
     readAlongTranscriptFile: 'hummingbird-83230-transcript.json',
     riveFolder: 'TheWildLifeHummingbirdforaDay_83230',
     title: 'Hummingbird For A Day',

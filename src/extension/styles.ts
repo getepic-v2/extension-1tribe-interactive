@@ -177,6 +177,25 @@ export const commandHarnessStyles = `
     visibility: hidden;
   }
 
+  .tribe-command-harness__stage.is-reader-overlay.is-completion-native-passthrough {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  .tribe-command-harness__stage.is-reader-overlay.is-completion-rive-released {
+    opacity: 0;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
+
+  .tribe-command-harness__stage.is-reader-overlay.is-completion-rive-released
+    .tribe-command-harness__canvas,
+  .tribe-command-harness__stage.is-reader-overlay.is-completion-rive-released
+    .tribe-command-harness__debug-badge {
+    pointer-events: none !important;
+  }
+
   .tribe-command-harness__canvas {
     position: absolute;
     inset: 0;
