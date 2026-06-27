@@ -1,4 +1,5 @@
 import type { ExtensionContext, WordTimingData, WordTimingEntry } from './types'
+import { getEpicTribeBookConfig, type ReadAlongSuppressedTimingRange } from './bookConfig'
 import { cleanWordHotspotText } from './wordHotspotText'
 
 interface ReadAlongRuntimeDeps {
@@ -570,6 +571,52 @@ function findReadAlongTimingIndexAtTime(
   }
 
   return activeIndex >= 0 ? activeIndex : lingeringIndex
+}
+
+function getReadAlongSuppressedTimingRange(
+  context: ExtensionContext,
+  timingSet: ReadAlongTimingSet | null,
+  currentTime: number,
+  timing: ReadAlongWordTiming | null = null,
+): ReadAlongSuppressedTimingRange | null {
+  if (!timingSet || !Number.isFinite(currentTime)) return null
+
+  const ranges = getEpicTribeBookConfig(context.data.getBookId())?.readAlongSuppressedTimingRanges || []
+  return (
+    ranges.find((range) => {
+      const page = Number(range.page)
+      if (!Number.isFinite(page) || Math.trunc(page) !== timingSet.page) return false
+
+      const startTime = Number(range.startTime)
+      if (!Number.isFinite(startTime) || currentTime < startTime) return false
+
+      const endTime = range.endTime === undefined ? Number.POSITIVE_INFINITY : Number(range.endTime)
+      if (Number.isFinite(endTime) && currentTime > endTime) return false
+
+      const suppressedWords = range.words || []
+      if (!suppressedWords.length) return true
+      if (!timing) return false
+
+      const timingAliases = new Set([
+        normalizeReadAlongWordAlias(timing.word),
+        normalizeReadAlongWordAlias(timing.text),
+        normalizeReadAlongWordAlias(timing.nativeText),
+      ].filter(Boolean))
+      return suppressedWords.some((word) => timingAliases.has(normalizeReadAlongWordAlias(word)))
+    }) || null
+  )
+}
+
+function summarizeReadAlongSuppression(range: ReadAlongSuppressedTimingRange | null): Record<string, unknown> | null {
+  if (!range) return null
+
+  return {
+    endTime: range.endTime ?? null,
+    page: range.page,
+    reason: range.reason || null,
+    startTime: range.startTime,
+    words: range.words || null,
+  }
 }
 
 function getReadAlongTimingOccurrenceIndex(timings: ReadAlongWordTiming[], timingIndex: number): number {
@@ -1877,10 +1924,16 @@ export async function previewReadAlongAtTime(
 
   const lingerSeconds = Math.max(0, getNumberParam('tribeReadAlongPreviewLingerMs', 120) / 1000)
   const timingIndex = findReadAlongTimingIndexAtTime(timingSet.timings, safeTime, lingerSeconds)
-  const timing = timingSet.timings[timingIndex] || null
-  const message = timing
-    ? `Read-along time preview matched "${timing.text}" at ${safeTime.toFixed(2)}s.`
-    : `Read-along time preview found no word at ${safeTime.toFixed(2)}s.`
+  const candidateTiming = timingSet.timings[timingIndex] || null
+  const suppressedRange = candidateTiming
+    ? getReadAlongSuppressedTimingRange(context, timingSet, safeTime, candidateTiming)
+    : null
+  const timing = suppressedRange ? null : candidateTiming
+  const message = suppressedRange && candidateTiming
+    ? `Read-along time preview suppressed "${candidateTiming.text}" at ${safeTime.toFixed(2)}s.`
+    : timing
+      ? `Read-along time preview matched "${timing.text}" at ${safeTime.toFixed(2)}s.`
+      : `Read-along time preview found no word at ${safeTime.toFixed(2)}s.`
   const result: Record<string, unknown> = {
     currentPage: context.data.getCurrentPage(),
     currentTime: safeTime,
@@ -1908,6 +1961,16 @@ export async function previewReadAlongAtTime(
         : null,
     requestedPage,
     scriptUrl: getReadAlongExtensionScriptUrl(),
+    suppressedTiming: suppressedRange && candidateTiming
+      ? {
+          duration: candidateTiming.duration,
+          endTime: candidateTiming.endTime,
+          text: candidateTiming.text,
+          time: candidateTiming.time,
+          word: candidateTiming.word,
+        }
+      : null,
+    suppression: summarizeReadAlongSuppression(suppressedRange),
     timing: timing
       ? {
           duration: timing.duration,
@@ -1918,7 +1981,7 @@ export async function previewReadAlongAtTime(
         }
       : null,
     timingCount: timingSet.timings.length,
-    timingIndex,
+    timingIndex: timing ? timingIndex : -1,
     timingPage: timingSet.page,
     word: timing?.word ?? null,
   }
@@ -1930,7 +1993,7 @@ export async function previewReadAlongAtTime(
     message,
     page: timingSet.page,
     timingCount: timingSet.timings.length,
-    timingIndex,
+    timingIndex: timing ? timingIndex : -1,
     word: timing?.word ?? null,
   })
 
@@ -2091,7 +2154,12 @@ function updateEpicPlaybackStatus(
     timingSet && Number.isFinite(numericTime)
       ? findReadAlongTimingIndexAtTime(timingSet.timings, numericTime, lingerSeconds)
       : -1
-  const timing = timingSet?.timings[timingIndex] || null
+  const candidateTiming = timingSet?.timings[timingIndex] || null
+  const suppressedRange =
+    candidateTiming && Number.isFinite(numericTime)
+      ? getReadAlongSuppressedTimingRange(context, timingSet, numericTime, candidateTiming)
+      : null
+  const timing = suppressedRange ? null : candidateTiming
   const shouldShowActiveWord = Boolean(media && !media.paused && !media.ended && timing)
   const activeButton = tribeEpicPlaybackFollowing
     ? shouldShowActiveWord
@@ -2112,8 +2180,10 @@ function updateEpicPlaybackStatus(
     media: mediaSnapshot,
     mediaCoversTiming,
     message: media
-      ? activeTiming
-        ? `Epic playback matched "${activeTiming.text}" at ${Number(numericTime).toFixed(2)}s.`
+      ? suppressedRange && candidateTiming
+        ? `Epic playback suppressed "${candidateTiming.text}" at ${Number(numericTime).toFixed(2)}s.`
+        : activeTiming
+          ? `Epic playback matched "${activeTiming.text}" at ${Number(numericTime).toFixed(2)}s.`
         : !mediaCoversTiming
           ? 'Epic playback media is shorter than the selected timing rows; waiting for the matching audio.'
         : media.paused
@@ -2125,6 +2195,16 @@ function updateEpicPlaybackStatus(
     paused: media ? media.paused : null,
     pollActive: Boolean(tribeEpicPlaybackPollTimer || (media && !media.paused && !media.ended)),
     reason,
+    suppressedTiming: suppressedRange && candidateTiming
+      ? {
+          duration: candidateTiming.duration,
+          endTime: candidateTiming.endTime,
+          text: candidateTiming.text,
+          time: candidateTiming.time,
+          word: candidateTiming.word,
+        }
+      : null,
+    suppression: summarizeReadAlongSuppression(suppressedRange),
     timingCount: timingSet?.timings.length || 0,
     timingIndex: activeTiming ? timingIndex : -1,
     timingPage: timingSet?.page ?? null,
@@ -2843,10 +2923,16 @@ function updateReadAlongPlaybackStatus(
   const currentTime = Number.isFinite(audio.currentTime) ? audio.currentTime : 0
   const lingerSeconds = Math.max(0, getNumberParam('tribeReadAlongPreviewLingerMs', 120) / 1000)
   const timingIndex = timingSet ? findReadAlongTimingIndexAtTime(timingSet.timings, currentTime, lingerSeconds) : -1
-  const timing = timingSet?.timings[timingIndex] || null
-  const message = timing
-    ? `Read-along playback matched "${timing.text}" at ${currentTime.toFixed(2)}s.`
-    : `Read-along playback ${audio.paused ? 'paused' : 'active'} at ${currentTime.toFixed(2)}s.`
+  const candidateTiming = timingSet?.timings[timingIndex] || null
+  const suppressedRange = candidateTiming
+    ? getReadAlongSuppressedTimingRange(context, timingSet, currentTime, candidateTiming)
+    : null
+  const timing = suppressedRange ? null : candidateTiming
+  const message = suppressedRange && candidateTiming
+    ? `Read-along playback suppressed "${candidateTiming.text}" at ${currentTime.toFixed(2)}s.`
+    : timing
+      ? `Read-along playback matched "${timing.text}" at ${currentTime.toFixed(2)}s.`
+      : `Read-along playback ${audio.paused ? 'paused' : 'active'} at ${currentTime.toFixed(2)}s.`
   const status: Record<string, unknown> = {
     audioPage,
     audioUrl: audio.currentSrc || audio.src || null,
@@ -2863,6 +2949,16 @@ function updateReadAlongPlaybackStatus(
     paused: audio.paused,
     readyState: audio.readyState,
     reason,
+    suppressedTiming: suppressedRange && candidateTiming
+      ? {
+          duration: candidateTiming.duration,
+          endTime: candidateTiming.endTime,
+          text: candidateTiming.text,
+          time: candidateTiming.time,
+          word: candidateTiming.word,
+        }
+      : null,
+    suppression: summarizeReadAlongSuppression(suppressedRange),
     timing: timing
       ? {
           duration: timing.duration,
@@ -2873,7 +2969,7 @@ function updateReadAlongPlaybackStatus(
         }
       : null,
     timingCount: timingSet?.timings.length || 0,
-    timingIndex,
+    timingIndex: timing ? timingIndex : -1,
     timingPage: timingSet?.page ?? null,
     word: timing?.word ?? null,
   }
@@ -2888,7 +2984,7 @@ function updateReadAlongPlaybackStatus(
     message,
     page: timingSet?.page ?? audioPage,
     timingCount: timingSet?.timings.length || 0,
-    timingIndex,
+    timingIndex: timing ? timingIndex : -1,
     word: timing?.word ?? null,
   })
 

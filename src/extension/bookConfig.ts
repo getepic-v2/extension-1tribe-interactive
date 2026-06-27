@@ -6,12 +6,21 @@ export interface CommandHarnessPreviewFile {
   stateMachine: string
 }
 
+export interface ReadAlongSuppressedTimingRange {
+  endTime?: number
+  page: number
+  reason?: string
+  startTime: number
+  words?: string[]
+}
+
 export interface EpicTribeBookConfig {
   bookId: number
   defaultParams: Record<string, string>
   nativePassthroughLeftPages?: number[]
   nativePassthroughRightPages?: number[]
   previewFiles: CommandHarnessPreviewFile[]
+  readAlongSuppressedTimingRanges?: ReadAlongSuppressedTimingRange[]
   readAlongTranscriptFile?: string
   riveFolder: string
   title: string
@@ -135,13 +144,15 @@ const CREEPY_CAFETORIUM_READER_DEFAULTS: Record<string, string> = {
 }
 
 function createIcanFindItPreviewFiles(): CommandHarnessPreviewFile[] {
-  return ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24'].map((spread) => {
+  const spreads = ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24']
+  return spreads.map((spread, index) => {
     const spreadNumber = Number(spread)
     const readerStart = spread === '01' ? 0 : spreadNumber
+    const isFinalRiveSpread = index === spreads.length - 1
     return {
       file: `rive/ICanFindIt_83936/83936_spread_${spread}.riv`,
       label: `spread ${spread}`,
-      readerEnd: readerStart + 1,
+      readerEnd: isFinalRiveSpread ? readerStart : readerStart + 1,
       readerStart,
       stateMachine:
         spread === '01'
@@ -152,10 +163,12 @@ function createIcanFindItPreviewFiles(): CommandHarnessPreviewFile[] {
 }
 
 function createHummingbirdPreviewFiles(): CommandHarnessPreviewFile[] {
-  return ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24', '26', '28', '30', '32', '34'].map(
-    (spread) => {
+  const spreads = ['01', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '24', '26', '28', '30', '32', '34']
+  return spreads.map(
+    (spread, index) => {
       const spreadNumber = Number(spread)
       const readerStart = spread === '01' ? 0 : spreadNumber
+      const isFinalRiveSpread = index === spreads.length - 1
       const stateMachine =
         spread === '01'
           ? 'HummingBird_spread_00&01'
@@ -166,7 +179,7 @@ function createHummingbirdPreviewFiles(): CommandHarnessPreviewFile[] {
       return {
         file: `rive/TheWildLifeHummingbirdforaDay_83230/hummingbird_spread_${spread}.riv`,
         label: `spread ${spread}`,
-        readerEnd: readerStart + 1,
+        readerEnd: isFinalRiveSpread ? readerStart : readerStart + 1,
         readerStart,
         stateMachine,
       }
@@ -210,8 +223,22 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     bookId: ICAN_FIND_IT_BOOK_ID,
     defaultParams: ICAN_FIND_IT_READER_DEFAULTS,
     nativePassthroughLeftPages: [0],
-    nativePassthroughRightPages: [25],
+    nativePassthroughRightPages: [24],
     previewFiles: createIcanFindItPreviewFiles(),
+    readAlongSuppressedTimingRanges: [
+      {
+        page: 1,
+        reason: 'I Can Find It page 1 audio continues past the visible cover credits while Epic timing rows can reuse cover words.',
+        startTime: 10.35,
+        words: ['epic', 'i', 'can', 'find', 'it', 'spring', 'surprise'],
+      },
+      {
+        page: 1,
+        reason: 'I Can Find It page 1 can repeat the final illustrator surname after the visible credit has already highlighted.',
+        startTime: 11.35,
+        words: ['gibson'],
+      },
+    ],
     riveFolder: 'ICanFindIt_83936',
     title: 'I Can Find It',
     wordHotspotFolder: 'ICanFindIt_83936',
@@ -220,8 +247,16 @@ const EPIC_1TRIBE_BOOK_CONFIGS: Record<number, EpicTribeBookConfig> = {
     bookId: HUMMINGBIRD_BOOK_ID,
     defaultParams: HUMMINGBIRD_READER_DEFAULTS,
     nativePassthroughLeftPages: [0],
-    nativePassthroughRightPages: [35],
+    nativePassthroughRightPages: [34],
     previewFiles: createHummingbirdPreviewFiles(),
+    readAlongSuppressedTimingRanges: [
+      {
+        endTime: 16,
+        page: 1,
+        reason: 'Hummingbird page 1 audio reads performer credits while Epic timing rows repeat the title.',
+        startTime: 13,
+      },
+    ],
     readAlongTranscriptFile: 'hummingbird-83230-transcript.json',
     riveFolder: 'TheWildLifeHummingbirdforaDay_83230',
     title: 'Hummingbird For A Day',
